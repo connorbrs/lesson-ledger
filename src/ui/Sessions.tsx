@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import { useLive } from '../data/live';
+import { expenseTotalsBySession } from '../data/expenses';
 import { listSessionsInRange, loadNameMaps } from '../data/sessions';
 import { containsDate, formatDayHeader, periodRange, rangeLabel, shiftPeriod, todayLocal, type PeriodKind } from '../domain/dates';
 import { groupSessionsByDate, sessionRowText } from '../domain/session';
@@ -19,7 +20,10 @@ export function Sessions(props: { onLogSession: () => void; onEdit?: (session: S
   const today = todayLocal();
   const range = periodRange(kind, anchor);
   const data = useLive(
-    async () => ({ sessions: await listSessionsInRange(range.start, range.end), names: await loadNameMaps() }),
+    async () => {
+      const sessions = await listSessionsInRange(range.start, range.end);
+      return { sessions, names: await loadNameMaps(), expenseTotals: await expenseTotalsBySession(sessions.map((s) => s.id)) };
+    },
     [range.start, range.end],
   );
   const unit = kind === 'week' ? 'week' : 'month';
@@ -58,7 +62,7 @@ export function Sessions(props: { onLogSession: () => void; onEdit?: (session: S
             groupSessionsByDate(data.sessions).map((day) => (
               <Group key={day.date} header={formatDayHeader(day.date)}>
                 {day.sessions.map((s) => {
-                  const text = sessionRowText(s, data.names.students);
+                  const text = sessionRowText(s, data.names.students, data.expenseTotals[s.id]);
                   return (
                     <button key={s.id} type="button" class="row session-row" onClick={() => props.onEdit?.(s)}>
                       <span class="session-names">
@@ -68,6 +72,7 @@ export function Sessions(props: { onLogSession: () => void; onEdit?: (session: S
                       <span class="session-amounts">
                         <span>{text.lesson}</span>
                         <span class="tone-secondary">{text.activity}</span>
+                        {text.expenses && <span class="tone-secondary">{text.expenses}</span>}
                       </span>
                     </button>
                   );

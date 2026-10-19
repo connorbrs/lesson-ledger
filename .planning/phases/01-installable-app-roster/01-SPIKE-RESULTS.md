@@ -45,3 +45,15 @@ Note: safari-tab-data is separate because the family "Safari Test" (added in the
 ## Follow-up
 
 APP-03 7-day-eviction question (RESEARCH A7): to be observed over several days after install. Append later readings of persisted() and estimate() here when the user sends them.
+
+### 2026-10-19 final-build acceptance (Plan 04)
+
+Device: iPhone 14 Pro, iOS 26.6.1. Reported by the user after the final deploy and the marker build.
+
+- Settings on the installed app: Persistent storage Granted (persisted() true, matching the spike reading); Storage used and exact Build values not reported.
+- Update prompt: Update available card appeared in standalone mode and Update App applied the update (Build changed).
+- Force-quit nuance: after a full force-quit the waiting service worker activates on the next launch, so the card does not return. Standard service-worker lifecycle; no data lost. The prompt governs updates while the app stays open.
+- Safari tab: the You're in Safari strip showed once Safari stopped serving the stale Plan 02 build (closed the tabs, reopened); the installed app shows no strip. Confirms the separate-data finding is reflected in the UI.
+- Airplane-mode relaunch with data intact: ok. 200% zoom: no horizontal scroll. Dark mode: follows system.
+- Safe area: the top bar was too tall (empty nav row on tab roots); fixed in 8891d94, pending the user's on-phone confirmation after the next push.
+- Still unobserved: the multi-day eviction question (APP-03, RESEARCH A7), device-model, and a numeric safari-tab-persisted reading.

@@ -243,6 +243,15 @@ describe('Start, Finish and Duration sync (D-02, D-03)', () => {
     expect(setDuration(setStartTime(base(), null), 60)).toMatchObject({ startTime: null, endTime: null, duration: 60 });
   });
 
+  it('setDuration ignores values outside whole minutes 0–999', () => {
+    const f = base();
+    expect(setDuration(f, 1000)).toBe(f);
+    expect(setDuration(f, 1234)).toBe(f);
+    expect(setDuration(f, -1)).toBe(f);
+    expect(setDuration(f, 2.5)).toBe(f);
+    expect(setDuration(f, 999)).toMatchObject({ duration: 999 });
+  });
+
   it('a Start past midnight leaves Finish null, blocks Save and shows the midnight caption', () => {
     const f = setStartTime(base(), '23:30');
     expect(f.endTime).toBeNull();

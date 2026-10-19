@@ -178,6 +178,8 @@ export function setFinishTime(form: FormState, endTime: string): FormState {
 
 /** D-02: Duration moves Finish from Start. With no Start, only Duration changes. */
 export function setDuration(form: FormState, duration: number): FormState {
+  // Whole minutes 0–999, the same range as the other minute fields; anything else is ignored.
+  if (!Number.isInteger(duration) || duration < 0 || duration > 999) return form;
   if (form.startTime === null) return { ...form, duration };
   return { ...form, duration, endTime: finishFrom(form.startTime, duration) };
 }

@@ -246,6 +246,7 @@ Expense editor and receipt viewer are pushed layers. Inside the Edit Session she
 | Add photo | "Add Photo" |
 | Processing | "Processing…" (status: "Processing photos") |
 | Photo too large | "This photo is too large to add. Choose a smaller photo." |
+| Backup too large (D-08) | "This backup is too large to save (over 150 MB)." (alert on Back Up Now; OK only) |
 | Photo cannot be read (one) | "This photo couldn't be read and wasn't added. Choose it again or take a new photo." |
 | Photo cannot be read (several) | "{N} photos couldn't be read and weren't added. Choose them again or take new photos." |
 | Viewer title | "Receipt {n} of {N}" |

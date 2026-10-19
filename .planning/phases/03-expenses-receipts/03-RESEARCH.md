@@ -327,13 +327,13 @@ Performance on Node 24 (not iPhone): 20 × 300 KB encoded in 24 ms and decoded i
 | A11 | Node 24 `structuredClone` of Blob matches CI; `>=22.12.0` engines unverified | Code Examples | Tests may fail on Node 22 |
 | A12 | `createImageBitmap` with `imageOrientation` behaves on iOS 26 | Pitfall 6 | Only if the bitmap path is chosen |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Export size ceiling.** `MAX_BACKUP_BYTES` is 50,000,000 and restore refuses anything larger. At about 300 KB per photo (A8), the cap holds about 125 photos. Recommendation: keep the cap, pre-check in export, and refuse with a clear message. That needs one new UI-SPEC string ("This backup is too large to save. Nothing was changed."); UI-SPEC has none. Raising the cap is the alternative, but it raises restore memory.
-2. **Pixel count versus file size.** UI-SPEC caps source at 25 MB, but decode memory tracks pixels (A6). Recommendation: add a pixel-count check that reuses the "too large" caption, and confirm with the user because it extends UI-SPEC.
-3. **Thumbnail memory.** The grid shows 72 px tiles, but each `<img>` may decode the full 1600 px JPEG (about 7.7 MB each, 154 MB for 20). Measure on device with 20 receipts. If it fails, store a 240 px thumbnail Blob per photo, which adds backup size.
-4. **Amount cap.** UI-SPEC assumption 3 says "No cap on the amount." The safe-integer guard implements that. Confirm this reading.
-5. **HEIC delivery.** Whether iOS hands the page HEIC or JPEG with `accept="image/*"` is device-dependent. If HEIC arrives and `img.decode()` fails, the choice is a decoder package (new dependency, legitimacy gate) or a "cannot read" caption.
+1. **Export size ceiling.** `MAX_BACKUP_BYTES` is 50,000,000 and restore refuses anything larger. At about 300 KB per photo (A8), the cap holds about 125 photos. Recommendation: keep the cap, pre-check in export, and refuse with a clear message. That needs one new UI-SPEC string ("This backup is too large to save. Nothing was changed."); UI-SPEC has none. Raising the cap is the alternative, but it raises restore memory. **RESOLVED:** CONTEXT D-08 — cap raised to 150 MB, pre-check before share, refusal copy.
+2. **Pixel count versus file size.** UI-SPEC caps source at 25 MB, but decode memory tracks pixels (A6). Recommendation: add a pixel-count check that reuses the "too large" caption, and confirm with the user because it extends UI-SPEC. **RESOLVED:** CONTEXT Claude's Discretion — pixel guard (over 50 MP) reusing the "too large" caption.
+3. **Thumbnail memory.** The grid shows 72 px tiles, but each `<img>` may decode the full 1600 px JPEG (about 7.7 MB each, 154 MB for 20). Measure on device with 20 receipts. If it fails, store a 240 px thumbnail Blob per photo, which adds backup size. **RESOLVED:** CONTEXT Claude's Discretion — full JPEG via object URL by default; 240 px thumb Blob only if the device spike shows trouble.
+4. **Amount cap.** UI-SPEC assumption 3 says "No cap on the amount." The safe-integer guard implements that. Confirm this reading. **RESOLVED:** CONTEXT Claude's Discretion — Number.isSafeInteger cents (UI "no cap").
+5. **HEIC delivery.** Whether iOS hands the page HEIC or JPEG with `accept="image/*"` is device-dependent. If HEIC arrives and `img.decode()` fails, the choice is a decoder package (new dependency, legitimacy gate) or a "cannot read" caption. **RESOLVED:** CONTEXT Claude's Discretion — undecodable HEIC shows the existing "can't read" caption; no decoder package.
 
 ## Environment Availability
 

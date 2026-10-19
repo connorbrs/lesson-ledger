@@ -94,7 +94,25 @@ Plans:
   4. User can edit or delete an expense and its receipt photos, and deleting leaves no orphaned photos behind
   5. Receipt photos are included in a backup and reappear intact after a restore (completes the receipt half of DATA-02/DATA-03 from Phase 2)
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+
+**Wave 1**
+- [ ] 03-01-PLAN.md — Domain and data tracer: an expense (amount, description) saved with a session in one transaction, totalled for the Sessions row and cascade-deleted; complete update, shares and no-orphan rules with tested save, caption and footer predicates
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 03-02-PLAN.md — Log tab UI: Expenses group, Expense editor, Log Session saves expenses, "Expenses $12.50" Sessions row line
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 03-03-PLAN.md — Edit Session sheet loads, edits and deletes expenses (counted delete alert), plus the two-family split override
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 03-04-PLAN.md — Receipt photos: sequential downscale pipeline, Receipts group and thumbnails, viewer and Remove Photo
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 03-05-PLAN.md — Backup version 2 with receipt photos, validated restore of version 1 and 2 (closes WR-02), 150 MB cap with an OK-only alert, on-device check
+
 **UI hint**: yes
 **Device spike**: On a real iPhone from the home-screen app: camera capture and library pick, HEIC photos from the library, portrait and landscape orientation, and memory behavior with about 20 receipts.
 
@@ -124,7 +142,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Installable App & Roster | 5/5 | Complete    | 2026-10-19 |
 | 2. Session Logging & Backup | 3/3 | Complete    | 2026-10-19 |
-| 3. Expenses & Receipts | 0/TBD | Not started | - |
+| 3. Expenses & Receipts | 0/5 | Planned | - |
 | 4. Family Summaries & Overview | 0/TBD | Not started | - |
 
 ## Backlog

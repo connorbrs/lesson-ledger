@@ -1,14 +1,18 @@
 ---
-status: diagnosed
+status: testing
 phase: 01-installable-app-roster
 source: [01-VERIFICATION.md]
 started: 2026-10-19T00:00:00Z
-updated: 2026-10-19T09:02:44.595Z
+updated: 2026-10-19T09:22:53Z
 ---
 
 ## Current Test
 
-[testing complete]
+number: 11
+name: Delete archived records on the phone (HV-A/HV-B, gap G-01-10)
+expected: |
+  Archived screen offers Delete Student / Delete Family for no-history records with the confirm popup; note turns into Delete Family; returns to People when empty.
+awaiting: user response
 
 ## Tests
 
@@ -54,12 +58,20 @@ result: issue
 reported: "P-a, P-b, P-c, P-e pass. P-d: accept cold-launch update activation as platform behaviour. W-1: add Delete for archived records with no history."
 severity: minor
 
+### 11. Delete archived records on the phone (HV-A/HV-B, gap G-01-10)
+expected: On the Archived screen (light and dark), an archived student with no lessons shows Delete Student; confirming asks "Delete “{name}”?" with Cancel / Delete Student and removes it; the family's note then turns into Delete Family, which removes the family too; nothing behind the popup can be tapped; when nothing archived is left it returns to People.
+result: [pending]
+
+### 12. Blocked-family note wording (HV-D)
+expected: Decide: keep "This family still has students. Delete its archived students first." for all cases (lesson history only exists from Phase 2), or reword it for students that have lessons in Phase 2.
+result: [pending]
+
 ## Summary
 
-total: 10
+total: 12
 passed: 9
 issues: 1
-pending: 0
+pending: 2
 skipped: 0
 blocked: 0
 

@@ -2,10 +2,10 @@ import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../src/data/db';
 import { createFamily } from '../src/data/families';
-import { createSession, getLastSession, listSessions } from '../src/data/sessions';
+import { createSession, getLastSession, listSessions, listSessionsInRange } from '../src/data/sessions';
 import { archiveStudent, createStudent, deleteStudent, studentHasHistory } from '../src/data/students';
-import { SessionError, type SessionFields } from '../src/domain/session';
-import type { Attendee } from '../src/domain/types';
+import { groupSessionsByDate, sessionRowText, SessionError, type SessionFields } from '../src/domain/session';
+import type { Attendee, Session } from '../src/domain/types';
 
 let a1: Attendee, a2: Attendee, b1: Attendee;
 
@@ -145,5 +145,71 @@ describe('getLastSession', () => {
     await db.sessions.add({ ...base, id: 'zzz' });
     await db.sessions.add({ ...base, id: 'aaa' });
     expect((await getLastSession())?.id).toBe(base.id > 'zzz' ? base.id : 'zzz');
+  });
+});
+
+describe('listSessionsInRange', () => {
+  it('is inclusive on both dates and splits the adjacent days into their weeks and months', async () => {
+    const sun = await createSession({ ...swim([a1]), date: '2026-10-18' });
+    const mon = await createSession({ ...swim([a1]), date: '2026-10-19' });
+    const oct31 = await createSession({ ...swim([a1]), date: '2026-10-31' });
+    const nov1 = await createSession({ ...swim([a1]), date: '2026-11-01' });
+    const ids = async (start: string, end: string) => (await listSessionsInRange(start, end)).map((s) => s.id).sort();
+    expect(await ids('2026-10-12', '2026-10-18')).toEqual([sun.id]);
+    expect(await ids('2026-10-19', '2026-10-25')).toEqual([mon.id]);
+    expect(await ids('2026-10-01', '2026-10-31')).toEqual([sun.id, mon.id, oct31.id].sort());
+    expect(await ids('2026-11-01', '2026-11-30')).toEqual([nov1.id]);
+  });
+  it('returns [] for an empty range', async () => {
+    await createSession(swim([a1]));
+    expect(await listSessionsInRange('2030-01-01', '2030-01-07')).toEqual([]);
+  });
+});
+
+describe('groupSessionsByDate and sessionRowText', () => {
+  const row = (over: Partial<Session>): Session => ({
+    id: 'x',
+    date: '2026-10-19',
+    startTime: null,
+    subject: 'swim',
+    attendees: [{ studentId: 's1', familyId: 'F' }],
+    credits: [{ familyId: 'F', lesson: 'full', activity: 'full' }],
+    lessonMinutes: 45,
+    activityMinutes: 0,
+    travelMinutes: 0,
+    createdAt: 1,
+    updatedAt: 1,
+    ...over,
+  });
+
+  it('orders days ascending and, inside a day, timed sessions by start time with untimed last in logging order', () => {
+    const late = row({ id: 'late', startTime: '16:30', createdAt: 1 });
+    const early = row({ id: 'early', startTime: '09:00', createdAt: 9 });
+    const untimedFirst = row({ id: 'u1', createdAt: 2 });
+    const untimedSecond = row({ id: 'u2', createdAt: 3 });
+    const nextDay = row({ id: 'next', date: '2026-10-20', startTime: '07:00' });
+    const groups = groupSessionsByDate([nextDay, untimedSecond, late, untimedFirst, early]);
+    expect(groups.map((g) => g.date)).toEqual(['2026-10-19', '2026-10-20']);
+    expect(groups[0].sessions.map((s) => s.id)).toEqual(['early', 'late', 'u1', 'u2']);
+  });
+
+  it('breaks a start-time tie by createdAt, then id', () => {
+    const b = row({ id: 'b', startTime: '10:00', createdAt: 5 });
+    const a = row({ id: 'a', startTime: '10:00', createdAt: 5 });
+    const older = row({ id: 'z', startTime: '10:00', createdAt: 4 });
+    expect(groupSessionsByDate([b, a, older])[0].sessions.map((s) => s.id)).toEqual(['z', 'a', 'b']);
+  });
+
+  it('gives names, a meta line, and the two amount lines with none for zero', () => {
+    const text = sessionRowText(row({ startTime: '16:30', attendees: [{ studentId: 's1', familyId: 'F' }, { studentId: 's2', familyId: 'F' }], lessonMinutes: 90, activityMinutes: 30 }), { s1: 'Ava', s2: 'Ben' });
+    expect(text).toEqual({ names: 'Ava, Ben', meta: 'Swim · 4:30 PM', lesson: 'Lesson 1.5 h (1:30)', activity: 'Activity 0.5 h (0:30)' });
+    expect(sessionRowText(row({ activityMinutes: 0 }), { s1: 'Ava' })).toMatchObject({ meta: 'Swim', activity: 'Activity none' });
+  });
+
+  it('never shows travel minutes or a credited figure in a row', () => {
+    const text = sessionRowText(row({ travelMinutes: 777, lessonMinutes: 45, credits: [{ familyId: 'F', lesson: 'half', activity: 'half' }] }), { s1: 'Ava' });
+    const all = Object.values(text).join(' | ');
+    expect(all).not.toContain('777');
+    expect(all).not.toContain('22.5');
   });
 });

@@ -72,7 +72,7 @@ export function App() {
         ) : tab === 'log' ? (
           <Log draft={logDraft} setDraft={setLogDraft} onOpenPicker={() => setLogPickerOpen(true)} />
         ) : tab === 'sessions' ? (
-          <Sessions />
+          <Sessions onLogSession={() => setTab('log')} />
         ) : tab === 'people' ? (
           <People
             onAddFamily={() => setSheet({ kind: 'family' })}

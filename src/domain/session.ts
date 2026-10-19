@@ -1,5 +1,6 @@
-import { isValidTime, isValidYmd } from './dates';
-import { MINUTES_MAX, type Attendee, type CreditMode, type FamilyCredit, type Subject } from './types';
+import { formatTime12, isValidTime, isValidYmd } from './dates';
+import { formatHours } from './hours';
+import { MINUTES_MAX, type Attendee, type CreditMode, type FamilyCredit, type Session, type Subject } from './types';
 
 export type SessionErrorCode =
   | 'date-invalid'
@@ -67,4 +68,51 @@ export function validateSessionFields(input: SessionFields): SessionCheck {
 /** Half is exactly half: 45 gives 22.5, 1 gives 0.5. Never rounded. */
 export function creditedMinutes(minutes: number, mode: CreditMode): number {
   return mode === 'half' ? minutes / 2 : minutes;
+}
+
+/** Within a day: start time ascending, untimed last; ties and untimed sessions in logging order (createdAt, then id). */
+function compareSessions(a: Session, b: Session): number {
+  if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+  if (a.startTime !== b.startTime) {
+    if (a.startTime === null) return 1;
+    if (b.startTime === null) return -1;
+    return a.startTime < b.startTime ? -1 : 1;
+  }
+  return a.createdAt - b.createdAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+}
+
+export interface DayGroup {
+  date: string;
+  sessions: Session[];
+}
+
+/** Days in ascending order, each with its sessions in day order. */
+export function groupSessionsByDate(sessions: Session[]): DayGroup[] {
+  const groups: DayGroup[] = [];
+  for (const s of [...sessions].sort(compareSessions)) {
+    const last = groups[groups.length - 1];
+    if (last && last.date === s.date) last.sessions.push(s);
+    else groups.push({ date: s.date, sessions: [s] });
+  }
+  return groups;
+}
+
+export interface SessionRowText {
+  names: string;
+  meta: string;
+  lesson: string;
+  activity: string;
+}
+
+const SUBJECT_LABEL: Record<Subject, string> = { swim: 'Swim', math: 'Math' };
+
+/** Compact row copy. Travel and credited minutes never appear here (D-08). */
+export function sessionRowText(s: Session, nameById: Record<string, string>): SessionRowText {
+  const amount = (label: string, minutes: number) => (minutes === 0 ? `${label} none` : `${label} ${formatHours(minutes)}`);
+  return {
+    names: s.attendees.map((a) => nameById[a.studentId]).filter(Boolean).join(', '),
+    meta: s.startTime ? `${SUBJECT_LABEL[s.subject]} · ${formatTime12(s.startTime)}` : SUBJECT_LABEL[s.subject],
+    lesson: amount('Lesson', s.lessonMinutes),
+    activity: amount('Activity', s.activityMinutes),
+  };
 }

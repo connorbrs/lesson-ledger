@@ -1,0 +1,92 @@
+# Roadmap: Lesson Log
+
+## Overview
+
+Lesson Log goes from an empty GitHub Pages URL to a trusted tool for sending parents correct hours. Phase 1 gets an installable, offline-first app with the family and student roster onto the iPhone. Phase 2 makes the core loop real: log a session in seconds, with the shared-swim credit rules, and put backup and restore in place as soon as real data exists. Phase 3 adds expenses and receipt photos, after backup is proven and before the PDF depends on them. Phase 4 delivers the payoff: per-family summaries as pasteable text and a PDF with receipts, plus the instructor's own overview totals. Each phase ends with something usable on the phone and checked on a real device, because the main unknowns are iOS behaviors, not application logic.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: Installable App & Roster** - Home-screen offline app with families, students and storage status
+- [ ] **Phase 2: Session Logging & Backup** - Quick session entry with shared-swim credit, plus backup and restore
+- [ ] **Phase 3: Expenses & Receipts** - Expenses with receipt photos and shared-expense splitting
+- [ ] **Phase 4: Family Summaries & Overview** - Per-family text and PDF summaries, plus personal overview totals
+
+## Phase Details
+
+### Phase 1: Installable App & Roster
+**Goal:** As a private instructor, I want to install the app and set up my families and students, so that I have an offline roster ready.
+**Mode:** mvp
+**Depends on**: Nothing (first phase)
+**Requirements**: APP-01, APP-02, APP-03, APP-04, APP-05, FAM-01, FAM-02, FAM-03, FAM-04, DATA-01
+**Success Criteria** (what must be TRUE):
+  1. User can open the GitHub Pages URL in Safari, choose Add to Home Screen, and launch the app full screen with its own icon, with no Apple developer account and no expiry or re-install
+  2. With airplane mode on, user can force-quit and relaunch the home-screen app and it still opens and works, with previously entered families and students intact
+  3. If user opens the URL in a Safari tab, they see a warning that their data lives in the home-screen app; after a new version is deployed, the home-screen app tells them an update is available and one tap applies it
+  4. User can create, edit and archive families (name used on summaries, reporting period weekly Mon-Sun or monthly calendar month) and students (each belonging to one family); archived records are hidden from active lists but keep their history, and only records with no history can be hard-deleted
+  5. Settings shows whether persistent storage was granted and how much storage is used
+**Plans**: TBD
+**UI hint**: yes
+**Device spike**: On a real iPhone: install from the live URL, go offline and relaunch, read `persisted()` and `estimate()` over several days, round-trip a ~2 MB JPEG Blob through IndexedDB, and deploy a marker build to test the update prompt in standalone mode.
+
+### Phase 2: Session Logging & Backup
+**Goal:** As a private instructor, I want to log a session in seconds and back up my data, so that hours are accurate and never lost.
+**Mode:** mvp
+**Depends on**: Phase 1
+**Requirements**: LOG-01, LOG-02, LOG-03, LOG-04, LOG-05, LOG-06, LOG-07, LOG-08, DATA-02, DATA-03, DATA-04
+**Success Criteria** (what must be TRUE):
+  1. User can log a session in a few taps: date defaults to today, then subject, student(s), and lesson, activity and travel minutes; the form pre-fills the last-used student, subject and minutes, offers 30/45/60 presets, hides archived students, and accepts a session with only activity minutes
+  2. A math session accepts exactly one student; a swim session accepts one or two students, possibly from different families, and two siblings from the same family count once for that family; for a two-family swim session, user chooses per family whether lesson minutes count full or half, and separately whether activity minutes count full or half, and sees the credited minutes per family
+  3. User can view sessions by period and edit or delete any session
+  4. User can export a full backup as one file via the iOS share sheet from the home-screen app, and the home screen shows "last backup N days ago"
+  5. User can restore from a backup file: a corrupt or unrecognised file is rejected with existing data untouched, and a valid file replaces everything or nothing
+**Plans**: TBD
+**UI hint**: yes
+**Device spike**: On a real iPhone: share a backup file via the share sheet from the home-screen app, pick it back through the file picker, and verify a full round trip. The backup format should carry an attachments slot from day one so Phase 3 receipts need no format change.
+
+### Phase 3: Expenses & Receipts
+**Goal:** As a private instructor, I want to attach expenses and receipt photos to sessions, so that families see what I paid.
+**Mode:** mvp
+**Depends on**: Phase 2
+**Requirements**: EXP-01, EXP-02, EXP-03, EXP-04, EXP-05
+**Success Criteria** (what must be TRUE):
+  1. User can add one or more expenses (amount, description) to a swim or math session
+  2. User can attach zero or more receipt photos to an expense from the camera or the photo library, see them as thumbnails, and still see them offline after relaunch
+  3. For a shared session, an expense is split equally between the families by default, user can override the split per expense, and the amounts always add up exactly to the expense total
+  4. User can edit or delete an expense and its receipt photos, and deleting leaves no orphaned photos behind
+  5. Receipt photos are included in a backup and reappear intact after a restore (completes the receipt half of DATA-02/DATA-03 from Phase 2)
+**Plans**: TBD
+**UI hint**: yes
+**Device spike**: On a real iPhone from the home-screen app: camera capture and library pick, HEIC photos from the library, portrait and landscape orientation, and memory behavior with about 20 receipts.
+
+### Phase 4: Family Summaries & Overview
+**Goal:** As a private instructor, I want to send families correct summaries and see my own totals, so that billing and my records are right.
+**Mode:** mvp
+**Depends on**: Phase 3
+**Requirements**: SUM-01, SUM-02, SUM-03, SUM-04, SUM-05, SUM-06, SUM-07, SUM-08, VIEW-01, VIEW-02
+**Success Criteria** (what must be TRUE):
+  1. User can pick a family and period (defaulting to that family's most recent complete week or month) and see lesson hours and activity hours separately, travel excluded, with sessions and expenses itemized and every hour value shown like "1.5 h (1:30)"
+  2. User can copy the summary as a plain-text message and paste it into Messages
+  3. User can generate a PDF of the summary including receipt images and share it through the iOS share sheet from the home-screen app (download fallback), and its totals are identical to the text summary
+  4. Before sending, user sees warnings for expenses without a receipt and sessions with zero minutes; user can mark the period as sent, and editing a session or expense in it afterwards flags the period as changed since sent
+  5. User can see their own lesson, activity and travel totals per week and per month, broken down by student, family and subject, where subject totals count actual time once and family/student totals use credited time
+**Plans**: TBD
+**UI hint**: yes
+**Device spike**: On a real iPhone from the home-screen app: `navigator.share` with a PDF to Messages and Mail, a monthly PDF with 30+ receipts, and jsPDF memory on the oldest supported phone. If jsPDF fails on device, swap to pdf-lib inside the PDF module only.
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 → 2 → 3 → 4
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Installable App & Roster | 0/TBD | Not started | - |
+| 2. Session Logging & Backup | 0/TBD | Not started | - |
+| 3. Expenses & Receipts | 0/TBD | Not started | - |
+| 4. Family Summaries & Overview | 0/TBD | Not started | - |

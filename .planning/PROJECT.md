@@ -68,6 +68,14 @@ Logging a session right after it ends takes seconds, and the per-family weekly/m
 | Shared-lesson split chosen per session (full or half) | Practice varies by situation | — Pending |
 | Reporting period configured per family | Some families weekly, some monthly | — Pending |
 | Summary as both text and PDF with receipts | Text for the quick message, PDF carries receipt images | — Pending |
+| Weekly periods Mon–Sun; monthly = calendar month | User choice | — Pending |
+| Hours shown as "1.5 h (1:30)" | Both formats requested | — Pending |
+| Half credit chosen per family per session, separately for lesson and activity minutes | Varies by situation | — Pending |
+| Half credit kept exact (22.5 min), not rounded | User choice; display rounds only | — Pending |
+| Shared expenses split equally by default, override per expense | User choice | — Pending |
+| 0..n receipt photos per expense | User choice | — Pending |
+| GitHub Pages URL, no custom domain | Personal use; origin must not change once data exists | — Pending |
+| Unencrypted backup file may leave the phone (Files/iCloud/Mail) | User accepted | — Pending |
 | Karpathy coding guidelines apply (multica-ai/andrej-karpathy-skills, already in global CLAUDE.md) | User preference: simplicity, surgical changes | — Pending |
 
 ## Evolution

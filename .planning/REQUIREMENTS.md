@@ -88,12 +88,48 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| APP-01 | Phase 1 | Pending |
+| APP-02 | Phase 1 | Pending |
+| APP-03 | Phase 1 | Pending |
+| APP-04 | Phase 1 | Pending |
+| APP-05 | Phase 1 | Pending |
+| FAM-01 | Phase 1 | Pending |
+| FAM-02 | Phase 1 | Pending |
+| FAM-03 | Phase 1 | Pending |
+| FAM-04 | Phase 1 | Pending |
+| LOG-01 | Phase 2 | Pending |
+| LOG-02 | Phase 2 | Pending |
+| LOG-03 | Phase 2 | Pending |
+| LOG-04 | Phase 2 | Pending |
+| LOG-05 | Phase 2 | Pending |
+| LOG-06 | Phase 2 | Pending |
+| LOG-07 | Phase 2 | Pending |
+| LOG-08 | Phase 2 | Pending |
+| EXP-01 | Phase 3 | Pending |
+| EXP-02 | Phase 3 | Pending |
+| EXP-03 | Phase 3 | Pending |
+| EXP-04 | Phase 3 | Pending |
+| EXP-05 | Phase 3 | Pending |
+| SUM-01 | Phase 4 | Pending |
+| SUM-02 | Phase 4 | Pending |
+| SUM-03 | Phase 4 | Pending |
+| SUM-04 | Phase 4 | Pending |
+| SUM-05 | Phase 4 | Pending |
+| SUM-06 | Phase 4 | Pending |
+| SUM-07 | Phase 4 | Pending |
+| SUM-08 | Phase 4 | Pending |
+| VIEW-01 | Phase 4 | Pending |
+| VIEW-02 | Phase 4 | Pending |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 2 | Pending |
+| DATA-03 | Phase 2 | Pending |
+| DATA-04 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 36 total
-- Mapped to phases: 0
-- Unmapped: 36 ⚠️
+- Mapped to phases: 36
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-10-18*
-*Last updated: 2026-10-18 after initial definition*
+*Last updated: 2026-10-18 after roadmap creation (traceability added)*

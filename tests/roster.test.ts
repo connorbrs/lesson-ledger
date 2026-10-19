@@ -266,6 +266,17 @@ describe('student repo', () => {
     await expect(archiveStudent('missing')).rejects.toMatchObject({ code: 'not-found' });
   });
 
+  it('refuses to restore a student whose family is archived, until the family is restored', async () => {
+    const f = await createFamily('Test Family A');
+    const s = await createStudent({ familyId: f.id, name: 'Test Student A' });
+    await archiveStudent(s.id);
+    await archiveFamily(f.id);
+    await expect(restoreStudent(s.id)).rejects.toMatchObject({ code: 'family-missing' });
+    expect((await getStudent(s.id))?.archivedAt).not.toBeNull();
+    await restoreFamily(f.id);
+    expect((await restoreStudent(s.id)).archivedAt).toBeNull();
+  });
+
   it('deletes a student with no sessions and blocks one with a session', async () => {
     const f = await createFamily('Test Family A');
     const s = await createStudent({ familyId: f.id, name: 'Test Student A' });

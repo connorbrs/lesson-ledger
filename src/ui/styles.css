@@ -388,6 +388,12 @@ button.row:active:not(:disabled) {
   min-width: 0;
 }
 
+.row-sub {
+  display: block;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
 .row-value {
   flex: 0 1 auto;
   min-width: 0;

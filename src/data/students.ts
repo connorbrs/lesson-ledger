@@ -49,10 +49,15 @@ export async function updateStudent(id: string, input: StudentInput): Promise<St
 }
 
 async function setArchived(id: string, archived: boolean): Promise<Student> {
-  return db.transaction('rw', db.students, async () => {
+  return db.transaction('rw', db.students, db.families, async () => {
     const current = await db.students.get(id);
     if (!current) throw new RosterError('not-found');
     if ((current.archivedAt !== null) === archived) return current;
+    if (!archived) {
+      // An active student must have an active family, or it would appear on no screen. Restore the family first.
+      const family = await db.families.get(current.familyId);
+      if (!family || family.archivedAt !== null) throw new RosterError('family-missing');
+    }
     const now = Date.now();
     const next: Student = { ...current, archivedAt: archived ? now : null, updatedAt: Math.max(now, current.updatedAt + 1) };
     await db.students.put(next);

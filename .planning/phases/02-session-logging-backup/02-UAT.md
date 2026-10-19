@@ -53,3 +53,4 @@ blocked: 0
 - W-A: accepted 2026-10-19 — pre-change sessions whose Start + Duration crosses midnight open with Finish empty; the user adjusts Start/Duration if ever edited.
 - Verification human items 4 (CR-01 midnight rollover) and 7a (judgment-tier prohibitions): closed by the user 2026-10-19 on code + test evidence.
 - Re-verification BLOCKER (Duration >999) fixed in 79b5a97 (setDuration guard + test).
+- W-C: accepted 2026-10-19 — sessions longer than 999 min (16h39) set via Finish can't be saved and show no caption; unrealistic for lessons.

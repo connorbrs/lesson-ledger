@@ -204,7 +204,7 @@ One focal point per screen and state. Everything else on the screen is subordina
 | Family sheet (new/edit) | Modal sheet; title "New Family" or "Edit Family" | Name field; Weekly/Monthly segmented control; footer copy; in edit mode: Archive row and Delete row (when allowed). | Cancel or Save dismisses. Cancel with unsaved changes asks to discard. |
 | Student sheet (new/edit) | Modal sheet; title "New Student" or "Edit Student" | Name field; Family row (value = family name or "Choose Family"); Default Subject Swim / Math / Both segmented control (Both on a new student); Private Notes multi-line field (17px, grows with content, no length cap); in edit mode: Archive row and Delete row (when allowed). | Family row pushes Family picker. Cancel or Save dismisses. |
 | Family picker | Push inside Student sheet; title "Family" | Grouped list of active families; checkmark on the chosen one. | Tap a family → selects it and pops back to the Student sheet. |
-| Archived | Push from People | Two groups: "Families" and "Students" (archived only). Each row has a "Restore Family" or "Restore Student" action. | Back to People. |
+| Archived | Push from People | Two groups: "Families" and "Students" (archived only). Each row has a "Restore Family" or "Restore Student" action. A record that can be deleted also has a destructive "Delete Family" or "Delete Student" row directly beneath it; a family that still has students shows the note from the Copywriting Contract in that place. | Back to People. Tap Delete → delete alert. |
 | Settings (tab root) | Tab bar | Large title "Settings". Group "Storage": Persistent storage; Storage used. Group "About": Build. | No navigation in Phase 1. |
 | Safari-tab banner | Overlay strip at top of content | Shown only when not standalone. | "Show Install Steps" expands the steps in place. Not dismissible. |
 | Update banner | Card at top of content | Shown when a new service worker is waiting. | "Update App" applies it. "Not Now" hides it until the next launch. |
@@ -286,8 +286,10 @@ One focal point per screen and state. Everything else on the screen is subordina
 | Archive student footer | "Archiving hides this student from quick entry. Their history is kept." |
 | Archive action labels | "Archive Family", "Archive Student" (text-primary, no confirmation; reversible from Archived) |
 | Delete blocked, family has students | "This family still has students. Remove them before deleting the family." (Label footer; Delete hidden) |
+| Delete blocked, archived family has students | "This family still has students. Delete its archived students first." Archived screen only: one non-interactive note row directly beneath the family's Restore row, in place of the Delete Family row, Label size and text-secondary. It is a note row rather than a group footer because the Families group lists several families. |
+| Delete blocked, archived family has only active students | "This family still has active students. Restore it to manage them." Same placement and style as the row above; shown when none of the family's students is archived. |
 | Delete blocked, has history | "This has sessions, so it can only be archived." (Label footer; Delete hidden. Not reachable in Phase 1, implemented for Phase 2.) |
-| Delete action labels | "Delete Family", "Delete Student" (destructive) |
+| Delete action labels | "Delete Family", "Delete Student" (destructive). On the Archived screen each label is a full-width destructive row directly beneath the record's Restore row, shown only when the record has no history (a student with no sessions, a family with no students); it opens the same delete alert as the sheets. |
 | Archived screen title | "Archived" (back button "People"). Group headers "Families" and "Students". Row actions "Restore Family" and "Restore Student" (accent). |
 | Persistent storage value | "Granted", "Not granted", "Not supported", "Checking…" (while the first read is pending, up to 2s) |
 | Persistent storage footer, granted | "iOS is less likely to clear Lesson Ledger's data when storage runs low." |

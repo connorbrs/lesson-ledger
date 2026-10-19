@@ -10,8 +10,8 @@
 - [x] **APP-01**: User can add the app to the iPhone home screen from Safari and open it like an app (icon, full screen)
 - [x] **APP-02**: App works fully offline after first load
 - [x] **APP-03**: App never expires and needs no Apple developer account (static GitHub Pages hosting)
-- [ ] **APP-04**: When opened in a Safari tab instead of the home-screen app, user sees a warning that data lives in the home-screen app
-- [ ] **APP-05**: User is told when a new app version is available and can update with one tap
+- [x] **APP-04**: When opened in a Safari tab instead of the home-screen app, user sees a warning that data lives in the home-screen app
+- [x] **APP-05**: User is told when a new app version is available and can update with one tap
 
 ### Families & Students
 
@@ -57,7 +57,7 @@
 
 ### Data Safety
 
-- [ ] **DATA-01**: App requests persistent storage on launch and shows storage status and usage in Settings
+- [x] **DATA-01**: App requests persistent storage on launch and shows storage status and usage in Settings
 - [ ] **DATA-02**: User can export a full backup (all records + receipt photos) as one file via the share sheet
 - [ ] **DATA-03**: User can restore from a backup file; the file is validated before any existing data is replaced, and the restore is all-or-nothing
 - [ ] **DATA-04**: Home screen shows "last backup N days ago" as a reminder
@@ -91,8 +91,8 @@
 | APP-01 | Phase 1 | Complete |
 | APP-02 | Phase 1 | Complete |
 | APP-03 | Phase 1 | Complete |
-| APP-04 | Phase 1 | Pending |
-| APP-05 | Phase 1 | Pending |
+| APP-04 | Phase 1 | Complete |
+| APP-05 | Phase 1 | Complete |
 | FAM-01 | Phase 1 | Complete |
 | FAM-02 | Phase 1 | Complete |
 | FAM-03 | Phase 1 | Complete |
@@ -120,7 +120,7 @@
 | SUM-08 | Phase 4 | Pending |
 | VIEW-01 | Phase 4 | Pending |
 | VIEW-02 | Phase 4 | Pending |
-| DATA-01 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 2 | Pending |
 | DATA-03 | Phase 2 | Pending |
 | DATA-04 | Phase 2 | Pending |

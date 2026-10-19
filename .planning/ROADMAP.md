@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. User can create, edit and archive families (name used on summaries, reporting period weekly Mon-Sun or monthly calendar month) and students (each belonging to one family); archived records are hidden from active lists but keep their history, and only records with no history can be hard-deleted
   5. Settings shows whether persistent storage was granted and how much storage is used
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 
 Plans:
 **Wave 1**
@@ -45,7 +45,7 @@ Plans:
 - [x] 01-03-PLAN.md — Roster: validation, family and student repos with delete guards, People, Family, Student and Archived UI
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 01-04-PLAN.md — Storage status, Safari-tab banner, update prompt, Records error, harness removal, final on-device acceptance
+- [x] 01-04-PLAN.md — Storage status, Safari-tab banner, update prompt, Records error, harness removal, final on-device acceptance
 
 **UI hint**: yes
 **Device spike**: On a real iPhone: install from the live URL, go offline and relaunch, read `persisted()` and `estimate()` over several days, round-trip a ~2 MB JPEG Blob through IndexedDB, and deploy a marker build to test the update prompt in standalone mode.
@@ -108,7 +108,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Installable App & Roster | 3/4 | In Progress | - |
+| 1. Installable App & Roster | 4/4 | In Progress | - |
 | 2. Session Logging & Backup | 0/TBD | Not started | - |
 | 3. Expenses & Receipts | 0/TBD | Not started | - |
 | 4. Family Summaries & Overview | 0/TBD | Not started | - |

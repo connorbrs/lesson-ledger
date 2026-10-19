@@ -35,6 +35,26 @@ export function PeopleIcon() {
   );
 }
 
+export function LogIcon() {
+  return (
+    <svg {...svgProps}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v8 M8 12h8" />
+    </svg>
+  );
+}
+
+export function SessionsIcon() {
+  return (
+    <svg {...svgProps}>
+      <path d="M9 6h11 M9 12h11 M9 18h11" />
+      <circle cx="4" cy="6" r="1.25" />
+      <circle cx="4" cy="12" r="1.25" />
+      <circle cx="4" cy="18" r="1.25" />
+    </svg>
+  );
+}
+
 export function GearIcon() {
   return (
     <svg {...svgProps}>
@@ -90,10 +110,12 @@ export function NavBar(props: {
   );
 }
 
-export type TabId = 'people' | 'settings';
+export type TabId = 'log' | 'sessions' | 'people' | 'settings';
 
 export function TabBar(props: { tab: TabId; onSelect: (tab: TabId) => void }) {
   const tabs: { id: TabId; label: string; icon: ComponentChildren }[] = [
+    { id: 'log', label: 'Log', icon: <LogIcon /> },
+    { id: 'sessions', label: 'Sessions', icon: <SessionsIcon /> },
     { id: 'people', label: 'People', icon: <PeopleIcon /> },
     { id: 'settings', label: 'Settings', icon: <GearIcon /> },
   ];

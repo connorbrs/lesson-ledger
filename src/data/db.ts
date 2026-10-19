@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Family, Student } from '../domain/types';
+import type { Family, Session, Student } from '../domain/types';
 
 export const DB_NAME = 'lesson-ledger-v1'; // D-04
 
@@ -7,19 +7,13 @@ interface IdRow {
   id: string;
 }
 
-/**
- * The part of a session row that deleteStudent depends on (Phase 2 types the rest).
- * Typing it here means renaming `attendees` or `studentId` breaks the build instead of silently
- * letting the history guard allow a delete.
- */
-export interface SessionRow extends IdRow {
-  attendees: { studentId: string }[];
-}
+/** The sessions table row. deleteStudent reads `attendees[].studentId`, so renaming either breaks the build. */
+export type SessionRow = Session;
 
 export const db = new Dexie(DB_NAME) as Dexie & {
   families: EntityTable<Family, 'id'>;
   students: EntityTable<Student, 'id'>;
-  sessions: EntityTable<SessionRow, 'id'>; // remaining fields typed in Phase 2
+  sessions: EntityTable<SessionRow, 'id'>;
   expenses: EntityTable<IdRow, 'id'>; // typed in Phase 3
   attachments: EntityTable<IdRow, 'id'>; // typed in Phase 3
   meta: EntityTable<{ key: string; value: unknown }, 'key'>;

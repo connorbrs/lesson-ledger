@@ -291,7 +291,7 @@ describe('student repo', () => {
     const s = await createStudent({ familyId: f.id, name: 'Test Student A' });
     const t = await createStudent({ familyId: f.id, name: 'Test Student B' });
     expect(await studentHasHistory(s.id)).toBe(false);
-    await db.sessions.add({ id: 'session-1', attendees: [{ studentId: t.id }] });
+    await db.sessions.add({ id: 'session-1', attendees: [{ studentId: t.id }] } as never);
     expect(await studentHasHistory(t.id)).toBe(true);
     expect(await studentHasHistory(s.id)).toBe(false);
     expect(await deleteStudent(t.id)).toEqual({ ok: false, reason: 'has-history' });
@@ -336,7 +336,7 @@ describe('archived delete path', () => {
   it('keeps an archived student with a session, and its archived family, undeletable', async () => {
     const f = await createFamily('Test Family A');
     const s = await createStudent({ familyId: f.id, name: 'Test Student A' });
-    await db.sessions.add({ id: 'session-1', attendees: [{ studentId: s.id }] });
+    await db.sessions.add({ id: 'session-1', attendees: [{ studentId: s.id }] } as never);
     await archiveStudent(s.id);
     await archiveFamily(f.id);
     expect(await studentHasHistory(s.id)).toBe(true);

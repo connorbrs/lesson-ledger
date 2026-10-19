@@ -261,7 +261,7 @@ p {
   height: calc(var(--tab-height) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   background: var(--color-surface);
   border-top: var(--hairline) solid var(--color-separator);
 }
@@ -814,4 +814,8 @@ button.row:active:not(:disabled) {
 
 .primary-button.full {
   width: 100%;
+}
+
+.log-actions {
+  padding: 0 var(--space-md);
 }

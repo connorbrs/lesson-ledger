@@ -4,11 +4,15 @@ import { isStandalone } from '../pwa/standalone';
 import { ensurePersistence } from '../pwa/storage';
 import { useAppUpdate } from '../pwa/useAppUpdate';
 import { Archived, ArchivedDeleteAlert, type ArchivedDeleteTarget } from './Archived';
+import { blankForm, type FormState } from '../domain/sessionForm';
 import { FamilySheet } from './FamilySheet';
 import { NavBar, PushLayer, Screen, TabBar, useAnimatedClose, type TabId } from './components';
+import { Log } from './Log';
 import { People } from './People';
+import { Sessions } from './Sessions';
 import { Settings } from './Settings';
 import { RecordsError, SafariBanner, UpdateBanner } from './Status';
+import { StudentPicker } from './StudentPicker';
 import { StudentSheet } from './StudentSheet';
 import './styles.css';
 
@@ -34,8 +38,11 @@ function ArchivedScreen(props: { onClosed: () => void }) {
 }
 
 export function App() {
-  const [tab, setTab] = useState<TabId>('people');
+  const [tab, setTab] = useState<TabId>('log');
   const [archivedOpen, setArchivedOpen] = useState(false);
+  // The Log draft lives here so an unsaved form survives switching tabs.
+  const [logDraft, setLogDraft] = useState<FormState>(blankForm);
+  const [logPickerOpen, setLogPickerOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetState>(null);
   const update = useAppUpdate();
   // Any render error below (including a database that cannot open, rethrown by useLive) replaces only the content area.
@@ -62,6 +69,10 @@ export function App() {
         )}
         {error ? (
           <RecordsError />
+        ) : tab === 'log' ? (
+          <Log draft={logDraft} setDraft={setLogDraft} onOpenPicker={() => setLogPickerOpen(true)} />
+        ) : tab === 'sessions' ? (
+          <Sessions />
         ) : tab === 'people' ? (
           <People
             onAddFamily={() => setSheet({ kind: 'family' })}
@@ -74,12 +85,22 @@ export function App() {
           <Settings />
         )}
       </Screen>
+      {!error && logPickerOpen && (
+        <StudentPicker
+          attendees={logDraft.attendees}
+          subject={logDraft.subject}
+          onChange={(attendees) => setLogDraft((d) => ({ ...d, attendees }))}
+          backLabel="Log"
+          onClosed={() => setLogPickerOpen(false)}
+        />
+      )}
       {!error && archivedOpen && <ArchivedScreen onClosed={() => setArchivedOpen(false)} />}
       <TabBar
         tab={tab}
         onSelect={(next) => {
           setTab(next);
           setArchivedOpen(false);
+          setLogPickerOpen(false);
         }}
       />
       {!error && sheet?.kind === 'family' && <FamilySheet family={sheet.family} onClosed={() => setSheet(null)} />}

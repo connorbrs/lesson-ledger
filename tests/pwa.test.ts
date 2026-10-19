@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import updateSource from '../src/pwa/useAppUpdate.ts?raw';
 import { singleFlight } from '../src/pwa/singleFlight';
 import { isStandalone } from '../src/pwa/standalone';
 import { ensurePersistence, formatBytes, readUsage } from '../src/pwa/storage';
@@ -163,7 +163,7 @@ describe('formatBytes', () => {
 });
 
 describe('update code import boundary', () => {
-  const text = readFileSync(new URL('../src/pwa/useAppUpdate.ts', import.meta.url), 'utf8');
+  const text = updateSource;
   it('imports nothing from the data layer or dexie and never touches indexedDB', () => {
     expect(text).not.toMatch(/from\s+['"][^'"]*\/data/);
     expect(text).not.toMatch(/from\s+['"]dexie['"]/);

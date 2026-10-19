@@ -1,12 +1,19 @@
 ---
 phase: 01-installable-app-roster
-verified: 2026-10-19T08:55:53Z
+verified: 2026-10-19T09:21:51Z
 status: human_needed
-score: 15/21 must-haves verified (5 present but behavior unverified, 1 uncertain; 1 truth deferred to Phase 4 and excluded from the count)
-behavior_unverified: 5
+score: 24/27 must-haves verified (3 present, behavior unverified, routed to human; 0 failed)
+behavior_unverified: 3
 overrides_applied: 0
-covered_files: [".github/workflows/deploy.yml", ".gitignore", ".planning/phases/01-installable-app-roster/01-01-PLAN.md", ".planning/phases/01-installable-app-roster/01-01-SUMMARY.md", ".planning/phases/01-installable-app-roster/01-02-PLAN.md", ".planning/phases/01-installable-app-roster/01-02-SUMMARY.md", ".planning/phases/01-installable-app-roster/01-03-PLAN.md", ".planning/phases/01-installable-app-roster/01-03-SUMMARY.md", ".planning/phases/01-installable-app-roster/01-04-PLAN.md", ".planning/phases/01-installable-app-roster/01-04-SUMMARY.md", "assets/icon.svg", "index.html", "package.json", "scripts/build-id.d.mts", "scripts/build-id.mjs", "scripts/check-dist.mjs", "scripts/generate-icons.mjs", "src/data/db.ts", "src/data/families.ts", "src/data/live.ts", "src/data/students.ts", "src/domain/roster.ts", "src/domain/types.ts", "src/domain/validate.ts", "src/main.tsx", "src/pwa/singleFlight.ts", "src/pwa/standalone.ts", "src/pwa/storage.ts", "src/pwa/useAppUpdate.ts", "src/ui/App.tsx", "src/ui/Archived.tsx", "src/ui/FamilySheet.tsx", "src/ui/People.tsx", "src/ui/Settings.tsx", "src/ui/Status.tsx", "src/ui/StudentSheet.tsx", "src/ui/components.tsx", "src/ui/styles.css", "src/vite-env.d.ts", "tests/pwa.test.ts", "tests/roster.test.ts", "tests/tracer.test.ts", "tests/validation.test.ts", "tsconfig.json", "vite.config.ts"]
-covered_digest: "v3:sha256:7eb5c5ccb41ab72308b843e0d00886810a1ee408f2cb379bab026eaafbf7f0f1"
+re_verification:
+  previous_status: human_needed
+  previous_score: 15/21
+  gaps_closed:
+    - "G-01-10: Archived families and students with no lesson history can be deleted from the Archived screen, so a family whose only students are archived (and have no history) can be fully removed"
+  gaps_remaining: []
+  regressions: []
+covered_files: [".github/workflows/deploy.yml", ".gitignore", ".planning/phases/01-installable-app-roster/01-01-PLAN.md", ".planning/phases/01-installable-app-roster/01-01-SUMMARY.md", ".planning/phases/01-installable-app-roster/01-02-PLAN.md", ".planning/phases/01-installable-app-roster/01-02-SUMMARY.md", ".planning/phases/01-installable-app-roster/01-03-PLAN.md", ".planning/phases/01-installable-app-roster/01-03-SUMMARY.md", ".planning/phases/01-installable-app-roster/01-04-PLAN.md", ".planning/phases/01-installable-app-roster/01-04-SUMMARY.md", ".planning/phases/01-installable-app-roster/01-05-PLAN.md", ".planning/phases/01-installable-app-roster/01-05-SUMMARY.md", "assets/icon.svg", "index.html", "package.json", "scripts/build-id.d.mts", "scripts/build-id.mjs", "scripts/check-dist.mjs", "scripts/generate-icons.mjs", "src/data/db.ts", "src/data/families.ts", "src/data/live.ts", "src/data/students.ts", "src/domain/roster.ts", "src/domain/types.ts", "src/domain/validate.ts", "src/main.tsx", "src/pwa/singleFlight.ts", "src/pwa/standalone.ts", "src/pwa/storage.ts", "src/pwa/useAppUpdate.ts", "src/ui/App.tsx", "src/ui/Archived.tsx", "src/ui/FamilySheet.tsx", "src/ui/People.tsx", "src/ui/Settings.tsx", "src/ui/Status.tsx", "src/ui/StudentSheet.tsx", "src/ui/components.tsx", "src/ui/styles.css", "src/vite-env.d.ts", "tests/pwa.test.ts", "tests/roster.test.ts", "tests/tracer.test.ts", "tests/validation.test.ts", "tsconfig.json", "vite.config.ts"]
+covered_digest: "v3:sha256:e8dd6ca148eb397453c01b57701dbf421c16cb107528b3a542dca62698865dcd"
 deferred:
   - truth: "FAM-02 weekly (Mon-Sun) and monthly (calendar month) periods are adjacent with no overlap or gap"
     addressed_in: "Phase 4"
@@ -14,74 +21,53 @@ deferred:
 coincidental_reliance_items:
   - truth: "A student with any session cannot be hard-deleted (FAM-04 history guard)"
     reason: fixture-only
-    harden: "No Phase 1 production code writes session rows. The guard's test inserts a hand-written sessions row with attendees[].studentId. Phase 2 must write sessions in that shape through its own repo, and should add a test through that path."
+    harden: "No Phase 1 production code writes session rows. The guard's tests (roster.test.ts 'archived delete path' and 'student repo') insert a hand-written sessions row with attendees[].studentId. Phase 2 must write sessions in that shape through its own repo, and should add a test through that path."
 behavior_unverified_items:
-  - truth: "Update watchdog: a stuck Updating App spinner recovers to a Couldn't update message after 8 seconds (WR-03)"
-    test: "On an installed build, with a new version deployed, tap Update App and watch whether the card reloads or times out. Optionally simulate a dropped skip-waiting message in a scratch copy."
-    expected: "Either the app reloads onto the new build, or within about 8 seconds the card shows Couldn't update. Close Lesson Ledger and reopen it, with Not Now visible again."
-    why_human: "The timer and reload path depend on the service-worker lifecycle and cannot be exercised by the unit tests (no DOM or service-worker harness in this project)."
-  - truth: "Changing the family in the Student sheet picker never shows the previous family for a frame (useLive resets on deps change, WR-05)"
-    test: "Open Edit Student, tap the Family row, pick a different family. Then add a student with the picker opened while only one family is archived."
-    expected: "The Family row shows the newly chosen family with no flash of the old one. If the last active family is archived while the picker is open, the picker pops back and the sheet reads Add a family first."
-    why_human: "Interaction and timing behavior; no automated coverage."
-  - truth: "Covered content is inert to VoiceOver and keyboard while a sheet, pushed screen or alert is open, and Alert focus moves to its first button (WR-06)"
-    test: "With VoiceOver on, open Edit Student (sheet), open Archived (pushed screen), and open the Delete alert. Swipe through the content behind each."
-    expected: "Content behind each overlay is not reachable. Focus lands on the Alert's least destructive button and returns to the opener on close."
-    why_human: "Assistive-technology behavior; no automated coverage."
-  - truth: "An interrupted update (force-quit while Update App is applying) leaves the app launching on either build with all records intact"
-    test: "Install the marker build, tap Update App, and force-quit immediately. Relaunch in airplane mode and open Settings and People."
-    expected: "The app opens on the old or the new build, with families and students intact and the Build row matching the build that loaded."
-    why_human: "Only observable on a device; the unit test proves only the import boundary (src/pwa/useAppUpdate.ts does not import the data layer)."
-  - truth: "The Records error screen replaces the content area when the database cannot open or a live query fails, with the tab bar still visible, and Retry Opening Records works"
-    test: "In a scratch copy, force the database open to fail (for example, a DB name conflict), run npm run dev, open http://localhost:5173/lesson-ledger/ at 390 px, and tap Retry Opening Records."
-    expected: "Heading Can't open your records, the body copy 'Nothing has been changed', a full-width Retry Opening Records button, and the tab bar visible. Retry reloads and the same screen remains if the failure persists."
-    why_human: "The error boundary path is wired (src/ui/App.tsx, src/ui/Status.tsx) but no test forces a database failure, and the 01-04 human-check block that covers it was harvested to this step."
-uncertain_items:
-  - truth: "Safe-area clearance: after fix 8891d94 the top bar is no longer too tall, and the nav bar, tab bar and sheets are not clipped at 375 and 430 px in standalone portrait"
-    test: "Pull the latest deploy on the iPhone 14 Pro, reopen Lesson Ledger from the Home Screen, and check the People and Settings headers, then open a Family sheet."
-    expected: "Top bar height matches the phone's status area with no empty row. Nothing is clipped at the top or bottom."
-    why_human: "The user reported the defect on the phone, and the fix is deployed. Re-confirmation on the phone is still pending."
-human_verification:
-  - test: "Harvested 01-03 human-check block: at 375 px and 430 px in light and dark, add Test Family A, edit it to Monthly, archive it, open Archived, restore it. Try a blank name and a 61-character name. Then add Test Student A (Math, multi-line private note), edit it to Both, archive it, restore it from Archived, archive the family and confirm its student disappears from People, and try Delete Family on a family with a student."
-    expected: "Empty state first, with one Add Family button. The group shows the name header, Edit Family, and the footer 'Monthly · calendar month' after the edit. Archive hides it and the Archived row appears; restore returns it. Blank and over-long names show the two captions and keep Save disabled. The note appears only inside the Student sheet. Delete Family is replaced by the 'still has students' footer. The picker shows an accent check and pops back on selection. Nothing is clipped; the tab bar sits above the bottom edge."
-    why_human: "Visual layout, spacing, colour, touch targets and which screens show the note are judgments that grep and unit tests cannot make. The 01-04 phone acceptance did not cover roster editing."
-  - test: "Harvested 01-04 human-check block (desktop browser, 390 px): open the People tab and Settings in light and dark. Confirm the 'You're in Safari' strip and Show Install Steps expansion. Confirm Settings shows Persistent storage, Storage used (never blank) and Build. Then force the Records error and tap Retry Opening Records."
-    expected: "Strip appears in a non-standalone browser, and Show Install Steps expands three lines in place. Settings Storage group has values, not blanks. Records error shows the heading, body and full-width button with the tab bar still present."
-    why_human: "Banner and screen appearance, expansion behaviour and the forced-error path are visual and interaction checks."
-  - test: "On the iPhone (installed app): open Settings and read the Storage used value. Also read Persistent storage."
-    expected: "Storage used shows a value such as '1.2 MB' (not Unavailable, not blank). Persistent storage shows Granted, as recorded on 2026-10-19."
-    why_human: "The final device acceptance recorded Granted but did not record the Storage used value. The value path is covered by unit tests of readUsage and formatBytes, not by a rendered check."
-  - test: "On the iPhone (installed app), create a student under an existing family, leave the app in airplane mode, force-quit, and relaunch. Confirm the student is listed under its family."
-    expected: "The student appears under its family after relaunch, not only the family."
-    why_human: "The device acceptance recorded families surviving the airplane-mode relaunch. Students use the same IndexedDB store, but the device check did not cover them."
-  - test: "Judgment-tier prohibition P-d (01-04, APP-05): the app must not apply a service-worker update or reload without the user tapping Update App. On the phone, the waiting worker activated on the next launch after a full force-quit, with no tap. Decide whether this is acceptable."
-    expected: "Decision recorded: either (a) accept as documented platform behaviour, since no reload happens while the app is open and a cold launch has no unsaved input, and amend the prohibition wording in 01-04-PLAN.md to match, or (b) treat the prohibition as violated and open a gap."
-    why_human: "The prohibition is judgment-tier. The literal wording is broader than the rationale. Per the verification rules, a flagged prohibition needs an explicit human resolution. The verifier recommends (a) but does not decide it."
-  - test: "Judgment-tier prohibition sign-offs (interactive verify). Confirm each of the following."
-    expected: "P-a (01-01, APP-03, no data transmitted off device): static scan of src and index.html found no fetch, XMLHttpRequest, sendBeacon, WebSocket or third-party script. The only external string in the bundle is a Dexie error-message link (tinyurl), not a network call. Suggested resolution: pass. P-b (01-01, FAM-01, no real names in repo, tests or bundle): fixtures use 'Test Family A' and 'Test Student A', plus short strings 'anna', 'Bea' and 'Cy'. Suggested resolution: pass after confirming those three are synthetic. P-c (01-03, FAM-03, notes never rendered outside the Student sheet): '.notes' is read only in src/ui/StudentSheet.tsx. Suggested resolution: pass. P-e (01-04, DATA-01, no protection claim when not granted): the not-granted footer says iOS has not agreed to protect the data. Suggested resolution: pass."
-    why_human: "Judgment-tier prohibitions need an explicit human resolution per item in interactive verification. The evidence above is recorded so each can be signed off quickly."
+  - truth: "Live note-to-row transition: after the last archived student of a family is deleted, the blocked note becomes the Delete Family row on the same screen (01-05 truth 3)"
+    test: "On the installed app, open Archived with a family that has one archived no-history student. Delete the student, confirm the Delete Family row appears without leaving the screen."
+    expected: "The note disappears and a destructive Delete Family row sits under the family's Restore Family row. The screen does not pop back."
+    why_human: "The data path is covered by roster.test.ts, but the reactive re-render of useLive on the Archived screen has no automated coverage."
+  - truth: "A refused or throwing delete keeps the alert open with \"Couldn't delete “{name}”. Nothing was changed.\" and removes nothing; Cancel closes it (01-05 truth 4)"
+    test: "Hard to force from normal UI: the Delete row is hidden when history exists, so the refusal needs a session written between the row render and the confirm tap. Either force it in a scratch copy, or accept the code-level evidence (Archived.tsx L26-34 keeps busy/failed state and skips onClose on a refused result)."
+    expected: "The alert stays up with the failed message, the list is unchanged, and Cancel dismisses it."
+    why_human: "The keep-open-on-failure state in ArchivedDeleteAlert has no test, and the path is a race rather than a normal UI action."
+  - truth: "The Delete alert is inert behind and focus lands on Cancel, returning to the opener on close (01-05 truth 8, WR-06 extension)"
+    test: "With VoiceOver on in the installed app, open Archived, open a Delete Student alert, then swipe through the list, Back button and tab bar. Close the alert with Cancel."
+    expected: "Content behind the alert is unreachable. Focus lands on Cancel and returns to the Delete row on close."
+    why_human: "Assistive-technology behaviour. The structure is correct (the alert is a direct child of .app, see App.tsx L57 and L26-31), but no automated check can verify VoiceOver."
+uncertain_items: []
 advisory: []
 ---
 
 # Phase 1: Installable App & Roster Verification Report
 
 **Phase Goal:** As a private instructor, I want to install the app and set up my families and students, so that I have an offline roster ready.
-**Verified:** 2026-10-19T08:55:53Z
+**Verified:** 2026-10-19T09:21:51Z
 **Status:** human_needed
-**Re-verification:** No (initial verification)
-**Commit verified:** cae9832 (main, identical to the working tree apart from an untracked .planning/milestone.lock)
+**Re-verification:** Yes, after gap closure (plan 01-05, gap G-01-10). Previous report: 2026-10-19T08:55:53Z, human_needed, 15/21.
+**Commit verified:** ce1feca (HEAD, main). Working tree has one untracked file, .planning/milestone.lock, which is not implementation.
 
 ## Summary
 
-The codebase delivers the phase goal. An installable, offline-first Vite + Preact + Dexie app exists, with a build that passes all 14 dist checks, a family and student roster with validated, transactional, guarded repositories, and the PWA runtime (persistent storage, Safari-tab warning, update prompt). The device acceptance recorded on an iPhone 14 Pro (iOS 26.6.1) covers install, full screen, the icon, offline relaunch with families, the Safari banner, the update flow, 200% zoom, dark mode and persistent storage.
+Gap G-01-10 is closed in code. The Archived screen now offers Delete Student on archived students with no sessions, and Delete Family on archived families with no students. Both route through the unchanged `deleteStudent` and `deleteFamily` guards. The UAT device checks that were open at the last verification (HV-1 to HV-9) are recorded as passed in 01-UAT.md, and the prohibition decisions P-a, P-b, P-c, P-d and P-e are recorded. Status is still `human_needed`, not `passed`, for three reasons:
 
-No truth FAILED and no BLOCKER was found. Status is `human_needed` rather than `passed` because:
+1. Three must-haves from 01-05 are present and wired but their runtime behaviour is not exercised by a test or a recorded device check: the live note-to-row transition, the failure keep-open path, and VoiceOver inertness behind the new alert. The 01-05 summary records the layout and VoiceOver checks as pending on device.
+2. One warning (W-2 below) needs a decision. The blocked-family copy promises a deletion the UI cannot offer when the archived student has lesson history.
+3. Only the 01-05 human checks are open. HV-1 to HV-10 are closed by the UAT record and are not re-listed.
 
-1. Five must-haves are present and wired but their runtime behavior is not exercised by any test or device check (update watchdog, list reset on deps change, inert and focus handling, interrupted update, Records error path).
-2. One must-have is visual and awaits re-confirmation on the phone (safe-area fix).
-3. Four judgment-tier prohibitions and one literal prohibition conflict need explicit human sign-off.
+No must-have FAILED. No BLOCKER was found. The re-verification evidence gate (verifier-evidence-gate) was not triggered, because no blocker exists to gate.
 
-Warnings are listed under "Warnings" below and do not change the status.
+## Gap Closure Check (G-01-10)
+
+| Gap item | Code evidence | Test evidence | Status |
+| -------- | ------------- | ------------- | ------ |
+| Delete Student on archived no-history student, confirm removes it | `src/ui/Archived.tsx` L137-141 (row shown when `!hasHistory`); `ArchivedDeleteAlert` L15-53 calls `deleteStudent` on confirm; `src/ui/App.tsx` L28-31 mounts the alert | `roster.test.ts` "deletes an archived student with no sessions, then its emptied archived family" passes | VERIFIED (alert presentation in HV-A) |
+| Delete Family on archived family with no students, confirm removes it | `Archived.tsx` L96-99 (row shown when `!hasStudents`); alert calls `deleteFamily` | Same test asserts `deleteFamily` returns `{ ok: true }` and `getFamily` is undefined | VERIFIED |
+| Blocked note text and live note-to-row transition | `Archived.tsx` L100-107 (note copy chosen by whether an archived student exists); transition relies on `useLive` re-query | Data state after the last delete is asserted (`hasFamilyHistory` false). Live re-render has no test | PRESENT_BEHAVIOR_UNVERIFIED (human item) |
+| Refused or throwing delete keeps alert open, failed copy, Cancel closes | `ArchivedDeleteAlert` L26-34 (failed state, no `onClose` on refusal); copy reuses "Couldn't delete ... Nothing was changed." | Guard refusals are tested (`has-history`, `has-students`). The keep-open UI state is not | PRESENT_BEHAVIOR_UNVERIFIED (human item) |
+| Alert is a direct child of app root (inert and focus) | `App.tsx` L26-31 returns the alert beside `PushLayer` inside the `ArchivedScreen` fragment; `App.tsx` L57 `div.app` is the parent | Structural only; VoiceOver not automatable | PRESENT_BEHAVIOR_UNVERIFIED (human item) |
+| Hard-delete rules unchanged, no new rules, no note reads | `git diff e66cbb8 ce1feca -- src/data` lists 0 files. Every delete call in `Archived.tsx` is `deleteStudent` or `deleteFamily` (L25). `.notes` is read only in `src/ui/StudentSheet.tsx` | Existing repo and guard tests pass (86/86) | VERIFIED |
+| P-d prohibition wording and UI-SPEC copy amended | `01-04-PLAN.md` L96 records "Accepted platform behaviour (user decision 2026-10-19, UAT P-d)"; `01-UI-SPEC.md` L261, L289-292 carry the new copy | grep gates in 01-05 Task 3 | VERIFIED |
 
 ## Goal Achievement
 
@@ -89,225 +75,158 @@ Warnings are listed under "Warnings" below and do not change the status.
 
 | # | Success criterion | Status | Evidence |
 | - | ----------------- | ------ | -------- |
-| SC1 | Open the URL in Safari, Add to Home Screen, launch full screen with own icon; no developer account, no expiry | VERIFIED | Device: install from GitHub Pages, full screen, clock icon (01-04-SUMMARY, 01-SPIKE-RESULTS). Code: manifest `display: standalone` with `start_url` and `scope` at `/lesson-ledger/` (vite.config.ts); apple-mobile-web-app meta tags and apple-touch-icon in dist (check-dist C8, C11); no paid or signing dependency. Live URL https://connorbrs.github.io/lesson-ledger/ returns 200 for page, manifest and sw.js. |
-| SC2 | Airplane mode, force-quit, relaunch: app opens with families and students intact | VERIFIED | Device: airplane-mode relaunch after force-quit opened with families intact (01-SPIKE-RESULTS offline-relaunch, 01-04 offline-with-data). Code: 10 precache entries include index.html and icons (check-dist C3, C10); data in IndexedDB `lesson-ledger-v1`; tracer test "still lists the family after the database is closed and reopened" passes. Students: see human item HV-4. |
-| SC3 | Safari-tab warning; home-screen update prompt with one-tap apply | VERIFIED | Device: Safari-tab banner shown in Safari and absent in the installed app; update card appeared after the marker deploy; Update App applied it and the Build row changed. Code: `SafariBanner` rendered when `!isStandalone()` (src/ui/App.tsx); `UpdateBanner` on `needRefresh`; `registerType: 'prompt'`; apply is single-flight (tests/pwa.test.ts). See prohibition P-d for the cold-launch caveat. |
-| SC4 | Create, edit and archive families (name and weekly or monthly period) and students (one family each); archived records hidden but history kept; hard delete only without history | VERIFIED | Code: `createFamily`, `updateFamily`, `archiveFamily`, `restoreFamily`, `deleteFamily` (src/data/families.ts) and the student equivalents (src/data/students.ts) are wired from FamilySheet, StudentSheet and Archived. Active lists filter `archivedAt` (People). Delete guards run inside the delete transaction: a family with any student (active or archived) is blocked, and a student with any session is blocked (roster.test.ts). 84/84 tests pass. Visual UI walkthrough is human item HV-1. See warning W-1 on a dead end in the archived-record path. |
-| SC5 | Settings shows whether persistent storage was granted and how much storage is used | VERIFIED | Device: Persistent storage Granted (01-04 device acceptance; SPIKE persisted() true). Code: `Settings` calls `ensurePersistence()` and `readUsage()` with a 2 s timeout, `formatBytes` decimal units, Not granted footer says iOS has not agreed to protect data (src/ui/Settings.tsx, src/pwa/storage.ts). The device Storage used value was not recorded: HV-3. |
+| SC1 | Open the URL in Safari, Add to Home Screen, launch full screen with own icon; no developer account, no expiry | VERIFIED | Device: install, full screen, icon (UAT 1 of the spike and 01-04 acceptance). Code: manifest `display: standalone`, `start_url` and `scope` at `/lesson-ledger/` (vite.config.ts). |
+| SC2 | Airplane mode, force-quit, relaunch: app opens with families and students intact | VERIFIED | Device: UAT 4 pass (students survive airplane-mode relaunch). Families recorded in 01-04 acceptance. Code: IndexedDB `lesson-ledger-v1`. |
+| SC3 | Safari-tab warning; home-screen update prompt with one-tap apply | VERIFIED | Device: banner in Safari, absent in app; update card applied (UAT 5, 8). Code: `SafariBanner`, `UpdateBanner`, `registerType: 'prompt'`. Cold-launch activation accepted as platform behaviour (P-d). |
+| SC4 | Create, edit and archive families and students; archived records hidden but history kept; hard delete only without history | VERIFIED | Code: repos in `src/data/families.ts` and `src/data/students.ts` guard deletes in one transaction. G-01-10 closed: the Archived screen now offers hard delete where the guards allow it. UI walkthrough UAT 1 pass. |
+| SC5 | Settings shows whether persistent storage was granted and how much storage is used | VERIFIED | Device: UAT 2 and 3 pass (Storage used value and Granted). Code: `Settings` with `ensurePersistence()` and `readUsage()`. |
 
 ### Observable Truths (must-haves from PLAN frontmatter, grouped)
 
-Counted truths: 21. VERIFIED: 15. PRESENT_BEHAVIOR_UNVERIFIED: 5. UNCERTAIN: 1. One further truth is deferred and excluded from the count. One set is superseded (below).
+Counted truths: 27 (21 from the original plans, 6 from gap closure 01-05). VERIFIED: 24. PRESENT_BEHAVIOR_UNVERIFIED: 3. UNCERTAIN: 0. One further truth is deferred and excluded from the count.
+
+Truths 1 to 21 are re-checked against the code. Those that were PRESENT_BEHAVIOR_UNVERIFIED or UNCERTAIN in the previous report are now VERIFIED on the strength of the user's recorded device pass in 01-UAT.md. That pass is behavioural evidence from the phone, not a re-run by this verifier.
 
 | # | Truth | Status | Evidence |
 | - | ----- | ------ | -------- |
-| 1 | Install from Safari, full screen, clock icon, no account or expiry (SC1) | VERIFIED | See SC1 above. |
-| 2 | Airplane-mode relaunch keeps families (SC2) | VERIFIED | See SC2 above. |
-| 3 | Safari-tab banner in tab, absent in standalone (01-04 truth; APP-04) | VERIFIED | Device-observed (safari-banner ok, standalone-no-banner ok). Code: src/ui/Status.tsx SafariBanner, App.tsx `!isStandalone()`; isStandalone tests pass. |
-| 4 | Update card appears and one tap applies it; Not Now hides it (APP-05) | VERIFIED | Device: update-banner ok, update-applied ok, not-now hides the card for the session. After a full force-quit the card does not return because the update has already activated (documented platform behaviour). Code: src/pwa/useAppUpdate.ts, src/ui/Status.tsx UpdateBanner. |
-| 5 | Family create, edit, period (weekly or monthly), archive and restore (FAM-01, FAM-02) | VERIFIED | Code: FamilySheet calls createFamily or updateFamily; period SegmentedControl Weekly and Monthly; periodLabel returns exactly "Weekly · Monday to Sunday" and "Monthly · calendar month" (src/domain/roster.ts). Tests: "family repo" block in roster.test.ts. Visual walkthrough: HV-1. |
-| 6 | Student create, edit, archive, restore; one family each; Swim, Math or Both (default Both); private notes (FAM-03) | VERIFIED | Code: StudentSheet calls createStudent or updateStudent; family row lists active families only (FamilyPicker); defaults both and notes empty (students.ts `validated`). Tests: "student repo" block in roster.test.ts. Visual: HV-1. |
-| 7 | Hard delete only when no history: family blocked by any student, student blocked by any session (FAM-04) | VERIFIED | roster.test.ts "refuses to delete a family with an active student or only an archived student" and "deletes a student with no sessions and blocks one with a session" pass. UI shows the blocked footer instead of Delete (FamilySheet L119-130, StudentSheet L262-273). Warning W-1 (dead end). Coincidental-reliance advisory on the session fixture. |
-| 8 | Validation and data invariants: trim, NFC, 60 code points, idempotent archive and restore, single-transaction writes, delete-versus-create race (FAM-01, FAM-03) | VERIFIED | 84/84 tests pass (4 files). Named race test "never leaves a student pointing at a missing family when delete and create race" re-run alone: passes. validation.test.ts covers the name rules including the 60-emoji and decomposed-é cases. |
-| 9 | Settings shows persistent storage status (DATA-01) | VERIFIED | Device: Granted. Code and tests as in SC5. |
-| 10 | Settings shows storage used (DATA-01) | VERIFIED | Code: readUsage (2 s timeout, null on failure) and formatBytes are unit-tested (tests/pwa.test.ts "readUsage", "formatBytes"). Rendered device value not recorded: HV-3. |
-| 11 | persist() requested once on launch; concurrent callers share one request; never throws (DATA-01) | VERIFIED | App.tsx calls `ensurePersistence()` in an effect on mount. singleFlight-wrapped; tests "calls persist() once for concurrent callers" and "returns not-granted and never throws" pass. |
-| 12 | Build: base path, manifest, precache, icons (180 and 512 RGB), iOS head tags, no external URLs, one SW registration path, harness absent (APP-01, APP-02, APP-03) | VERIFIED | Fresh build of HEAD (cae9832) in a scratch copy: tsc clean, vite build OK, PWA precache 10 entries; `check-dist: OK (14 checks)`. Package versions are exact pins (package.json, no ^ or ~). No fetch, XMLHttpRequest, sendBeacon or WebSocket in src. |
-| 13 | Running app updates only on the user's tap; no reload while open (APP-05) | VERIFIED | Code: `registerType: 'prompt'`, `injectRegister: false`, update only via `latest.current(true)` inside `apply` (src/pwa/useAppUpdate.ts); no `updateServiceWorker` call outside useAppUpdate.ts. Device: update applied on tap. Cold-launch activation after force-quit is flagged as prohibition P-d. |
-| 14 | 200% zoom has no horizontal scroll; dark mode follows the system (01-04 truths) | VERIFIED | Device: zoom-200 ok, dark-mode ok. |
-| 15 | Private notes render only inside the Student sheet (FAM-03 prohibition, judgment-tier) | VERIFIED | `.notes` is read only in src/ui/StudentSheet.tsx. Judgment-tier, so sign-off is listed as P-c. |
-| 16 | Update watchdog recovers from a stuck "Updating App…" (WR-03) | PRESENT_BEHAVIOR_UNVERIFIED | Present and wired: 8 s timer in src/pwa/useAppUpdate.ts sets `failed` and clears `applying`. No test exercises the timer. HV-5. |
-| 17 | useLive drops the previous value and error when deps change; picker does not show a stale family (WR-05) | PRESENT_BEHAVIOR_UNVERIFIED | Present: src/data/live.ts resets value and error before resubscribing; StudentSheet splits the two queries. No test. HV-6. |
-| 18 | Covered content is inert behind sheets, pushed screens and alerts; Alert focus moves (WR-06) | PRESENT_BEHAVIOR_UNVERIFIED | Present: `useInertBehind` in src/ui/components.tsx. No test; the fixer flagged it for VoiceOver. HV-7. |
-| 19 | An interrupted update leaves all records intact (APP-05 concurrency, backstop) | PRESENT_BEHAVIOR_UNVERIFIED | The import boundary is tested (tests/pwa.test.ts). The interrupted-update behaviour itself is device-only and was not recorded. HV-8. |
-| 20 | Records error replaces content on a DB failure, tab bar stays, Retry works (01-04 truth) | PRESENT_BEHAVIOR_UNVERIFIED | Present and wired: App `useErrorBoundary` in src/ui/App.tsx, `RecordsError` in src/ui/Status.tsx. No test forces a DB failure. HV-2. |
-| 21 | Safe-area clearance: top bar not too tall after fix 8891d94; nothing clipped at 375 and 430 px (01-04 backstop) | UNCERTAIN | Fix is in the code (`.nav-bar.bare`, `.screen:has(> .nav-bar.bare) > .scroll`). User reported the defect; re-confirmation on the phone is pending. HV-9. |
+| 1 | Install from Safari, full screen, clock icon, no account or expiry (SC1) | VERIFIED | See SC1. |
+| 2 | Airplane-mode relaunch keeps families (SC2) | VERIFIED | See SC2; UAT 4. |
+| 3 | Safari-tab banner in tab, absent in standalone (APP-04) | VERIFIED | Device-observed earlier; `App.tsx` `!isStandalone()`. |
+| 4 | Update card appears and one tap applies it; Not Now hides it (APP-05) | VERIFIED | Device (UAT 5, 8); P-d accepted (UAT 10). |
+| 5 | Family create, edit, period, archive and restore (FAM-01, FAM-02) | VERIFIED | Code and `roster.test.ts` "family repo"; UAT 1 pass. |
+| 6 | Student create, edit, archive, restore; one family each; Swim, Math or Both; private notes (FAM-03) | VERIFIED | Code and `roster.test.ts` "student repo"; UAT 1 pass. |
+| 7 | Hard delete only when no history; family blocked by any student, student blocked by any session (FAM-04) | VERIFIED | Tests pass. Archived delete path added by 01-05 (see gap table). Coincidental-reliance advisory below. |
+| 8 | Validation and data invariants (FAM-01, FAM-03) | VERIFIED | 86/86 tests; race test passes. |
+| 9 | Settings shows persistent storage status (DATA-01) | VERIFIED | UAT 3 pass. |
+| 10 | Settings shows storage used (DATA-01) | VERIFIED | UAT 3 pass (previously HV-3, now device-recorded). `readUsage` and `formatBytes` unit-tested. |
+| 11 | persist() requested once on launch; concurrent callers share one request; never throws (DATA-01) | VERIFIED | `ensurePersistence()` on mount; singleFlight tests pass. |
+| 12 | Build: base path, manifest, precache, icons, iOS head tags, no external URLs, harness absent (APP-01 to APP-03) | VERIFIED | Fresh build in scratch dir succeeds (10 precache entries). The previous `check-dist` run (14 checks) was on the prior HEAD and the 01-05 diff does not touch build inputs. |
+| 13 | Running app updates only on the user's tap; no reload while open (APP-05) | VERIFIED | `registerType: 'prompt'`, `latest.current(true)` only in `apply`. Cold-launch activation accepted (P-d). |
+| 14 | 200% zoom has no horizontal scroll; dark mode follows system (01-04) | VERIFIED | Device: zoom-200, dark-mode pass recorded in 01-04 acceptance. |
+| 15 | Private notes render only inside the Student sheet (FAM-03, P-c) | VERIFIED | `.notes` read only in `src/ui/StudentSheet.tsx`. P-c signed off. |
+| 16 | Update watchdog recovers from a stuck "Updating App…" (WR-03) | VERIFIED | Was PRESENT_BEHAVIOR_UNVERIFIED. UAT 5 pass. |
+| 17 | useLive resets the picker value when deps change; no stale family (WR-05) | VERIFIED | Was PRESENT_BEHAVIOR_UNVERIFIED. UAT 6 pass. |
+| 18 | Covered content is inert behind sheets, pushed screens and alerts; focus moves (WR-06) | VERIFIED | Was PRESENT_BEHAVIOR_UNVERIFIED. UAT 7 pass (VoiceOver). |
+| 19 | An interrupted update leaves all records intact (APP-05 concurrency) | VERIFIED | Was PRESENT_BEHAVIOR_UNVERIFIED. UAT 8 pass. |
+| 20 | Records error replaces content on a DB failure, tab bar stays, Retry works | VERIFIED | Was PRESENT_BEHAVIOR_UNVERIFIED. UAT 2 pass. |
+| 21 | Safe-area clearance: top bar not too tall; nothing clipped at 375 and 430 px | VERIFIED | Was UNCERTAIN. UAT 9 pass. Layout at 375 and 430 px for the new 01-05 rows is a separate item (truth G-c, HV-A). |
+| G-a | Archived student with no sessions shows Delete Student beneath Restore; confirm removes it (FAM-04, G-01-10) | VERIFIED | Wiring verified (`Archived.tsx` L137-141, `App.tsx` L28-31). Removal proven by "deletes an archived student with no sessions" test. Visual presentation in HV-A. |
+| G-b | Archived family with no students shows Delete Family beneath Restore; confirm removes it (FAM-04, G-01-10) | VERIFIED | `Archived.tsx` L96-99. Removal proven by the same archived-delete-path test (`deleteFamily` ok, family gone). |
+| G-c | Blocked note becomes the Delete Family row live after the last student is deleted, on the same screen | PRESENT_BEHAVIOR_UNVERIFIED | Data state proven by test. The live re-render has no test. HV-A. |
+| G-d | Refused or throwing delete keeps the alert open with the failed copy; removes nothing; Cancel closes | PRESENT_BEHAVIOR_UNVERIFIED | Guard refusals are tested. The keep-open UI state is not. Hard to force on device. HV-C. |
+| G-e | Delete alert is a direct child of app root; list, Back and tab bar inert; focus on Cancel and returns to opener | PRESENT_BEHAVIOR_UNVERIFIED | Structure verified (`App.tsx` L26-31 and L57). VoiceOver behaviour pending. HV-B. |
+| G-f | Delete goes only through `deleteStudent` and `deleteFamily`; no new data-layer rules; no note reads on the Archived screen (FAM-03/FAM-04 prohibitions) | VERIFIED | `src/data` unchanged by 01-05 (0 files in diff). `Archived.tsx` calls only those two functions. No `.notes` read. The existing `onEmpty` effect (`Archived.tsx` L74-77) covers the emptied-list case. |
 
-**Score:** 15 of 21 counted truths VERIFIED (5 PRESENT_BEHAVIOR_UNVERIFIED, 1 UNCERTAIN).
+**Score:** 24 of 27 counted truths VERIFIED (3 PRESENT_BEHAVIOR_UNVERIFIED, all routed to human verification).
 
 ### Deferred Items
 
 | # | Item | Addressed In | Evidence |
 | - | ---- | ------------ | -------- |
-| 1 | FAM-02 adjacency of weekly (Mon-Sun) and monthly periods (backstop truth) | Phase 4 | Phase 4 success criterion 1: summaries default to the family's most recent complete week or month, and compute the period. Phase 1 stores and labels the setting only, per its own must-have. |
+| 1 | FAM-02 adjacency of weekly (Mon-Sun) and monthly periods (backstop truth) | Phase 4 | Phase 4 success criterion 1. Phase 1 stores and labels the setting only. |
 
-### Superseded Must-Haves
-
-| Source | Truth | Disposition |
-| ------ | ----- | ----------- |
-| 01-02 PLAN | `?spike` device-check page, Device check link, `src/spike.tsx` referenced from `src/main.tsx` and `src/ui/App.tsx` | Removed on purpose in 01-04 (src/spike.tsx deleted, check-dist C14 asserts the harness is absent from dist). The artifact and key-link checks for 01-02 fail for this reason only. Not a gap. |
-
-### Required Artifacts
+### Required Artifacts (01-05 scope)
 
 | Artifact | Expected | Status | Details |
 | -------- | -------- | ------ | ------- |
-| package.json | Exact-pinned toolchain | VERIFIED | Ten exact pins, matching 01-01 |
-| vite.config.ts | base `/lesson-ledger/`, VitePWA prompt mode, manifest | VERIFIED | `verify.artifacts` passed |
-| src/data/db.ts | `lesson-ledger-v1`, six tables | VERIFIED | Schema v1, populate writes meta schemaVersion 1 |
-| src/data/families.ts, src/data/students.ts | Repos with validation, transactions, guards | VERIFIED | Every write validates first and runs in one transaction |
-| src/domain/validate.ts, src/domain/roster.ts | Pure validators, ordering, labels | VERIFIED | Exports match the 01-03 plan |
-| src/ui/People.tsx, FamilySheet.tsx, StudentSheet.tsx, Archived.tsx | Roster UI | VERIFIED (wired) | Wired to the repos; visual behaviour in HV-1 |
-| src/ui/Settings.tsx, Status.tsx | Storage, Build, banners, Records error | VERIFIED (wired) | Wired to pwa modules; device-observed for banners and Granted |
-| src/pwa/useAppUpdate.ts, storage.ts, singleFlight.ts, standalone.ts | PWA runtime | VERIFIED | Unit-tested; watchdog timer behaviour in HV-5 |
-| tests/*.test.ts | Unit coverage | VERIFIED | 84 tests in 4 files, all passing |
-| .github/workflows/deploy.yml | Test, build, check-dist, then deploy | VERIFIED | Runs npm test, build and check-dist before upload; permissions contents read, pages write, id-token write; no secrets |
-| 01-SPIKE-RESULTS.md | Recorded device facts | VERIFIED | Present; 11 keys recorded |
+| src/ui/Archived.tsx | Delete rows, blocked note, `ArchivedDeleteAlert`, `ArchivedDeleteTarget` exports | VERIFIED | Exists, substantive (149 lines), wired from `App.tsx` L6 and L28. No debt markers. |
+| src/ui/App.tsx | `ArchivedScreen` holds pending target and mounts alert beside `PushLayer` | VERIFIED | `App.tsx` L20-32. |
+| tests/roster.test.ts | `archived delete path` describe, two tests | VERIFIED | `roster.test.ts` L316-348. Both pass. |
+| 01-04-PLAN.md | P-d decision recorded | VERIFIED | L96 and the "When a new service worker is waiting" truth. |
+| 01-UI-SPEC.md | Archived delete copy | VERIFIED | Copy rows at L261, L289-292. |
 
-### Key Link Verification
+### Key Link Verification (01-05)
 
 | From | To | Via | Status | Details |
 | ---- | -- | --- | ------ | ------- |
-| src/ui/App.tsx | src/data/families.ts | createFamily via FamilySheet, useLive list | WIRED | key-links 01-01 passed |
-| src/data/families.ts | src/domain/validate.ts | validateFamilyInput before writes | WIRED | key-links 01-03 passed |
-| src/data/students.ts | src/data/db.ts | db.transaction for create, update, delete | WIRED | key-links 01-03 passed |
-| src/ui/People.tsx | src/data/live.ts | useLive over active lists | WIRED | key-links 01-03 passed |
-| src/ui/StudentSheet.tsx | src/data/students.ts | createStudent, updateStudent, deleteStudent | WIRED | key-links 01-03 passed |
-| src/ui/App.tsx | src/pwa/useAppUpdate.ts, storage.ts | update hook, ensurePersistence on mount | WIRED | key-links 01-04 passed |
-| vite.config.ts | src/ui/Settings.tsx | `__BUILD_ID__` define | WIRED | key-links 01-04 passed |
-| src/main.tsx | src/spike.tsx | dynamic import of harness | NOT WIRED (by design) | Harness removed in 01-04; superseded |
+| src/ui/App.tsx | src/ui/Archived.tsx | `onDelete={setPendingDelete}` and `ArchivedDeleteAlert` | WIRED | `App.tsx` L28 and L31. |
+| src/ui/Archived.tsx | src/data/students.ts | `studentHasHistory` gates row; `deleteStudent` on confirm | WIRED | `Archived.tsx` L5, L69, L138, L25. |
+| src/ui/Archived.tsx | src/data/families.ts | `hasFamilyHistory` gates row; `deleteFamily` on confirm | WIRED | `Archived.tsx` L3, L63, L97, L25. |
+
+Previous key links (01-01 to 01-04) are unchanged in the 01-05 diff and remain WIRED as recorded in the previous report. The `src/main.tsx` to `src/spike.tsx` link stays NOT WIRED by design (harness removed in 01-04, superseded).
 
 ### Data-Flow Trace (Level 4)
 
 | Artifact | Data Variable | Source | Produces Real Data | Status |
 | -------- | ------------- | ------ | ------------------ | ------ |
-| People.tsx | families, students, archivedCount | useLive over Dexie families and students tables | Yes | FLOWING |
-| FamilySheet.tsx | hasStudents | hasFamilyHistory (students table count) | Yes | FLOWING |
-| StudentSheet.tsx | activeFamilies, chosenFamily, hasHistory | listActiveFamilies, getFamily, studentHasHistory | Yes | FLOWING |
-| Archived.tsx | families, students | listArchivedFamilies, listArchivedStudents, getFamily | Yes | FLOWING |
-| Settings.tsx | persist, used | ensurePersistence, readUsage (navigator.storage) | Yes, with fallback to Unavailable or Not supported | FLOWING |
+| Archived.tsx | families (with hasStudents), students (with family, hasHistory) | `listArchivedFamilies`, `listArchivedStudents`, `hasFamilyHistory`, `studentHasHistory`, `getFamily` over Dexie | Yes | FLOWING |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 | -------- | ------- | ------ | ------ |
-| Full unit suite | `npm test` | 4 files, 84 tests passed | PASS |
+| Full unit suite (run once) | `npm test` | 4 files, 86 tests passed | PASS |
 | Type check | `npx tsc --noEmit` | exit 0 | PASS |
-| Build of HEAD (scratch copy) | `npx tsc --noEmit && npx vite build` | exit 0, PWA precache 10 entries | PASS |
-| Dist checks of HEAD build | `node scripts/check-dist.mjs` | `check-dist: OK (14 checks)` | PASS |
-| Named race test | `npx vitest run tests/roster.test.ts -t "never leaves a student pointing"` | 1 passed, 23 skipped | PASS |
-| Live site | `curl` of page, manifest.webmanifest, sw.js | HTTP 200 each | PASS |
+| Bundle build (scratch outDir) | `npx vite build --outDir <scratch>/dist-verify` | PWA precache 10 entries; bundle contains "Delete its archived students first" | PASS |
+| Live site | not re-run | - | SKIPPED (unchanged by 01-05; the previous report recorded HTTP 200) |
 
-The full suite ran once. The named test ran separately to confirm the concurrency behavior.
+`scripts/check-dist.mjs` was not re-run in this pass. The 01-05 summary records 14 checks passing on its own build. Its inputs were not changed by 01-05 beyond `src/ui`, and the CI deploy workflow re-runs it before upload.
 
 ### Probe Execution
 
-No probes are declared for this phase (not a migration or tooling phase). Skipped.
+No probes are declared for this phase. Skipped.
 
 ### Requirements Coverage
 
+All 10 requirement IDs in the phase are declared in PLAN frontmatter and match REQUIREMENTS.md Phase 1 traceability (all marked Complete there). None is orphaned.
+
 | Requirement | Source Plan | Description | Status | Evidence |
 | ----------- | ----------- | ----------- | ------ | -------- |
-| APP-01 | 01-01, 01-02 | Add to Home Screen, open full screen with icon | SATISFIED | SC1; device-observed |
-| APP-02 | 01-01, 01-02, 01-04 | Works fully offline after first load | SATISFIED | SC2; precache checks; device airplane-mode relaunch |
-| APP-03 | 01-01, 01-02 | Never expires, no developer account, static hosting | SATISFIED | Live GitHub Pages URL 200; no backend or network calls in src; exact pins |
-| APP-04 | 01-04 | Safari-tab warning that data lives in the Home Screen app | SATISFIED | Device: banner in Safari, absent in installed app |
-| APP-05 | 01-04 | Told when a new version is available; one-tap update | SATISFIED, with flagged prohibition P-d | Device: card, tap, applied. Cold-launch activation is a human decision |
-| FAM-01 | 01-01, 01-03 | Create, edit, archive a family | SATISFIED | Repos and wiring verified; UI walkthrough HV-1 |
-| FAM-02 | 01-03 | Weekly (Mon-Sun) or monthly (calendar month) period | SATISFIED | Setting stored, labelled and validated. Adjacency deferred to Phase 4 |
-| FAM-03 | 01-03 | Create, edit, archive a student in one family | SATISFIED | Repos and wiring verified; notes privacy P-c |
-| FAM-04 | 01-03 | Archived records keep history; only no-history records hard-deleted | SATISFIED, with warning W-1 | Guards tested. No UI path to delete archived no-history records |
-| DATA-01 | 01-04 | Persistent storage requested; status and usage in Settings | SATISFIED | Device: Granted. Code and tests for usage. Usage value HV-3 |
-
-**Coverage check:** All 10 requirement IDs in the phase (APP-01 to APP-05, FAM-01 to FAM-04, DATA-01) appear in PLAN frontmatter and in REQUIREMENTS.md Phase 1 traceability. Orphaned requirements: none. Each plan's `requirements:` field maps to REQUIREMENTS.md.
-
-### Anti-Patterns Found
-
-| File | Line | Pattern | Severity | Impact |
-| ---- | ---- | ------- | -------- | ------ |
-| (all phase files) | - | TBD, FIXME, XXX markers | none | Scan of src, tests, scripts, index.html, vite.config.ts and .github: no matches |
-| src/ui/FamilySheet.tsx | 128 | Footer "Remove them before deleting the family" when a student has history or is archived | Warning | Copy promises an action the UI does not offer (see W-1) |
-| src/ui/Archived.tsx | 32-70 | Archived rows offer only Restore; no Delete | Warning | Archived no-history records cannot be hard-deleted (see W-1) |
-| src/ui/FamilySheet.tsx | 127-130 | Blocked footer for a family with any student, including archived | Info | Intended by 01-03 must-have; see W-1 |
-| .github/workflows/deploy.yml | 9-11 | `cancel-in-progress: true` on the Pages concurrency group | Info | Review IN-03; out of the fix scope. Can cancel a queued deploy |
-| src/pwa/useAppUpdate.ts | 20 | visibilitychange listener never removed | Info | Review IN-04; duplicates on dev HMR only |
-| src/domain/validate.ts, src/data/families.ts | - | `crypto.randomUUID` needs a secure context | Info | Review IN-01; fine on https and localhost; a LAN http dev server would fail |
-
-No placeholder, stub or hardcoded-empty data flows were found. Every rendered list reads from a live Dexie query.
+| APP-01 | 01-01, 01-02 | Add to Home Screen, open full screen with icon | SATISFIED | SC1; device-observed. |
+| APP-02 | 01-01, 01-02, 01-04 | Works fully offline after first load | SATISFIED | SC2; precache; UAT 4 and 8. |
+| APP-03 | 01-01, 01-02 | Never expires, no developer account, static hosting | SATISFIED | Live URL; no network calls in src; exact pins. P-a signed off. |
+| APP-04 | 01-04 | Safari-tab warning | SATISFIED | Device-observed. |
+| APP-05 | 01-04 | Told when a new version is available; one-tap update | SATISFIED | UAT 5, 8. P-d accepted as platform behaviour and recorded in 01-04-PLAN.md. |
+| FAM-01 | 01-01, 01-03 | Create, edit, archive a family | SATISFIED | Repos and UI; UAT 1. P-b signed off. |
+| FAM-02 | 01-03 | Weekly or monthly period | SATISFIED | Setting stored and labelled. Adjacency deferred to Phase 4. |
+| FAM-03 | 01-03 | Create, edit, archive a student in one family | SATISFIED | Repos and UI; UAT 1. P-c signed off. |
+| FAM-04 | 01-03, 01-05 | Archived records keep history; only no-history records hard-deleted | SATISFIED | Guards tested. Archived screen now offers hard delete for no-history records (G-01-10, W-1 closed). Copy caveat in W-2. |
+| DATA-01 | 01-04 | Persistent storage requested; status and usage in Settings | SATISFIED | UAT 2 and 3; P-e signed off. |
 
 ## Warnings
 
-**W-1 (FAM-04 dead end): archived records have no hard-delete path.** Archived rows (src/ui/Archived.tsx) offer only Restore. A family with an archived student (even with no history) shows the footer "This family still has students. Remove them before deleting the family." (src/ui/FamilySheet.tsx), but the user cannot reach or remove an archived student. Result: a family with an archived, no-history student can never be deleted. The 01-03 plan specified the blocked footer for this case, so this is consistent with the plan, but it leaves an unreachable deletion path. Decision needed: (a) offer Delete on archived no-history records in the Archived screen, or (b) accept the dead end and reword the footer. Status stays `human_needed`. Requirement FAM-04 is still met as written.
+**W-1 (FAM-04 dead end): CLOSED by 01-05.** Archived no-history students and empty archived families can now be deleted from the Archived screen (G-01-10). Evidence in the gap table above.
 
-**W-2 (judgment-tier prohibition, APP-05).** See human item P-d. The truth "Not Now hides the card until the next launch" holds. The prohibition wording "must not apply an update or reload without the user tapping Update App" is violated literally by platform activation on cold relaunch after a force-quit. The reload-while-open rationale is not violated.
+**W-2 (new, decision needed): blocked-family copy misdirects for a student with lesson history.** `src/ui/Archived.tsx` L103-104 shows "This family still has students. Delete its archived students first." whenever the family has any archived student. It does not check `hasHistory`. If that archived student has a session, no Delete Student row is offered (`Archived.tsx` L137), so the instruction cannot be followed. The family stays undeletable, which is correct under FAM-04. The copy is the problem: it promises an action the UI does not offer for that case. This is the same class of dead end the user reported as W-1. Options:
+  (a) Keep the copy as written. The truth wording in 01-05-PLAN.md and the UI-SPEC copy row match it exactly, so this is the spec's literal behaviour.
+  (b) Reword only the history case, for example "This family has archived students with lesson history, so it can't be deleted." Changing it means amending the 01-05 truth and the UI-SPEC copy row (UI-SPEC L289).
+This does not block the phase goal and does not change FAM-04, which is met as written.
 
-**W-3 (superseded wiring checks).** The 01-02 artifact check (src/spike.tsx) and key-link checks fail because the harness was removed by design in 01-04. Recorded as superseded, not a gap.
+**W-3 (carried, superseded):** The 01-02 artifact and key-link checks for `src/spike.tsx` remain superseded by the 01-04 removal of the harness. Not a gap.
 
-**W-4 (stale planning metadata).** `.planning/ROADMAP.md` still shows Phase 1 as unchecked and "In Progress" (4/4 plans complete). Housekeeping only.
+**W-4 (carried, not re-checked):** `.planning/ROADMAP.md` phase status was flagged as stale in the previous report. This pass did not re-check it.
 
 ## Human Verification Required
 
-### HV-1. Roster walkthrough (harvested 01-03 human-check blocks)
+### HV-A. Archived delete rows and live note transition (01-05 D3)
 
-**Test:** At 375 px and 430 px, light and dark: add Test Family A, edit it to Monthly, archive it, open Archived, restore it. Try a blank name and a 61-character name. Add Test Student A (Math, multi-line private note), edit to Both, archive, restore from Archived, archive the family and confirm its student disappears from People, then try Delete Family on a family with a student.
-**Expected:** The empty state, group header, Edit Family, and the 'Monthly · calendar month' footer appear as described. The name captions appear and Save stays disabled. The note appears only inside the Student sheet. The blocked footer replaces Delete. The picker shows an accent check and pops back. Nothing is clipped.
-**Why human:** Visual layout, colour, touch targets and iOS focus behaviour.
+**Test:** On the installed app at 375 px and 430 px, light and dark. Archive a family with one student that has no sessions. On the Archived screen: (1) confirm the archived student shows a destructive "Delete Student" row under its Restore row; (2) tap it and check the alert title "Delete “{name}”?", message "This can't be undone.", buttons Cancel and Delete Student; (3) archive a second family with no students and confirm it shows "Delete Family" under Restore; (4) archive a family with a student that has a session and confirm the note row reads "This family still has students. Delete its archived students first."; (5) with a family that has only one archived no-history student, delete that student and confirm the note becomes the Delete Family row on the same screen without a pop-back.
+**Expected:** Rows sit directly under their Restore rows, the alert matches the copy above, the note wraps without clipping, and the live transition happens on the same screen. Nothing is clipped in either theme.
+**Why human:** Row layout, text wrapping, the live re-render, and dark mode have no DOM test harness in this project.
 
+### HV-B. VoiceOver on the Delete alert (01-05 D4, WR-06 extension)
 
-### HV-2. Records error path and Settings block (harvested 01-04 human-check block)
+**Test:** With VoiceOver on in the installed app, open Archived, open a Delete Student alert, then swipe through the list, the Back button and the tab bar. Close the alert with Cancel. Repeat once with the Delete Family alert.
+**Expected:** Content behind the alert is unreachable. Focus lands on Cancel first and returns to the Delete row on close.
+**Why human:** Assistive-technology behaviour cannot be automated. The DOM structure is correct (the alert is a direct child of `.app`).
 
-**Test:** In a scratch copy, force the database open to fail. Run `npm run dev`, open http://localhost:5173/lesson-ledger/ at 390 px, check the People and Settings tabs in light and dark, and tap Retry Opening Records.
-**Expected:** The 'You're in Safari' strip and Show Install Steps expansion appear. Settings shows Storage and Build values, never blanks. The Records error shows the heading, body, and a full-width Retry button with the tab bar still visible.
-**Why human:** Appearance, expansion, and the forced-error path.
+### HV-C. Refused-delete path (01-05 truth 4)
 
-### HV-3. Storage used value on the phone
+**Test:** The failure branch needs a session written between the row render and the Delete tap. Either force it in a scratch copy (for example, add a session through the console during the alert), or accept the code-level evidence in `Archived.tsx` L26-34.
+**Expected:** The alert stays open with "Couldn't delete “{name}”. Nothing was changed.", the list is unchanged, and Cancel dismisses it.
+**Why human:** The keep-open state is untested and the path is a race, not a normal UI action. The decision is whether to accept code inspection or run the scratch-copy test.
 
-**Test:** Open Settings in the installed app and read Storage used.
-**Expected:** A value such as "1.2 MB". Not blank, not Unavailable. Persistent storage shows Granted.
-**Why human:** The final device acceptance recorded Granted but not the usage value.
+### HV-D. Decision on W-2 copy
 
-### HV-4. Students survive an airplane-mode relaunch
-
-**Test:** On the installed app, create a student under an existing family. Turn on airplane mode, force-quit, relaunch.
-**Expected:** The student appears under its family.
-**Why human:** Device acceptance covered families only.
-
-### HV-5. Update watchdog (WR-03)
-
-**Test:** With a newer build deployed, tap Update App on the installed app and watch the result. Optionally simulate a dropped skip-waiting message in a scratch copy.
-**Expected:** Either the app reloads onto the new build, or within about 8 seconds "Couldn't update. Close Lesson Ledger and reopen it" appears with Not Now visible.
-**Why human:** The timer and reload depend on the service-worker lifecycle and cannot be unit-tested here.
-
-### HV-6. Family picker stale-value fix (WR-05)
-
-**Test:** Edit a student, tap the Family row, pick a different family.
-**Expected:** The Family row shows the chosen family without a flash of the old one.
-**Why human:** Timing and interaction, no automated coverage.
-
-### HV-7. Inert content and focus (WR-06)
-
-**Test:** With VoiceOver on, open a sheet, a pushed screen (Archived), and the Delete alert. Swipe through the content behind each.
-**Expected:** Content behind each overlay is unreachable. Alert focus lands on the least destructive button and returns to the opener on close.
-**Why human:** Assistive-technology behaviour.
-
-### HV-8. Interrupted update
-
-**Test:** Install the marker build, tap Update App, force-quit immediately, then relaunch in airplane mode and open Settings and People.
-**Expected:** The app opens on either build with families and students intact.
-**Why human:** Device-only.
-
-### HV-9. Safe-area fix on the phone (fix 8891d94)
-
-**Test:** After the latest deploy, reopen the installed app and check the People and Settings headers. Open a Family sheet.
-**Expected:** The top bar matches the status area with no empty row. Nothing is clipped at 375 or 430 px.
-**Why human:** The user reported the defect and the fix is deployed. Re-confirmation pending.
-
-### HV-10. Judgment-tier prohibition sign-offs (interactive verify)
-
-Each prohibition needs an explicit resolution. Evidence and suggested resolution:
-
-- **P-a (01-01, APP-03, no data transmitted off device).** Static scan of src and index.html found no fetch, XMLHttpRequest, sendBeacon, WebSocket or third-party script. The only external string in the bundle is a Dexie error-message link (tinyurl), not a network call. Suggested: pass.
-- **P-b (01-01, FAM-01, no real names in repo, tests or bundle).** Fixtures use "Test Family A", "Test Student A" and similar. A few short literals ("anna", "Bea", "Cy") appear in tests. Suggested: pass after confirming those are synthetic.
-- **P-c (01-03, FAM-03, notes never rendered outside the Student sheet).** `.notes` is read only in src/ui/StudentSheet.tsx. Suggested: pass.
-- **P-d (01-04, APP-05, no update or reload without a tap).** On the phone, the waiting worker activated on the next launch after a full force-quit, with no tap. Options: (a) accept as documented platform behaviour, since no reload happens while the app is open and a cold launch has no unsaved input, and amend the wording in 01-04-PLAN.md; or (b) treat as violated and open a gap. The verifier recommends (a) but does not decide it.
-- **P-e (01-04, DATA-01, no protection claim when not granted).** The not-granted footer says iOS has not agreed to protect the data. Suggested: pass.
+**Test:** Decide whether to keep "Delete its archived students first." for families whose archived student has lesson history (option a), or reword that case (option b, see W-2).
+**Expected:** A recorded decision. If option (b), the 01-05 truth and UI-SPEC copy row are amended in the same change.
+**Why human:** Product copy decision.
 
 ## Gaps Summary
 
-No gaps block the phase goal. The status is `human_needed` for the reasons above. The phase goal is achieved in code and on the device for the install, offline, banner, update, and storage-status parts. The roster works at the data layer and is wired through the UI. Its visual behaviour and the remaining runtime-only checks await human confirmation.
-
-Two items need a decision before the phase is closed: W-1 (the archived-record delete dead end) and P-d (the cold-launch update activation against the APP-05 prohibition).
+No gap blocks the phase goal. G-01-10 is closed in code, and its unit-level behaviour is proven by the archived-delete-path tests. The phase status is `human_needed`, not `passed`, because of the four open human items above (three from 01-05 device checks, one copy decision). The phase goal is achieved in code and on the device for install, offline use, the Safari banner, update flow, storage status, and the roster, including the archived-record delete path.
 
 ---
 
-_Verified: 2026-10-19T08:55:53Z_
+_Verified: 2026-10-19T09:21:51Z_
 _Verifier: Claude (gsd-verifier)_

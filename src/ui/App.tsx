@@ -4,7 +4,7 @@ import { isStandalone } from '../pwa/standalone';
 import { ensurePersistence } from '../pwa/storage';
 import { useAppUpdate } from '../pwa/useAppUpdate';
 import { Archived, ArchivedDeleteAlert, type ArchivedDeleteTarget } from './Archived';
-import { blankForm, type FormState } from '../domain/sessionForm';
+import { blankForm, setAttendees, type FormState } from '../domain/sessionForm';
 import { FamilySheet } from './FamilySheet';
 import { NavBar, PushLayer, Screen, TabBar, useAnimatedClose, type TabId } from './components';
 import { Log } from './Log';
@@ -89,7 +89,7 @@ export function App() {
         <StudentPicker
           attendees={logDraft.attendees}
           subject={logDraft.subject}
-          onChange={(attendees) => setLogDraft((d) => ({ ...d, attendees }))}
+          onChange={(attendees, tappedDefault) => setLogDraft((d) => setAttendees(d, attendees, tappedDefault))}
           backLabel="Log"
           onClosed={() => setLogPickerOpen(false)}
         />

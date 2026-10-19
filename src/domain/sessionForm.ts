@@ -1,5 +1,5 @@
 import { validateSessionFields, type SessionCheck } from './session';
-import type { Attendee, CreditMode, Subject } from './types';
+import type { Attendee, CreditMode, DefaultSubject, Subject } from './types';
 
 export interface FormCredit {
   lesson: CreditMode;
@@ -50,6 +50,32 @@ export function togglePick(subject: Subject, attendees: Attendee[], student: Att
 /** One family per distinct family among the attendees, in pick order. */
 export function creditFamilies(attendees: Attendee[]): string[] {
   return [...new Set(attendees.map((a) => a.familyId))];
+}
+
+/** Swim with students from two different families: the only case where credit is chosen (LOG-05). */
+export function needsCreditGroups(subject: Subject, attendees: Attendee[]): boolean {
+  return subject === 'swim' && creditFamilies(attendees).length === 2;
+}
+
+function pruneCredits(credits: Record<string, FormCredit>, attendees: Attendee[]): Record<string, FormCredit> {
+  const keep = new Set(creditFamilies(attendees));
+  return Object.fromEntries(Object.entries(credits).filter(([familyId]) => keep.has(familyId)));
+}
+
+/** Math keeps only the first picked student; touching the subject stops the default-subject suggestion. */
+export function changeSubject(form: FormState, subject: Subject): FormState {
+  const attendees = subject === 'math' ? form.attendees.slice(0, 1) : form.attendees;
+  return { ...form, subject, attendees, credits: pruneCredits(form.credits, attendees), subjectTouched: true };
+}
+
+/**
+ * Apply a new picker selection. The first student picked on an untouched form suggests their
+ * Default Subject (Both becomes Swim); credits of families that left the selection are dropped.
+ */
+export function setAttendees(form: FormState, attendees: Attendee[], pickedDefault?: DefaultSubject): FormState {
+  const suggest = form.attendees.length === 0 && attendees.length === 1 && !form.subjectTouched && pickedDefault !== undefined;
+  const subject: Subject = suggest ? (pickedDefault === 'math' ? 'math' : 'swim') : form.subject;
+  return { ...form, subject, attendees, credits: pruneCredits(form.credits, attendees) };
 }
 
 /** The only path from the form to the repo: normalizes credits, then runs the shared validation. */

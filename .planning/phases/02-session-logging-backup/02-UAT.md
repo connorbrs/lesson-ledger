@@ -50,3 +50,6 @@ blocked: 0
 ## Decisions
 
 - W1 (DATA-02): accepted 2026-10-19 — Phase 2 backups carry records only and fail closed if receipts exist; receipt photos join backups in Phase 3 (together with fixing WR-02 restore).
+- W-A: accepted 2026-10-19 — pre-change sessions whose Start + Duration crosses midnight open with Finish empty; the user adjusts Start/Duration if ever edited.
+- Verification human items 4 (CR-01 midnight rollover) and 7a (judgment-tier prohibitions): closed by the user 2026-10-19 on code + test evidence.
+- Re-verification BLOCKER (Duration >999) fixed in 79b5a97 (setDuration guard + test).

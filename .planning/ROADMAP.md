@@ -65,12 +65,12 @@ Plans:
   4. User can export a full backup as one file via the iOS share sheet from the home-screen app, and the home screen shows "last backup N days ago"
   5. User can restore from a backup file: a corrupt or unrecognised file is rejected with existing data untouched, and a valid file replaces everything or nothing
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 Plans:
 
 **Wave 1**
-- [ ] 02-01-PLAN.md — Log a session: row shape, validation and credit rules, local dates, shared hour formatter, Log tab with pre-fill and per-family credit, Student picker, four-tab bar
+- [x] 02-01-PLAN.md — Log a session: row shape, validation and credit rules, local dates, shared hour formatter, Log tab with pre-fill and per-family credit, Student picker, four-tab bar
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 02-02-PLAN.md — Sessions by week or month, Edit Session sheet with discard and delete, backlog 999.1 note reword
@@ -123,7 +123,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Installable App & Roster | 5/5 | Complete    | 2026-10-19 |
-| 2. Session Logging & Backup | 0/TBD | Not started | - |
+| 2. Session Logging & Backup | 1/3 | In Progress | - |
 | 3. Expenses & Receipts | 0/TBD | Not started | - |
 | 4. Family Summaries & Overview | 0/TBD | Not started | - |
 

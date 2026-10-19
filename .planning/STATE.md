@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 2
 current_phase_name: Session Logging & Backup
 status: executing
-stopped_at: Phase 2 UI-SPEC approved
-last_updated: "2026-10-19T10:10:11.916Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-10-19T10:17:02.480Z"
 last_activity: 2026-10-19
-last_activity_desc: Phase 1 complete, transitioned to Phase 2
-state_head: d6cfcd5d3ebfffda063b4033c4c0f2773abccf99
+last_activity_desc: Phase 2 execution started
+state_head: 714c0cb8a3ea063ffc5a734afb0e16592fcce40b
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
+  completed_plans: 6
   percent: 25
 ---
 
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-10-19)
 
 ## Current Position
 
-Phase: 2 (Session Logging & Backup) — READY TO EXECUTE
-Plan: Not started
+Phase: 2 (Session Logging & Backup) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-10-19 — Phase 1 complete, transitioned to Phase 2
+Last activity: 2026-10-19 — Phase 2 execution started
 
 Progress: [███░░░░░░░] 25%
 
@@ -61,6 +61,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 1 P03 | 9min | 3 tasks | 14 files |
 | Phase 1 P04 | 21min | 4 tasks | 17 files |
 | Phase 1 P05 | 8min | 3 tasks | 5 files |
+| Phase 02 P01 | 4 min | 3 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,8 @@ Recent decisions affecting current work:
 - [Phase 1]: [01-04] Tab-root NavBar uses a bare prop instead of an empty 44px row (found at device acceptance)
 - [Phase 1]: P-d resolved (HV-10): cold-launch activation of a waiting update after a force-quit is accepted platform behaviour; no reload while app is open
 - [Phase 1]: Archived delete: full-width destructive row beneath Restore plus per-family note row; ArchivedDeleteAlert mounted beside PushLayer
+- [Phase 02]: FamilyCredit stores lesson/activity as full|half per distinct family; attendees snapshot familyId so siblings count once
+- [Phase 02]: Log form date null means today (picking today stores null) so a form left open past midnight saves the new day
 
 ### Pending Todos
 
@@ -106,6 +109,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T09:48:44.624Z
-Stopped at: Phase 2 UI-SPEC approved
-Resume file: .planning/phases/02-session-logging-backup/02-UI-SPEC.md
+Last session: 2026-10-19T10:17:02.391Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None

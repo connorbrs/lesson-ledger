@@ -22,13 +22,13 @@
 
 ### Session Logging
 
-- [ ] **LOG-01**: User can log a session in seconds: date (defaults to today), subject (swim or math), student(s), lesson minutes, activity minutes, travel minutes
-- [ ] **LOG-02**: Quick entry pre-fills the last-used student/subject/minutes and offers duration presets (30/45/60)
-- [ ] **LOG-03**: Math sessions allow exactly one student
-- [ ] **LOG-04**: Swim sessions allow one or two students, possibly from different families
-- [ ] **LOG-05**: For a two-student swim session from different families, user chooses per family whether lesson minutes count full or half, and separately whether activity minutes count full or half
-- [ ] **LOG-06**: Two siblings from the same family in one session count once for that family
-- [ ] **LOG-07**: A session may have only activity minutes (zero lesson minutes)
+- [x] **LOG-01**: User can log a session in seconds: date (defaults to today), subject (swim or math), student(s), lesson minutes, activity minutes, travel minutes
+- [x] **LOG-02**: Quick entry pre-fills the last-used student/subject/minutes and offers duration presets (30/45/60)
+- [x] **LOG-03**: Math sessions allow exactly one student
+- [x] **LOG-04**: Swim sessions allow one or two students, possibly from different families
+- [x] **LOG-05**: For a two-student swim session from different families, user chooses per family whether lesson minutes count full or half, and separately whether activity minutes count full or half
+- [x] **LOG-06**: Two siblings from the same family in one session count once for that family
+- [x] **LOG-07**: A session may have only activity minutes (zero lesson minutes)
 - [ ] **LOG-08**: User can view sessions by period and edit or delete any session
 
 ### Expenses & Receipts
@@ -97,13 +97,13 @@
 | FAM-02 | Phase 1 | Complete |
 | FAM-03 | Phase 1 | Complete |
 | FAM-04 | Phase 1 | Complete |
-| LOG-01 | Phase 2 | Pending |
-| LOG-02 | Phase 2 | Pending |
-| LOG-03 | Phase 2 | Pending |
-| LOG-04 | Phase 2 | Pending |
-| LOG-05 | Phase 2 | Pending |
-| LOG-06 | Phase 2 | Pending |
-| LOG-07 | Phase 2 | Pending |
+| LOG-01 | Phase 2 | Complete |
+| LOG-02 | Phase 2 | Complete |
+| LOG-03 | Phase 2 | Complete |
+| LOG-04 | Phase 2 | Complete |
+| LOG-05 | Phase 2 | Complete |
+| LOG-06 | Phase 2 | Complete |
+| LOG-07 | Phase 2 | Complete |
 | LOG-08 | Phase 2 | Pending |
 | EXP-01 | Phase 3 | Pending |
 | EXP-02 | Phase 3 | Pending |

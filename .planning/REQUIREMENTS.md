@@ -23,7 +23,7 @@
 ### Session Logging
 
 - [x] **LOG-01**: User can log a session in seconds: date (defaults to today), subject (swim or math), student(s), lesson minutes, activity minutes, travel minutes
-- [x] **LOG-02**: Quick entry pre-fills the last-used student/subject/minutes and offers duration presets (30/45/60)
+- [x] **LOG-02**: Quick entry pre-fills the last-used student/subject/minutes and sets Finish to now with Start one Duration earlier
 - [x] **LOG-03**: Math sessions allow exactly one student
 - [x] **LOG-04**: Swim sessions allow one or two students, possibly from different families
 - [x] **LOG-05**: For a two-student swim session from different families, user chooses per family whether lesson minutes count full or half, and separately whether activity minutes count full or half

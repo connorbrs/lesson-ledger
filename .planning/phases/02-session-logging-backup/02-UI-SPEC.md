@@ -54,7 +54,6 @@ Phase 2 declared values (multiples of 4):
 |---------|-------|
 | Log sticky footer padding | 8px top and bottom (sm), 16px sides (md) |
 | Log sticky footer button height | 44px, radius 12px (group radius) |
-| Minutes row: preset segmented gap from label line | 8px (sm) |
 | Minutes numeric field hit area | 44px high, 64px minimum width |
 | Period navigation hit area (‹ and ›) | 44×44px, glyph 24px centered |
 | Log scroll bottom padding | tab height + safe-bottom + measured sticky footer height + 16px |
@@ -83,7 +82,7 @@ Numeric input is 17px, so iOS Safari does not zoom on focus.
 Tokens unchanged from Phase 1 (60/30/10; contrast as measured in Phase 1). Phase 2 adds no color tokens.
 
 **Accent reserved for** (Phase 1 list items 1–9 unchanged, plus these):
-10. Selected segment fill for Week/Month, Swim/Math, the 30/45/60 presets, and Full/Half (on-accent text, 600).
+10. Selected segment fill for Week/Month, Swim/Math, and Full/Half (on-accent text, 600).
 11. Primary buttons: "Log Session" (sticky footer, Log tab) and "Log a Session" (Sessions empty state). Accent fill, on-accent text, 600.
 12. Period navigation ‹ and ›, and the "This Week" / "This Month" return action.
 13. "Clear Start Time" next to a set start time.
@@ -104,7 +103,7 @@ Tokens unchanged from Phase 1 (60/30/10; contrast as measured in Phase 1). Phase
 | Log Session | Log sticky footer | Accent fill, on-accent, 600 (primary) |
 | Logged ✓ | Same button, 1.5 s | Same fill, disabled while shown |
 | Log a Session | Sessions empty state | Accent fill, on-accent, 600 (primary) |
-| Week / Month, Swim / Math, presets, Full / Half (selected) | Segmented controls | Accent fill, on-accent, 600 |
+| Week / Month, Swim / Math, Full / Half (selected) | Segmented controls | Accent fill, on-accent, 600 |
 | ‹ / › / This Week / This Month | Period navigation | Accent |
 | Clear Start Time | Start row | Accent text, regular |
 | Back Up Now | Settings Backup row; Log backup card | Accent text, regular |
@@ -127,7 +126,7 @@ Not accent: body text, chevrons, footers, values, Full/Half when unselected, min
 
 | Screen | Entry | Contents | Navigation |
 |--------|-------|----------|------------|
-| **Log** (tab root, launch) | Tab bar, launch default | Bare nav bar. Large title "Log". Group "Session": Date row, Start row, Subject segmented row. Group "Students": Students row (footer below). Group "Minutes": Lesson, Activity, Travel rows. Conditional credit groups (one per family). Backup reminder line or card. Sticky footer above tab bar: caption and "Log Session" button. | Students row pushes the Student picker. Log Session saves, shows "Logged ✓", resets the form to its pre-filled state, scrolls to top, stays on Log. |
+| **Log** (tab root, launch) | Tab bar, launch default | Bare nav bar. Large title "Log". Group "Session": Date row, Start row, Finish row, Duration row, Subject segmented row. Group "Students": Students row (footer below). Group "Minutes": Lesson (read-only), Activity, Travel rows. Conditional credit groups (one per family). Backup reminder line or card. Sticky footer above tab bar: caption and "Log Session" button. | Students row pushes the Student picker. Log Session saves, shows "Logged ✓", resets the form to its pre-filled state, scrolls to top, stays on Log. |
 | **Student picker** | Push from Log or from the Edit Session sheet | Title "Students". Grouped by family (Heading group header per family), active students only, checkmark on selected rows. | Tapping a row toggles it and applies at once. Back returns to the parent. Back label is the parent title ("Log" or "Edit Session"). |
 | **Sessions** (tab root) | Tab bar | Bare nav bar. Large title "Sessions". Week | Month segmented control (full width, 16px inset). Period row: ‹, period label, ›. "This Week" or "This Month" accent action beneath when not on the current period. Date-grouped list. Empty state when the period has no sessions. | Tap a row opens the Edit Session sheet. ‹ and › move one week or one month. |
 | **Edit Session** (sheet) | Tap a row on Sessions | Title "Edit Session". Cancel (left) and Save (right). Body uses the same field groups as Log (Session, Students, Minutes, credit groups), then a separate group with the "Delete Session" row. | Save writes and dismisses. Cancel with unsaved changes asks to discard. Delete Session opens the delete alert. |
@@ -148,15 +147,18 @@ Not accent: body text, chevrons, footers, values, Full/Half when unselected, min
 ### Log form field contract
 
 - **Date row:** label "Date", value "Today" when the date is today, otherwise "Mon, Oct 12". Default is today (local calendar date). Tap opens the native date wheel (`input type="date"`).
-- **Start row:** label "Start", value "Not set" (secondary) or "4:30 PM". Optional. Tap opens the native time wheel. When set, a "Clear Start Time" text action sits at the trailing edge.
+- **Start row:** label "Start", value "Not set" (secondary) or "4:30 PM". Optional. Tap opens the native time wheel. When set, a "Clear Start Time" text action sits at the trailing edge. Clearing Start also clears Finish.
 - **Subject row:** segmented "Swim" | "Math" in one row. Default: last session's subject; else the student's Default Subject (if "Both", Swim).
 - **Students row:** label "Students", value the names joined with ", " (secondary, clamped to 2 lines), or "Choose students" (secondary) when none.
-- **Minutes rows:** each of Lesson, Activity, Travel is one block:
+- **Finish row:** label "Finish", value "Not set" or "4:45 PM" (tone-primary when set). With no Start, the value is "Set Start first" (secondary) and there is no time wheel. With a Start, tap opens the native time wheel, one minute at a time. Finish before Start shows the caption "Finish can't be before Start." under the Session group (Label, destructive). A Start plus Duration past midnight leaves Finish "Not set" and shows "Session can't run past midnight." under the Session group. Either caption disables Log Session.
+- **Duration row:** label "Duration", value h:mm in a numeric field at the trailing edge (for example "0:47"). Typed digits are whole minutes, the last three kept, shown as h:mm (105 shows "1:45"). Changing Duration moves Finish to Start plus Duration. With no Start, only Duration changes.
+- **Lesson row:** read-only, label "Lesson", value h:mm: Duration minus Activity ("Not set" when Activity is not a whole number or is above Duration).
+- **Activity and Travel rows:** each is one block:
   - Line 1: label (Body) on the left; numeric field on the right (17px, tabular, right-aligned, suffix "min" in secondary). `inputmode="numeric"`, no spinner. Accepts 0–999 whole numbers.
-  - Line 2: segmented "30" | "45" | "60", full width, 32px, 8px above. Tapping a preset sets the value. A typed value equal to a preset selects that segment; any other value clears the selection.
-  - Invalid value: caption "Use whole minutes, 0 to 999." (Label, destructive) under line 2; Log Session disabled.
-  - Travel footer: "Travel is for your records only. It never appears on family summaries."
-- **Defaults:** pre-filled from the last session. With no previous session: Lesson 45, Activity 0, Travel 0.
+  - Invalid value: caption "Use whole minutes, 0 to 999." (Label, destructive) under the row; Log Session disabled.
+  - Activity above Duration: caption "Activity can't be longer than Duration." (Label, destructive) under the row; Log Session disabled.
+  - Minutes group footer: "Lesson is Duration minus Activity. Travel is for your records only. It never appears on family summaries."
+- **Defaults:** Finish is now (to the minute). Start is Finish minus the last session's Duration; with no previous session the Duration is 45 minutes. Subject, students, Activity and Travel pre-fill from the last session; with no previous session Activity and Travel are 0.
 - **Zero minutes are allowed.** Activity-only sessions (Lesson 0) save. A zero-minute session saves too. Phase 4 warns about it before sending.
 
 ### Students picker rules
@@ -248,7 +250,7 @@ Not accent: body text, chevrons, footers, values, Full/Half when unselected, min
 
 ### Layout at 200% zoom
 
-- Log and Sessions reflow to one column. The sticky footer keeps the button at full width. The minutes segmented control stays full width. Verified on device (backstop).
+- Log and Sessions reflow to one column. The sticky footer keeps the button at full width. Verified on device (backstop).
 
 ---
 
@@ -275,9 +277,14 @@ Not accent: body text, chevrons, footers, values, Full/Half when unselected, min
 | Travel footer | "Travel is for your records only. It never appears on family summaries." |
 | Date value | "Today" or "Mon, Oct 12" |
 | Start value | "Not set" or "4:30 PM"; action "Clear Start Time" |
+| Finish value | "Not set" or "4:45 PM" |
+| Finish placeholder (no Start) | "Set Start first" |
+| Duration value | h:mm, for example "0:47" |
+| Finish caption (before Start) | "Finish can't be before Start." |
+| Finish caption (past midnight) | "Session can't run past midnight." |
+| Activity caption (above Duration) | "Activity can't be longer than Duration." |
 | Subject segments | "Swim", "Math" |
-| Minute presets | "30", "45", "60" |
-| Minute row labels | "Lesson", "Activity", "Travel" |
+| Minute row labels | "Start", "Finish", "Duration", "Lesson", "Activity", "Travel" |
 | Sessions segments | "Week", "Month" |
 | Period return action | "This Week" / "This Month" |
 | Period navigation labels (VoiceOver, not visible) | "Previous week" / "Next week"; "Previous month" / "Next month" |
@@ -372,7 +379,7 @@ Applicable state considerations resolved: 34 covered, 4 backstop, 0 unresolved.
 
 ## Assumptions
 
-1. **Lesson default on first run is 45 minutes.** The brief set Activity and Travel to 0 without a previous session; Lesson was not specified. Confirm.
+1. **Duration defaults to 45 minutes on first run.** Activity and Travel default to 0 without a previous session. Confirm.
 2. **Credit resets to Full for every session.** Credit is not carried forward from the last session.
 3. **Subject "Both" falls back to Swim** when a student has Default Subject "Both" and no previous session exists.
 4. **Switching to Math with two students selected keeps the first one picked** and drops the second.

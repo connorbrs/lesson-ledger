@@ -882,8 +882,8 @@ button.row:active:not(:disabled) {
   gap: var(--space-sm);
 }
 
-.minutes-block .segmented {
-  width: 100%;
+.duration-input {
+  margin-left: auto;
 }
 
 .minutes-input {

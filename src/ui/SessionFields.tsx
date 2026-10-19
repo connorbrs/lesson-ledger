@@ -1,18 +1,30 @@
 import { useEffect, useState } from 'preact/hooks';
-import { formatDateValue, formatTime12, todayLocal } from '../domain/dates';
+import { formatDateValue, formatDuration, formatTime12, todayLocal } from '../domain/dates';
 import { formatMinutes } from '../domain/hours';
 import { creditedMinutes } from '../domain/session';
-import { changeSubject, creditFamilies, needsCreditGroups, parseMinutes, type FormCredit, type FormState } from '../domain/sessionForm';
+import {
+  changeSubject,
+  creditFamilies,
+  lessonMinutesOf,
+  needsCreditGroups,
+  parseMinutes,
+  setDuration,
+  setFinishTime,
+  setStartTime,
+  timeCaption,
+  type FormCredit,
+  type FormState,
+} from '../domain/sessionForm';
 import type { CreditMode, Subject } from '../domain/types';
 import { Group, Row, SegmentedControl } from './components';
 
-const PRESETS = ['30', '45', '60'].map((v) => ({ value: v, label: v }));
 const CREDIT_OPTIONS: { value: CreditMode; label: string }[] = [
   { value: 'full', label: 'Full' },
   { value: 'half', label: 'Half' },
 ];
 
-function MinutesBlock(props: { label: string; value: string; onChange: (value: string) => void }) {
+/** Activity and Travel: whole minutes typed as text. The caption is the invalid-text message, else the row's time caption. */
+function MinutesBlock(props: { label: string; value: string; caption: string | null; onChange: (value: string) => void }) {
   const [touched, setTouched] = useState(false);
   const trimmed = props.value.trim();
   const invalid = parseMinutes(props.value) === null && (trimmed !== '' || touched);
@@ -33,13 +45,7 @@ function MinutesBlock(props: { label: string; value: string; onChange: (value: s
         />
         <span class="minutes-suffix">min</span>
       </div>
-      <SegmentedControl
-        label={`${props.label} presets`}
-        options={PRESETS}
-        value={PRESETS.some((p) => p.value === trimmed) ? trimmed : ''}
-        onChange={props.onChange}
-      />
-      {invalid && <p class="label minutes-error">Use whole minutes, 0 to 999.</p>}
+      {invalid ? <p class="label minutes-error">Use whole minutes, 0 to 999.</p> : props.caption && <p class="label minutes-error">{props.caption}</p>}
     </div>
   );
 }
@@ -70,8 +76,11 @@ export function SessionFields(props: {
   const set = (patch: Partial<FormState>) => props.onChange({ ...form, ...patch });
   const studentNames = form.attendees.map((a) => names.students[a.studentId]).filter(Boolean);
   const grouped = needsCreditGroups(form.subject, form.attendees);
-  const lesson = parseMinutes(form.lesson);
+  const lesson = lessonMinutesOf(form);
   const activity = parseMinutes(form.activity);
+  const caption = timeCaption(form);
+  const finishCaption = caption?.row === 'finish' ? caption.text : null;
+  const activityCaption = caption?.row === 'activity' ? caption.text : null;
 
   const creditOf = (familyId: string): FormCredit => form.credits[familyId] ?? { lesson: 'full', activity: 'full' };
   const setCredit = (familyId: string, field: keyof FormCredit, mode: CreditMode) =>
@@ -79,7 +88,7 @@ export function SessionFields(props: {
 
   return (
     <>
-      <Group header="Session">
+      <Group header="Session" footer={finishCaption ?? undefined} footerError={finishCaption !== null}>
         <div class="row">
           <span class="row-label">Date</span>
           <span class="row-value">{formatDateValue(form.date ?? today, today)}</span>
@@ -95,7 +104,7 @@ export function SessionFields(props: {
           <span class="row-label">Start</span>
           <span class={`row-value${form.startTime ? ' tone-primary' : ''}`}>{form.startTime ? formatTime12(form.startTime) : 'Not set'}</span>
           {form.startTime && (
-            <button type="button" class="text-button clear-start" onClick={() => set({ startTime: null })}>
+            <button type="button" class="text-button clear-start" onClick={() => props.onChange(setStartTime(form, null))}>
               Clear Start Time
             </button>
           )}
@@ -104,7 +113,40 @@ export function SessionFields(props: {
             type="time"
             aria-label="Start time"
             value={form.startTime ?? ''}
-            onInput={(e) => e.currentTarget.value && set({ startTime: e.currentTarget.value })}
+            onInput={(e) => e.currentTarget.value && props.onChange(setStartTime(form, e.currentTarget.value))}
+          />
+        </div>
+        <div class="row">
+          <span class="row-label">Finish</span>
+          {form.startTime ? (
+            <>
+              <span class={`row-value${form.endTime ? ' tone-primary' : ''}`}>{form.endTime ? formatTime12(form.endTime) : 'Not set'}</span>
+              <input
+                class="row-overlay-input"
+                type="time"
+                aria-label="Finish time"
+                value={form.endTime ?? ''}
+                onInput={(e) => e.currentTarget.value && props.onChange(setFinishTime(form, e.currentTarget.value))}
+              />
+            </>
+          ) : (
+            <span class="row-value">Set Start first</span>
+          )}
+        </div>
+        <div class="row">
+          <span class="row-label">Duration</span>
+          <input
+            class="minutes-input duration-input"
+            type="text"
+            inputmode="numeric"
+            value={formatDuration(form.duration)}
+            aria-label="Duration"
+            onFocus={(e) => e.currentTarget.select()}
+            onInput={(e) => {
+              // Typed digits are whole minutes; the field shows them as h:mm.
+              const digits = e.currentTarget.value.replace(/\D/g, '').slice(-3);
+              props.onChange(setDuration(form, digits === '' ? 0 : Number(digits)));
+            }}
           />
         </div>
         <div class="row">
@@ -128,10 +170,13 @@ export function SessionFields(props: {
           Students
         </Row>
       </Group>
-      <Group header="Minutes" footer="Travel is for your records only. It never appears on family summaries.">
-        <MinutesBlock label="Lesson" value={form.lesson} onChange={(lesson) => set({ lesson })} />
-        <MinutesBlock label="Activity" value={form.activity} onChange={(activity) => set({ activity })} />
-        <MinutesBlock label="Travel" value={form.travel} onChange={(travel) => set({ travel })} />
+      <Group header="Minutes" footer="Lesson is Duration minus Activity. Travel is for your records only. It never appears on family summaries.">
+        <div class="row">
+          <span class="row-label">Lesson</span>
+          <span class="row-value">{lesson === null ? 'Not set' : formatDuration(lesson)}</span>
+        </div>
+        <MinutesBlock label="Activity" value={form.activity} caption={activityCaption} onChange={(activity) => set({ activity })} />
+        <MinutesBlock label="Travel" value={form.travel} caption={null} onChange={(travel) => set({ travel })} />
       </Group>
       {grouped &&
         creditFamilies(form.attendees).map((familyId) => {

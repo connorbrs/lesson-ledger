@@ -59,7 +59,7 @@ Plans:
 **Depends on**: Phase 1
 **Requirements**: LOG-01, LOG-02, LOG-03, LOG-04, LOG-05, LOG-06, LOG-07, LOG-08, DATA-02, DATA-03, DATA-04
 **Success Criteria** (what must be TRUE):
-  1. User can log a session in a few taps: date defaults to today, then subject, student(s), and lesson, activity and travel minutes; the form pre-fills the last-used student, subject and minutes, offers 30/45/60 presets, hides archived students, and accepts a session with only activity minutes
+  1. User can log a session in a few taps: date defaults to today, then subject, student(s), and lesson, activity and travel minutes; the form pre-fills the last-used student, subject and minutes, takes Start, Finish and Duration (Finish defaults to now), hides archived students, and accepts a session with only activity minutes
   2. A math session accepts exactly one student; a swim session accepts one or two students, possibly from different families, and two siblings from the same family count once for that family; for a two-family swim session, user chooses per family whether lesson minutes count full or half, and separately whether activity minutes count full or half, and sees the credited minutes per family
   3. User can view sessions by period and edit or delete any session
   4. User can export a full backup as one file via the iOS share sheet from the home-screen app, and the home screen shows "last backup N days ago"

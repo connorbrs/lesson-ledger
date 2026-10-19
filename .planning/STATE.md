@@ -4,10 +4,10 @@ current_phase: 2
 current_phase_name: Session Logging & Backup
 status: verifying
 stopped_at: "Phase 2 verification: human_needed (UAT pending)"
-last_updated: "2026-10-19T19:22:47.277Z"
+last_updated: "2026-10-19T19:47:26.739Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 2 execution started
-state_head: 2676f373b5b851b9891fcd37a05c98eae4051bb7
+state_head: 179db1bb72f5b5b7f5ce18d0d7ccf2272674a0f7
 progress:
   total_phases: 4
   completed_phases: 1
@@ -109,6 +109,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 261019-gs0 | Session Start/Finish/Duration times instead of minute presets | 2026-10-19 | 2676f37 | [261019-gs0-session-start-finish-duration-times-inst](./quick/261019-gs0-session-start-finish-duration-times-inst/) |
+| 2 | Sessions list newest first | 2026-10-19 | 179db1b | — |
 
 ## Deferred Items
 

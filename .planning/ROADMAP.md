@@ -65,7 +65,7 @@ Plans:
   4. User can export a full backup as one file via the iOS share sheet from the home-screen app, and the home screen shows "last backup N days ago"
   5. User can restore from a backup file: a corrupt or unrecognised file is rejected with existing data untouched, and a valid file replaces everything or nothing
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans executed
 
 Plans:
 
@@ -76,7 +76,7 @@ Plans:
 - [x] 02-02-PLAN.md — Sessions by week or month, Edit Session sheet with discard and delete, backlog 999.1 note reword
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 02-03-PLAN.md — Backup contract decision, validated all-or-nothing restore, Back Up Now share sheet, Log reminder, device round trip
+- [x] 02-03-PLAN.md — Backup contract decision, validated all-or-nothing restore, Back Up Now share sheet, Log reminder, device round trip
 
 **UI hint**: yes
 **Device spike**: On a real iPhone: share a backup file via the share sheet from the home-screen app, pick it back through the file picker, and verify a full round trip. The backup format should carry an attachments slot from day one so Phase 3 receipts need no format change.
@@ -123,7 +123,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Installable App & Roster | 5/5 | Complete    | 2026-10-19 |
-| 2. Session Logging & Backup | 2/3 | In Progress | - |
+| 2. Session Logging & Backup | 3/3 | In Progress | - |
 | 3. Expenses & Receipts | 0/TBD | Not started | - |
 | 4. Family Summaries & Overview | 0/TBD | Not started | - |
 

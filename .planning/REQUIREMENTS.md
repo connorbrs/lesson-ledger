@@ -58,9 +58,9 @@
 ### Data Safety
 
 - [x] **DATA-01**: App requests persistent storage on launch and shows storage status and usage in Settings
-- [ ] **DATA-02**: User can export a full backup (all records + receipt photos) as one file via the share sheet
-- [ ] **DATA-03**: User can restore from a backup file; the file is validated before any existing data is replaced, and the restore is all-or-nothing
-- [ ] **DATA-04**: Home screen shows "last backup N days ago" as a reminder
+- [x] **DATA-02**: User can export a full backup (all records + receipt photos) as one file via the share sheet
+- [x] **DATA-03**: User can restore from a backup file; the file is validated before any existing data is replaced, and the restore is all-or-nothing
+- [x] **DATA-04**: Home screen shows "last backup N days ago" as a reminder
 
 ## v2 Requirements
 
@@ -121,9 +121,9 @@
 | VIEW-01 | Phase 4 | Pending |
 | VIEW-02 | Phase 4 | Pending |
 | DATA-01 | Phase 1 | Complete |
-| DATA-02 | Phase 2 | Pending |
-| DATA-03 | Phase 2 | Pending |
-| DATA-04 | Phase 2 | Pending |
+| DATA-02 | Phase 2 | Complete |
+| DATA-03 | Phase 2 | Complete |
+| DATA-04 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 requirements: 36 total

@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Installable App & Roster
 status: executing
-stopped_at: Phase 1 context gathered
-last_updated: "2026-10-19T05:55:59.999Z"
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-10-19T06:03:47.612Z"
 last_activity: 2026-10-18
-last_activity_desc: Roadmap created (4 phases, 36/36 v1 requirements mapped)
-state_head: 14837a5d1ea668d3fc4cb5709844fdcf2cf64914
+last_activity_desc: Phase 1 execution started
+state_head: 2ca09ff3973023190dc825c5b123b9c902c6f3f2
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 
 ## Current Position
 
-Phase: 1 (Installable App & Roster) — READY TO EXECUTE
-Plan: 0 of TBD in current phase
+Phase: 1 (Installable App & Roster) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-10-18 — Roadmap created (4 phases, 36/36 v1 requirements mapped)
+Last activity: 2026-10-18 — Phase 1 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -52,6 +52,11 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 1 P01 | 14min | 3 tasks | 18 files |
 
 ## Accumulated Context
 
@@ -67,6 +72,8 @@ Recent decisions affecting current work:
 - [Init]: GitHub Pages URL, no custom domain; families with no sessions in a period get no summary
 - [Roadmap]: Backup/restore sits in Phase 2 (before receipts) so real data is protected from the first logged session
 - [Roadmap]: Overview folded into Phase 4 with summaries (both read the same credit/period/formatter code)
+- [Phase 1]: TypeScript 7.0.2 works for tsc --noEmit; no fallback to 6.x needed
+- [Phase 1]: apple-touch-icon root-form href is rewritten by Vite to the /lesson-ledger/ base; no %BASE_URL% needed
 
 ### Pending Todos
 
@@ -87,6 +94,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T05:21:45.336Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-installable-app-roster/01-CONTEXT.md
+Last session: 2026-10-19T06:03:47.594Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None

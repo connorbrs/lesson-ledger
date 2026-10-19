@@ -7,15 +7,15 @@
 
 ### App & Install
 
-- [ ] **APP-01**: User can add the app to the iPhone home screen from Safari and open it like an app (icon, full screen)
-- [ ] **APP-02**: App works fully offline after first load
-- [ ] **APP-03**: App never expires and needs no Apple developer account (static GitHub Pages hosting)
+- [x] **APP-01**: User can add the app to the iPhone home screen from Safari and open it like an app (icon, full screen)
+- [x] **APP-02**: App works fully offline after first load
+- [x] **APP-03**: App never expires and needs no Apple developer account (static GitHub Pages hosting)
 - [ ] **APP-04**: When opened in a Safari tab instead of the home-screen app, user sees a warning that data lives in the home-screen app
 - [ ] **APP-05**: User is told when a new app version is available and can update with one tap
 
 ### Families & Students
 
-- [ ] **FAM-01**: User can create, edit and archive a family (name used on summaries)
+- [x] **FAM-01**: User can create, edit and archive a family (name used on summaries)
 - [ ] **FAM-02**: User can set each family's reporting period: weekly (Mon–Sun) or monthly (calendar month)
 - [ ] **FAM-03**: User can create, edit and archive a student belonging to one family
 - [ ] **FAM-04**: Archived families/students keep their history but are hidden from quick entry; only records with no history can be hard-deleted
@@ -88,12 +88,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| APP-01 | Phase 1 | Pending |
-| APP-02 | Phase 1 | Pending |
-| APP-03 | Phase 1 | Pending |
+| APP-01 | Phase 1 | Complete |
+| APP-02 | Phase 1 | Complete |
+| APP-03 | Phase 1 | Complete |
 | APP-04 | Phase 1 | Pending |
 | APP-05 | Phase 1 | Pending |
-| FAM-01 | Phase 1 | Pending |
+| FAM-01 | Phase 1 | Complete |
 | FAM-02 | Phase 1 | Pending |
 | FAM-03 | Phase 1 | Pending |
 | FAM-04 | Phase 1 | Pending |

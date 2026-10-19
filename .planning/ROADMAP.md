@@ -32,11 +32,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. User can create, edit and archive families (name used on summaries, reporting period weekly Mon-Sun or monthly calendar month) and students (each belonging to one family); archived records are hidden from active lists but keep their history, and only records with no history can be hard-deleted
   5. Settings shows whether persistent storage was granted and how much storage is used
 
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 01-01-PLAN.md — Walking skeleton: pinned toolchain, a family persisted end-to-end, installable precached build with the clock icon
+- [x] 01-01-PLAN.md — Walking skeleton: pinned toolchain, a family persisted end-to-end, installable precached build with the clock icon
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 01-02-PLAN.md — Go live on GitHub Pages and run the early iPhone device spike
@@ -108,7 +108,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Installable App & Roster | 0/4 | Not started | - |
+| 1. Installable App & Roster | 1/4 | In Progress | - |
 | 2. Session Logging & Backup | 0/TBD | Not started | - |
 | 3. Expenses & Receipts | 0/TBD | Not started | - |
 | 4. Family Summaries & Overview | 0/TBD | Not started | - |

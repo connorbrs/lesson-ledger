@@ -26,7 +26,7 @@ const sameSplits = (a: ExpenseSplit[], b: ExpenseSplit[]) =>
 /**
  * Makes the session's stored expenses and photos equal the payload. Must run inside the caller's rw
  * transaction (students, families, sessions, expenses, attachments). Only Dexie calls happen here: no
- * canvas, FileReader or Blob reading (Pitfall 4). Any throw aborts the caller's transaction.
+ * image decoding or Blob content reading (Pitfall 4). Any throw aborts the caller's transaction.
  */
 export async function writeSessionExpenses(sessionId: string, familyIds: readonly string[], payload: ExpensePayload): Promise<void> {
   const checked = validateExpenseDrafts(payload.expenses, familyIds);

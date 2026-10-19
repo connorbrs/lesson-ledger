@@ -34,11 +34,19 @@ export async function createStudent(input: StudentInput): Promise<Student> {
   return student;
 }
 
-export async function updateStudent(id: string, input: StudentInput): Promise<Student> {
-  const v = validated(input);
+/** Omitted fields keep their stored values, so a partial update never resets the subject or erases notes. */
+export async function updateStudent(id: string, input: Partial<StudentInput>): Promise<Student> {
   return db.transaction('rw', db.students, db.families, async () => {
     const current = await db.students.get(id);
     if (!current) throw new RosterError('not-found');
+    const r = validateStudentInput({
+      familyId: input.familyId === undefined ? current.familyId : input.familyId,
+      name: input.name === undefined ? current.name : input.name,
+      defaultSubject: input.defaultSubject === undefined ? current.defaultSubject : input.defaultSubject,
+      notes: input.notes === undefined ? current.notes : input.notes,
+    });
+    if (!r.ok) throw new RosterError(r.code);
+    const v = r.value;
     const family = await db.families.get(v.familyId);
     // Unchanged family: it only has to exist. A changed family must be active.
     if (!family || (v.familyId !== current.familyId && family.archivedAt !== null)) throw new RosterError('family-missing');

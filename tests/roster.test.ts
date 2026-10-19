@@ -251,6 +251,15 @@ describe('student repo', () => {
     expect(u.name).toBe('Test Student B');
   });
 
+  it('keeps stored subject, notes and family when an update omits them', async () => {
+    const f = await createFamily('Test Family A');
+    const s = await createStudent({ familyId: f.id, name: 'Test Student A', defaultSubject: 'swim', notes: 'private note' });
+    const u = await updateStudent(s.id, { name: 'Test Student B' });
+    expect(u).toMatchObject({ familyId: f.id, name: 'Test Student B', defaultSubject: 'swim', notes: 'private note' });
+    expect(await getStudent(s.id)).toMatchObject({ defaultSubject: 'swim', notes: 'private note' });
+    await expect(updateStudent(s.id, { name: '  ' })).rejects.toMatchObject({ code: 'name-empty' });
+  });
+
   it('archives and restores idempotently and lists each state', async () => {
     const f = await createFamily('Test Family A');
     const s = await createStudent({ familyId: f.id, name: 'Test Student A' });

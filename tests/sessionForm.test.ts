@@ -9,6 +9,8 @@ import {
   needsCreditGroups,
   parseMinutes,
   prefillFromSession,
+  removeExpense,
+  upsertExpense,
   setAttendees,
   parseTypedDuration,
   setDuration,
@@ -18,6 +20,7 @@ import {
   togglePick,
   type FormState,
 } from '../src/domain/sessionForm';
+import type { ExpenseDraft } from '../src/domain/expense';
 import type { Attendee, Session, Student } from '../src/domain/types';
 
 const a1: Attendee = { studentId: 'a1', familyId: 'A' };
@@ -283,5 +286,42 @@ describe('Start, Finish and Duration sync (D-02, D-03)', () => {
 
   it('a valid form has no caption', () => {
     expect(timeCaption(base())).toBeNull();
+  });
+});
+
+describe('form expenses', () => {
+  const draft = (over: Partial<ExpenseDraft> = {}): ExpenseDraft => ({ id: 'e1', description: 'Pool entry', amountCents: 1250, splits: null, photoIds: [], createdAt: 1, ...over });
+  const session: Session = {
+    id: 's1', date: '2026-10-19', startTime: null, endTime: null, subject: 'swim', attendees: [a1],
+    credits: [{ familyId: 'A', lesson: 'full', activity: 'full' }], lessonMinutes: 45, activityMinutes: 0, travelMinutes: 0, createdAt: 1, updatedAt: 1,
+  };
+
+  it('starts empty from blankForm, prefillFromSession and formFromSession', () => {
+    expect(blankForm().expenses).toEqual([]);
+    expect(prefillFromSession(session, [], '10:00').expenses).toEqual([]);
+    expect(formFromSession(session).expenses).toEqual([]);
+  });
+  it('formFromSession carries the drafts', () => {
+    expect(formFromSession(session, [draft()]).expenses).toEqual([draft()]);
+  });
+  it('upsertExpense appends, then replaces in place; removeExpense drops by id', () => {
+    let f = upsertExpense(blankForm(), draft());
+    f = upsertExpense(f, draft({ id: 'e2' }));
+    f = upsertExpense(f, draft({ amountCents: 999 }));
+    expect(f.expenses.map((e) => [e.id, e.amountCents])).toEqual([['e1', 999], ['e2', 1250]]);
+    expect(removeExpense(f, 'e1').expenses.map((e) => e.id)).toEqual(['e2']);
+  });
+  it('sameForm sees added, edited and removed expenses and photo ids', () => {
+    const base = formFromSession(session, [draft()]);
+    expect(sameForm(base, formFromSession(session, [draft()]))).toBe(true);
+    expect(sameForm(base, formFromSession(session))).toBe(false);
+    expect(sameForm(base, upsertExpense(base, draft({ amountCents: 1251 })))).toBe(false);
+    expect(sameForm(base, upsertExpense(base, draft({ photoIds: ['p1'] })))).toBe(false);
+    expect(sameForm(base, removeExpense(base, 'e1'))).toBe(false);
+  });
+  it('sameForm ignores only the pick order of students', () => {
+    const x = { ...formFromSession(session, [draft()]), attendees: [a1, b1] };
+    const y = { ...x, attendees: [b1, a1] };
+    expect(sameForm(x, y)).toBe(true);
   });
 });

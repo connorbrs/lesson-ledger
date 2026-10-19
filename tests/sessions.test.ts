@@ -375,3 +375,14 @@ describe('session students exclude archived families', () => {
     expect(prefillFromSession(last, eligible).attendees).toEqual([b1]);
   });
 });
+
+describe('sessionRowText expenses line', () => {
+  it('is undefined at a total of 0 and Expenses $12.50 at 1250', async () => {
+    const created = await createSession(swim([a1]));
+    const names = { [a1.studentId]: 'Test Student A1' };
+    expect(sessionRowText(created, names).expenses).toBeUndefined();
+    expect(sessionRowText(created, names, 0).expenses).toBeUndefined();
+    expect(sessionRowText(created, names, 1250).expenses).toBe('Expenses $12.50');
+    expect(Object.keys(sessionRowText(created, names)).sort()).toEqual(['activity', 'lesson', 'meta', 'names']);
+  });
+});

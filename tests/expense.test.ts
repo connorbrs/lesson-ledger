@@ -2,13 +2,16 @@ import { describe, expect, it } from 'vitest';
 import {
   amountCaption,
   canSaveExpense,
+  deleteExpenseMessage,
   draftFromExpense,
+  expenseEditorDirty,
   expenseTotal,
   expensesFooterText,
   formatExpensesLine,
   receiptsLabel,
   remapSplitFamilies,
   resolveSplits,
+  sessionDeleteMessage,
   splitLine,
   validateExpenseDrafts,
   validateExpenseText,
@@ -174,5 +177,52 @@ describe('expensesFooterText', () => {
     expect(expensesFooterText([{ amountCents: 1250 }])).toBe('Total $12.50.');
     expect(expensesFooterText([{ amountCents: 1250 }, { amountCents: 5 }])).toBe('Total $12.55.');
     expect(expensesFooterText([{ amountCents: 100000 }])).toBe('Total $1,000.00.');
+  });
+});
+
+describe('sessionDeleteMessage', () => {
+  it('names only what goes, singular at one', () => {
+    expect(sessionDeleteMessage({ expenses: 0, photos: 0 })).toBe("This can't be undone.");
+    expect(sessionDeleteMessage({ expenses: 1, photos: 0 })).toBe("This also deletes 1 expense. This can't be undone.");
+    expect(sessionDeleteMessage({ expenses: 2, photos: 3 })).toBe("This also deletes 2 expenses and 3 receipt photos. This can't be undone.");
+    expect(sessionDeleteMessage({ expenses: 2, photos: 1 })).toBe("This also deletes 2 expenses and 1 receipt photo. This can't be undone.");
+    expect(sessionDeleteMessage({ expenses: 1, photos: 1 })).toBe("This also deletes 1 expense and 1 receipt photo. This can't be undone.");
+  });
+});
+
+describe('deleteExpenseMessage', () => {
+  it('is absent without photos and counts them otherwise', () => {
+    expect(deleteExpenseMessage(0)).toBeUndefined();
+    expect(deleteExpenseMessage(1)).toBe('This also deletes 1 receipt photo.');
+    expect(deleteExpenseMessage(3)).toBe('This also deletes 3 receipt photos.');
+  });
+});
+
+describe('expenseEditorDirty', () => {
+  it('a new expense is dirty once anything is typed', () => {
+    expect(expenseEditorDirty(null, '', '')).toBe(false);
+    expect(expenseEditorDirty(null, '5', '')).toBe(true);
+    expect(expenseEditorDirty(null, '', 'Pool')).toBe(true);
+  });
+  it('an existing draft is dirty only on a real change', () => {
+    const draft = d({ amountCents: 1250, description: 'Pool entry' });
+    expect(expenseEditorDirty(draft, '12.50', 'Pool entry')).toBe(false);
+    expect(expenseEditorDirty(draft, '12.5', '  Pool entry ')).toBe(false);
+    expect(expenseEditorDirty(draft, '13', 'Pool entry')).toBe(true);
+    expect(expenseEditorDirty(draft, 'abc', 'Pool entry')).toBe(true);
+    expect(expenseEditorDirty(draft, '12.50', 'Pool fee')).toBe(true);
+  });
+  it('compares splits when given', () => {
+    const over = [{ familyId: 'A', cents: 700 }, { familyId: 'B', cents: 301 }];
+    expect(expenseEditorDirty(d(), '10.01', 'Pool entry', null)).toBe(false);
+    expect(expenseEditorDirty(d(), '10.01', 'Pool entry', over)).toBe(true);
+    expect(expenseEditorDirty(d({ splits: over }), '10.01', 'Pool entry', over.map((s) => ({ ...s })))).toBe(false);
+    expect(expenseEditorDirty(d({ splits: over }), '10.01', 'Pool entry', null)).toBe(true);
+  });
+  it('compares photo ids in content and order when given', () => {
+    const draft = d({ photoIds: ['a', 'b'] });
+    expect(expenseEditorDirty(draft, '10.01', 'Pool entry', undefined, ['a', 'b'])).toBe(false);
+    expect(expenseEditorDirty(draft, '10.01', 'Pool entry', undefined, ['b', 'a'])).toBe(true);
+    expect(expenseEditorDirty(draft, '10.01', 'Pool entry', undefined, ['a'])).toBe(true);
   });
 });

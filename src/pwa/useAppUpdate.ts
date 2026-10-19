@@ -2,6 +2,8 @@ import { useMemo, useRef, useState } from 'preact/hooks';
 import { useRegisterSW } from 'virtual:pwa-register/preact';
 import { singleFlight } from './singleFlight';
 
+const UPDATE_TIMEOUT_MS = 8000;
+
 /**
  * Update lifecycle for the service worker (APP-05). The update only swaps the app shell:
  * this file must not import the data layer or touch IndexedDB, so an interrupted update
@@ -32,9 +34,16 @@ export function useAppUpdate() {
       singleFlight(async () => {
         setApplying(true);
         setFailed(false);
+        // updateServiceWorker does not reject when no reload follows (the skip-waiting message is fire-and-forget),
+        // so a timeout is the only way out of "Updating App…". On success the page reloads and the timer dies with it.
+        const watchdog = setTimeout(() => {
+          setFailed(true);
+          setApplying(false);
+        }, UPDATE_TIMEOUT_MS);
         try {
           await latest.current(true);
         } catch {
+          clearTimeout(watchdog);
           setFailed(true);
           setApplying(false);
         }

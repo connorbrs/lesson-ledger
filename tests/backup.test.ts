@@ -109,7 +109,7 @@ describe('buildBackup', () => {
 
   it.each(['expenses', 'attachments'] as const)('rejects with unsupported-data when %s holds a row', async (table) => {
     await seed();
-    await db[table].add({ id: 'x' });
+    await db[table].add({ id: 'x' } as never); // rows are typed since Phase 3; this fakes a non-empty table
     await expect(buildBackup()).rejects.toMatchObject({ code: 'unsupported-data' });
     await expect(buildBackup()).rejects.toBeInstanceOf(BackupError);
   });

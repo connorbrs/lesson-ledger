@@ -1,4 +1,5 @@
 import { formatTime12, isValidTime, isValidYmd, timeToMinutes } from './dates';
+import { formatExpensesLine } from './expense';
 import { formatHours } from './hours';
 import { MINUTES_MAX, type Attendee, type CreditMode, type FamilyCredit, type Session, type Subject } from './types';
 
@@ -10,6 +11,8 @@ export type SessionErrorCode =
   | 'minutes-invalid'
   | 'credits-invalid'
   | 'student-missing'
+  | 'expenses-invalid'
+  | 'photo-missing'
   | 'not-found';
 
 export class SessionError extends Error {
@@ -110,17 +113,20 @@ export interface SessionRowText {
   meta: string;
   lesson: string;
   activity: string;
+  /** 'Expenses $12.50'; absent when the session has no expenses. */
+  expenses?: string;
 }
 
 const SUBJECT_LABEL: Record<Subject, string> = { swim: 'Swim', math: 'Math' };
 
 /** Compact row copy. Travel and credited minutes never appear here (D-08). */
-export function sessionRowText(s: Session, nameById: Record<string, string>): SessionRowText {
+export function sessionRowText(s: Session, nameById: Record<string, string>, expenseTotalCents = 0): SessionRowText {
   const amount = (label: string, minutes: number) => (minutes === 0 ? `${label} none` : `${label} ${formatHours(minutes)}`);
   return {
     names: s.attendees.map((a) => nameById[a.studentId]).filter(Boolean).join(', '),
     meta: s.startTime ? `${SUBJECT_LABEL[s.subject]} · ${formatTime12(s.startTime)}` : SUBJECT_LABEL[s.subject],
     lesson: amount('Lesson', s.lessonMinutes),
     activity: amount('Activity', s.activityMinutes),
+    ...(expenseTotalCents > 0 ? { expenses: formatExpensesLine(expenseTotalCents) } : {}),
   };
 }

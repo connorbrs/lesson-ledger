@@ -59,3 +59,22 @@ export interface Session {
 }
 
 export const MINUTES_MAX = 999;
+
+export const EXPENSE_DESCRIPTION_MAX = 80;
+
+/** D-02: one explicit share per family of the session, in cents, stored so a summary never recomputes a split. */
+export interface ExpenseSplit {
+  familyId: string;
+  cents: number;
+}
+
+/** D-03: dated by its session (no date field of its own); money is integer cents. */
+export interface Expense {
+  id: string;
+  sessionId: string;
+  description: string;
+  amountCents: number;
+  splits: ExpenseSplit[];
+  createdAt: number;
+  updatedAt: number;
+}

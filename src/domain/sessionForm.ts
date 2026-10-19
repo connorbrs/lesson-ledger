@@ -1,4 +1,5 @@
 import { currentHHMM, minutesToTime, timeToMinutes } from './dates';
+import { type ExpenseDraft } from './expense';
 import { validateSessionFields, type SessionCheck } from './session';
 import type { Attendee, CreditMode, DefaultSubject, Session, Student, Subject } from './types';
 
@@ -26,6 +27,8 @@ export interface FormState {
   travel: string;
   credits: Record<string, FormCredit>;
   subjectTouched: boolean;
+  /** Drafts are JSON-safe (ids, strings, integers), so sameForm sees any change to them. */
+  expenses: ExpenseDraft[];
 }
 
 /** Start plus minutes as HH:MM, or null when the result passes midnight. */
@@ -51,6 +54,7 @@ export function blankForm(now: string = currentHHMM()): FormState {
     travel: '0',
     credits: {},
     subjectTouched: false,
+    expenses: [],
   };
 }
 
@@ -138,11 +142,12 @@ export function prefillFromSession(last: Session, activeStudents: Student[], now
     travel: String(last.travelMinutes),
     credits: {},
     subjectTouched: true,
+    expenses: [],
   };
 }
 
 /** The form an existing session opens with: stored values, stored family snapshots, stored credit modes. */
-export function formFromSession(s: Session): FormState {
+export function formFromSession(s: Session, expenses: ExpenseDraft[] = []): FormState {
   const duration = s.lessonMinutes + s.activityMinutes;
   // A row saved before Finish existed has no endTime; its Finish is Start plus Duration.
   const endTime = s.startTime === null ? null : (s.endTime ?? finishFrom(s.startTime, duration));
@@ -157,7 +162,18 @@ export function formFromSession(s: Session): FormState {
     travel: String(s.travelMinutes),
     credits: Object.fromEntries(s.credits.map((c) => [c.familyId, { lesson: c.lesson, activity: c.activity }])),
     subjectTouched: true,
+    expenses,
   };
+}
+
+/** Replace the draft with the same id in place, else append. */
+export function upsertExpense(form: FormState, draft: ExpenseDraft): FormState {
+  const found = form.expenses.some((e) => e.id === draft.id);
+  return { ...form, expenses: found ? form.expenses.map((e) => (e.id === draft.id ? draft : e)) : [...form.expenses, draft] };
+}
+
+export function removeExpense(form: FormState, id: string): FormState {
+  return { ...form, expenses: form.expenses.filter((e) => e.id !== id) };
 }
 
 /** D-02: Start keeps Duration and moves Finish. Clearing Start clears Finish too. */

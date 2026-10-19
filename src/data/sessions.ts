@@ -1,5 +1,7 @@
 import { db } from './db';
+import { deleteSessionExpenses, EMPTY_PAYLOAD, writeSessionExpenses, type ExpensePayload } from './expenses';
 import { SessionError, validateSessionFields, type SessionFields } from '../domain/session';
+import { creditFamilies } from '../domain/sessionForm';
 import type { Attendee, Session } from '../domain/types';
 
 /** A new attendee must be an active student whose family is active and is still the family the session names. */
@@ -11,16 +13,17 @@ async function attendeeIsEligible(a: Attendee): Promise<boolean> {
 }
 
 /** Validates first, re-checks every attendee inside the write transaction, then stores one row. */
-export async function createSession(input: SessionFields): Promise<Session> {
+export async function createSession(input: SessionFields, payload: ExpensePayload = EMPTY_PAYLOAD): Promise<Session> {
   const r = validateSessionFields(input);
   if (!r.ok) throw new SessionError(r.code);
   const now = Date.now();
   const session: Session = { id: crypto.randomUUID(), ...r.value, createdAt: now, updatedAt: now };
-  await db.transaction('rw', db.students, db.families, db.sessions, async () => {
+  await db.transaction('rw', db.students, db.families, db.sessions, db.expenses, db.attachments, async () => {
     for (const a of session.attendees) {
       if (!(await attendeeIsEligible(a))) throw new SessionError('student-missing');
     }
     await db.sessions.add(session);
+    await writeSessionExpenses(session.id, creditFamilies(session.attendees), payload);
   });
   return session;
 }
@@ -33,7 +36,7 @@ export async function createSession(input: SessionFields): Promise<Session> {
 export async function updateSession(id: string, input: SessionFields): Promise<Session> {
   const first = validateSessionFields(input);
   if (!first.ok) throw new SessionError(first.code);
-  return db.transaction('rw', db.students, db.families, db.sessions, async () => {
+  return db.transaction('rw', db.students, db.families, db.sessions, db.expenses, db.attachments, async () => {
     const current = await db.sessions.get(id);
     if (!current) throw new SessionError('not-found');
     const stored = new Map(current.attendees.map((a) => [a.studentId, a.familyId]));
@@ -60,8 +63,9 @@ export async function updateSession(id: string, input: SessionFields): Promise<S
 
 /** Deleting a missing session returns not-found and writes nothing. */
 export async function deleteSession(id: string): Promise<{ ok: true } | { ok: false; reason: 'not-found' }> {
-  return db.transaction('rw', db.sessions, async () => {
+  return db.transaction('rw', db.sessions, db.expenses, db.attachments, async () => {
     if (!(await db.sessions.get(id))) return { ok: false, reason: 'not-found' } as const;
+    await deleteSessionExpenses(id);
     await db.sessions.delete(id);
     return { ok: true } as const;
   });

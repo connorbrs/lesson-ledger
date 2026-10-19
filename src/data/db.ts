@@ -1,10 +1,17 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Family, Session, Student } from '../domain/types';
+import type { Expense, Family, Session, Student } from '../domain/types';
 
 export const DB_NAME = 'lesson-ledger-v1'; // D-04
 
-interface IdRow {
+/** A receipt photo. The Blob is a downscaled JPEG; width and height are its pixel size. */
+export interface AttachmentRow {
   id: string;
+  expenseId: string;
+  blob: Blob;
+  mime: 'image/jpeg';
+  width: number;
+  height: number;
+  createdAt: number;
 }
 
 /** The sessions table row. deleteStudent reads `attendees[].studentId`, so renaming either breaks the build. */
@@ -14,8 +21,8 @@ export const db = new Dexie(DB_NAME) as Dexie & {
   families: EntityTable<Family, 'id'>;
   students: EntityTable<Student, 'id'>;
   sessions: EntityTable<SessionRow, 'id'>;
-  expenses: EntityTable<IdRow, 'id'>; // typed in Phase 3
-  attachments: EntityTable<IdRow, 'id'>; // typed in Phase 3
+  expenses: EntityTable<Expense, 'id'>;
+  attachments: EntityTable<AttachmentRow, 'id'>;
   meta: EntityTable<{ key: string; value: unknown }, 'key'>;
 };
 

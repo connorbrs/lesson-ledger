@@ -12,7 +12,7 @@ Lesson Log goes from an empty GitHub Pages URL to a trusted tool for sending par
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Installable App & Roster** - Home-screen offline app with families, students and storage status
+- [x] **Phase 1: Installable App & Roster** - Home-screen offline app with families, students and storage status (completed 2026-10-19)
 - [ ] **Phase 2: Session Logging & Backup** - Quick session entry with shared-swim credit, plus backup and restore
 - [ ] **Phase 3: Expenses & Receipts** - Expenses with receipt photos and shared-expense splitting
 - [ ] **Phase 4: Family Summaries & Overview** - Per-family text and PDF summaries, plus personal overview totals
@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. User can create, edit and archive families (name used on summaries, reporting period weekly Mon-Sun or monthly calendar month) and students (each belonging to one family); archived records are hidden from active lists but keep their history, and only records with no history can be hard-deleted
   5. Settings shows whether persistent storage was granted and how much storage is used
 
-**Plans**: 5/5 plans executed
+**Plans**: 5/5 plans complete
 
 Plans:
 - [x] 01-05-PLAN.md — Gap closure G-01-10: Delete for archived records with no history
@@ -110,7 +110,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Installable App & Roster | 5/5 | In Progress | - |
+| 1. Installable App & Roster | 5/5 | Complete    | 2026-10-19 |
 | 2. Session Logging & Backup | 0/TBD | Not started | - |
 | 3. Expenses & Receipts | 0/TBD | Not started | - |
 | 4. Family Summaries & Overview | 0/TBD | Not started | - |

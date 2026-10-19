@@ -1,43 +1,43 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 1
-current_phase_name: Installable App & Roster
-status: verifying
-stopped_at: Phase 1 gap closed; UAT items 11-12 pending
-last_updated: "2026-10-19T09:22:54.028Z"
-last_activity: 2026-10-18
-last_activity_desc: Phase 1 execution started
-state_head: 0ce8d5595f9d04dfdc65978d7be3e3880eec8821
+current_phase: 2
+current_phase_name: Session Logging & Backup
+status: planning
+stopped_at: Phase 1 complete, ready to plan Phase 2
+last_updated: "2026-10-19T09:32:34.250Z"
+last_activity: 2026-10-19
+last_activity_desc: Phase 1 complete, transitioned to Phase 2
+state_head: c109c2a3efda0a0b61eedd762a8e3fe92c34861d
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
   completed_plans: 5
-  percent: 0
+  percent: 25
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-18)
+See: .planning/PROJECT.md (updated 2026-10-19)
 
 **Core value:** Logging a session right after it ends takes seconds, and the per-family weekly/monthly summary is correct and ready to send — lesson hours and activity hours separated, expenses and receipts included.
-**Current focus:** Phase 1 — Installable App & Roster
+**Current focus:** Phase 2 — Session Logging & Backup
 
 ## Current Position
 
-Phase: 1 (Installable App & Roster) — EXECUTING
-Plan: 4 of 4
-Status: Phase complete — ready for verification
-Last activity: 2026-10-18 — Phase 1 execution started
+Phase: 2 — Session Logging & Backup
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-19 — Phase 1 complete, transitioned to Phase 2
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 25%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
+- Total plans completed: 5
 - Average duration: - min
 - Total execution time: 0.0 hours
 
@@ -45,7 +45,7 @@ Progress: [░░░░░░░░░░] 0%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 1 | 5 | - | - |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -93,7 +93,8 @@ None yet.
 
 ### Blockers/Concerns
 
-- [All] iOS behaviors are unverified on device (persist, Blob round trip, Web Share with files, camera/HEIC, PDF memory). Each phase carries a Device spike note in ROADMAP.md; run it early in the phase.
+- [Phase 2+] Still unverified on device: Web Share with files (backup zip, PDF), camera/HEIC, PDF memory. Verified in Phase 1: persist() granted, Blob round trip, offline relaunch, separate Safari storage (iOS 26.6.1, iPhone 14 Pro).
+- [Phase 2] Session rows must use the `SessionRow { attendees: {studentId}[] }` shape that the student delete guard reads (src/data/db.ts); backlog 999.1 rewords the Archived blocked-family note once sessions exist.
 
 ## Deferred Items
 
@@ -105,6 +106,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T09:22:53.997Z
-Stopped at: Phase 1 gap closed; UAT items 11-12 pending
-Resume file: .planning/phases/01-installable-app-roster/01-UAT.md
+Last session: 2026-10-19T09:32:34.222Z
+Stopped at: Phase 1 complete, ready to plan Phase 2
+Resume file: None

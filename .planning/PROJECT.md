@@ -12,12 +12,12 @@ Logging a session right after it ends takes seconds, and the per-family weekly/m
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Manage families and students (default subject Swim/Math/Both, private notes), archive/restore, delete only without history — Phase 1
+- ✓ Each family has a reporting period: weekly (Mon–Sun) or monthly — Phase 1
+- ✓ Works offline, installs to the iPhone home screen, never expires (GitHub Pages PWA, persistent storage granted on iOS 26.6.1) — Phase 1
 
 ### Active
 
-- [ ] Manage students, each belonging to a family (parents are the recipients of summaries)
-- [ ] Each family has a reporting period: weekly or monthly
 - [ ] Log a session after the fact: date, subject (swim or math), student(s), lesson minutes, activity minutes, travel minutes
 - [ ] Swim sessions can include 2 students, possibly from different families; per session choose whether each family is credited full time or half time
 - [ ] Math sessions are always 1-on-1
@@ -27,7 +27,6 @@ Logging a session right after it ends takes seconds, and the per-family weekly/m
 - [ ] Summary as PDF including receipt images, shareable via iOS share sheet (Messages)
 - [ ] Personal overview: totals per student / family / subject per week and month, including travel time
 - [ ] Edit and delete logged sessions and expenses
-- [ ] Works offline, installs to the iPhone home screen, never expires
 - [ ] Backup/export all data to a file and restore from it
 
 ### Out of Scope
@@ -62,7 +61,7 @@ Logging a session right after it ends takes seconds, and the per-family weekly/m
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Home-screen web app (PWA) instead of native iOS | Avoids weekly re-install of free-signed apps and $99/yr developer fee | — Pending |
+| Home-screen web app (PWA) instead of native iOS | Avoids weekly re-install of free-signed apps and $99/yr developer fee | ✓ Good — verified on iPhone 14 Pro |
 | Hours only, no rates/money | Parents compute payment; keeps app simple | — Pending |
 | Session = lesson + activity + travel minutes in one entry | Matches how a session actually happens; one quick entry after the lesson | — Pending |
 | Shared-lesson split chosen per session (full or half) | Practice varies by situation | — Pending |
@@ -77,6 +76,9 @@ Logging a session right after it ends takes seconds, and the per-family weekly/m
 | GitHub Pages URL, no custom domain | Personal use; origin must not change once data exists | — Pending |
 | Unencrypted backup file may leave the phone (Files/iCloud/Mail) | User accepted | — Pending |
 | App renamed Lesson Ledger (was Lesson Log); URL github.io/lesson-ledger | User choice in Phase 1 discussion | — Pending |
+| Commit directly to main (solo project) | Deploys from main; simplest for one person | ✓ Good |
+| Update prompt; cold-launch activation after force-quit accepted | iOS service-worker lifecycle; no data/input lost | ✓ Good |
+| Archived records with no history can be deleted from Archived screen | Avoid dead end (UAT W-1) | ✓ Good |
 | Karpathy coding guidelines apply (multica-ai/andrej-karpathy-skills, already in global CLAUDE.md) | User preference: simplicity, surgical changes | — Pending |
 
 ## Evolution
@@ -97,4 +99,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-18 after initialization*
+*Last updated: 2026-10-19 after Phase 1*

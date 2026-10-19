@@ -4,7 +4,7 @@ import { isStandalone } from '../pwa/standalone';
 import { ensurePersistence } from '../pwa/storage';
 import { useAppUpdate } from '../pwa/useAppUpdate';
 import { Archived, ArchivedDeleteAlert, type ArchivedDeleteTarget } from './Archived';
-import { setAttendees, upsertExpense, type FormState } from '../domain/sessionForm';
+import { removeExpense, setAttendees, upsertExpense, type FormState } from '../domain/sessionForm';
 import { ExpenseEditor } from './ExpenseEditor';
 import { FamilySheet } from './FamilySheet';
 import { NavBar, PushLayer, Screen, TabBar, useAnimatedClose, type TabId } from './components';
@@ -105,6 +105,7 @@ export function App() {
           initial={logDraft.expenses.find((e) => e.id === logExpense.id) ?? null}
           backLabel="Log"
           onSave={(draft) => setLogDraft((d) => d && upsertExpense(d, draft))}
+          onDelete={(id) => setLogDraft((f) => f && removeExpense(f, id))}
           onClosed={() => setLogExpense(null)}
         />
       )}

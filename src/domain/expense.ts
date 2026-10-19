@@ -154,3 +154,40 @@ export function amountCaption(text: string, touched: boolean): string | null {
 export function expensesFooterText(expenses: readonly { amountCents: number }[]): string {
   return expenses.length === 0 ? 'Expenses are saved with this session.' : `Total ${formatCents(expenseTotal(expenses))}.`;
 }
+
+const plural = (n: number, one: string, many: string) => `${n} ${PLURAL.select(n) === 'one' ? one : many}`;
+
+/** The Delete Session alert message: names the expenses and receipt photos that go with it (D-05). */
+export function sessionDeleteMessage(counts: { expenses: number; photos: number }): string {
+  if (counts.expenses === 0) return "This can't be undone.";
+  const what = plural(counts.expenses, 'expense', 'expenses');
+  const photos = counts.photos > 0 ? ` and ${plural(counts.photos, 'receipt photo', 'receipt photos')}` : '';
+  return `This also deletes ${what}${photos}. This can't be undone.`;
+}
+
+/** The Delete Expense alert message, or undefined when the expense has no photos. */
+export function deleteExpenseMessage(photos: number): string | undefined {
+  return photos === 0 ? undefined : `This also deletes ${plural(photos, 'receipt photo', 'receipt photos')}.`;
+}
+
+const sameShares = (a: readonly ExpenseSplit[] | null, b: readonly ExpenseSplit[] | null) =>
+  a === null || b === null ? a === b : a.length === b.length && a.every((s, i) => s.familyId === b[i].familyId && s.cents === b[i].cents);
+
+/**
+ * True when Back from the Expense editor must ask before closing. Splits and photo ids are compared only
+ * when given (null splits means the equal default).
+ */
+export function expenseEditorDirty(
+  initial: ExpenseDraft | null,
+  amountText: string,
+  description: string,
+  splits?: readonly ExpenseSplit[] | null,
+  photoIds?: readonly string[],
+): boolean {
+  if (initial === null) return amountText.trim() !== '' || description.trim() !== '' || (splits ?? null) !== null || (photoIds ?? []).length > 0;
+  if (parseAmountToCents(amountText) !== initial.amountCents) return true;
+  if (normalizeName(description) !== initial.description) return true;
+  if (splits !== undefined && !sameShares(splits, initial.splits)) return true;
+  if (photoIds !== undefined && (photoIds.length !== initial.photoIds.length || photoIds.some((p, i) => p !== initial.photoIds[i]))) return true;
+  return false;
+}

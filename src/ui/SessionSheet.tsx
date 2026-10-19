@@ -1,20 +1,47 @@
 import { useRef, useState } from 'preact/hooks';
 import { useLive } from '../data/live';
 import { listActiveStudents } from '../data/students';
+import { loadExpenseDrafts } from '../data/expenses';
 import { deleteSession, loadNameMaps, updateSession } from '../data/sessions';
 import { todayLocal } from '../domain/dates';
-import { formFromSession, formToInput, sameForm, setAttendees, type FormState } from '../domain/sessionForm';
+import { sessionDeleteMessage, type ExpenseDraft } from '../domain/expense';
+import {
+  creditFamilies,
+  formFromSession,
+  formToInput,
+  removeExpense,
+  sameForm,
+  setAttendees,
+  upsertExpense,
+  type FormState,
+} from '../domain/sessionForm';
 import type { Session } from '../domain/types';
 import { Alert, Group, Row, Sheet, sessionSaveErrorMessage, useAnimatedClose } from './components';
+import { ExpenseEditor } from './ExpenseEditor';
 import { SessionFields } from './SessionFields';
 import { StudentPicker } from './StudentPicker';
 
-/** Edit Session: the Log form for one stored session. Save writes through updateSession; delete sits behind a confirm alert. */
+/**
+ * Edit Session. Loads the session's stored expenses once BEFORE the form renders (Pitfall 2), so the first
+ * render's form already holds them: an untouched sheet is not dirty and Save cannot run before the load ends.
+ */
 export function SessionSheet(props: { session: Session; onClosed: () => void }) {
   const { session } = props;
-  const [initial] = useState(() => formFromSession(session));
+  const loaded = useLive(() => loadExpenseDrafts(session.id, creditFamilies(session.attendees)), [session.id]);
+  const first = useRef<ExpenseDraft[] | null>(null);
+  if (first.current === null && loaded !== undefined) first.current = loaded; // later live emissions are ignored
+  if (first.current === null) return null;
+  return <SessionSheetBody session={session} drafts={first.current} onClosed={props.onClosed} />;
+}
+
+/** The Log form for one stored session. Save writes through updateSession; delete sits behind a confirm alert. */
+function SessionSheetBody(props: { session: Session; drafts: ExpenseDraft[]; onClosed: () => void }) {
+  const { session } = props;
+  const [initial] = useState(() => formFromSession(session, props.drafts));
   const [form, setForm] = useState<FormState>(initial);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // The open Expense editor: null (closed) or the expense being edited (id null = new).
+  const [expenseOpen, setExpenseOpen] = useState<{ id: string | null } | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [discardOpen, setDiscardOpen] = useState(false);
@@ -34,7 +61,7 @@ export function SessionSheet(props: { session: Session; onClosed: () => void }) 
     setSaving(true);
     setSaveError(null);
     try {
-      await updateSession(session.id, fresh.value);
+      await updateSession(session.id, fresh.value, { expenses: form.expenses, photos: new Map() });
       close();
     } catch (e) {
       busy.current = false;
@@ -71,7 +98,7 @@ export function SessionSheet(props: { session: Session; onClosed: () => void }) 
         closing={closing}
         onAnimationEnd={onAnimationEnd}
         overlay={
-          pickerOpen && (
+          pickerOpen ? (
             <StudentPicker
               attendees={form.attendees}
               subject={form.subject}
@@ -80,6 +107,18 @@ export function SessionSheet(props: { session: Session; onClosed: () => void }) 
               inSheet
               onClosed={() => setPickerOpen(false)}
             />
+          ) : (
+            expenseOpen && (
+              <ExpenseEditor
+                key={expenseOpen.id ?? 'new'}
+                initial={form.expenses.find((e) => e.id === expenseOpen.id) ?? null}
+                backLabel="Edit Session"
+                inSheet
+                onSave={(draft) => setForm((f) => upsertExpense(f, draft))}
+                onDelete={(id) => setForm((f) => removeExpense(f, id))}
+                onClosed={() => setExpenseOpen(null)}
+              />
+            )
           )
         }
       >
@@ -95,6 +134,7 @@ export function SessionSheet(props: { session: Session; onClosed: () => void }) 
             names={people.names}
             hasActiveStudents={people.active.length > 0}
             onOpenPicker={() => setPickerOpen(true)}
+            onOpenExpense={(id) => setExpenseOpen({ id })}
           />
         )}
         <Group>
@@ -123,7 +163,14 @@ export function SessionSheet(props: { session: Session; onClosed: () => void }) 
       {del && (
         <Alert
           title="Delete this session?"
-          message={del.failed ? "Couldn't delete this session. Nothing was changed. Try again." : "This can't be undone."}
+          message={
+            del.failed
+              ? "Couldn't delete this session. Nothing was changed. Try again."
+              : sessionDeleteMessage({
+                  expenses: initial.expenses.length,
+                  photos: initial.expenses.reduce((n, e) => n + e.photoIds.length, 0),
+                })
+          }
           buttons={[
             { label: 'Cancel', tone: 'accent', onClick: () => setDel(null) },
             {

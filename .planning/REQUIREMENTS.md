@@ -29,7 +29,7 @@
 - [x] **LOG-05**: For a two-student swim session from different families, user chooses per family whether lesson minutes count full or half, and separately whether activity minutes count full or half
 - [x] **LOG-06**: Two siblings from the same family in one session count once for that family
 - [x] **LOG-07**: A session may have only activity minutes (zero lesson minutes)
-- [ ] **LOG-08**: User can view sessions by period and edit or delete any session
+- [x] **LOG-08**: User can view sessions by period and edit or delete any session
 
 ### Expenses & Receipts
 
@@ -104,7 +104,7 @@
 | LOG-05 | Phase 2 | Complete |
 | LOG-06 | Phase 2 | Complete |
 | LOG-07 | Phase 2 | Complete |
-| LOG-08 | Phase 2 | Pending |
+| LOG-08 | Phase 2 | Complete |
 | EXP-01 | Phase 3 | Pending |
 | EXP-02 | Phase 3 | Pending |
 | EXP-03 | Phase 3 | Pending |

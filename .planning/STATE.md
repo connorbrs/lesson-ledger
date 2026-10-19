@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 2
 current_phase_name: Session Logging & Backup
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-10-19T10:17:02.480Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-10-19T10:24:55.216Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 2 execution started
-state_head: 714c0cb8a3ea063ffc5a734afb0e16592fcce40b
+state_head: 7372a7a6f089041aa7a661aa14e5f8f01e725bbe
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 25
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-19)
 ## Current Position
 
 Phase: 2 (Session Logging & Backup) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-10-19 — Phase 2 execution started
 
@@ -62,6 +62,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 1 P04 | 21min | 4 tasks | 17 files |
 | Phase 1 P05 | 8min | 3 tasks | 5 files |
 | Phase 02 P01 | 4 min | 3 tasks | 19 files |
+| Phase 02 P02 | not recorded | 3 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,8 @@ Recent decisions affecting current work:
 - [Phase 1]: Archived delete: full-width destructive row beneath Restore plus per-family note row; ArchivedDeleteAlert mounted beside PushLayer
 - [Phase 02]: FamilyCredit stores lesson/activity as full|half per distinct family; attendees snapshot familyId so siblings count once
 - [Phase 02]: Log form date null means today (picking today stores null) so a form left open past midnight saves the new day
+- [Phase 02]: Period math uses Date.UTC as a calendar only (host time zone cannot shift a day); anchor-date period state; Week/Month switch keeps the containing period
+- [Phase 02]: updateSession keeps a retained attendee's stored familyId and remaps its credit to the snapshot; only new attendees must be active and match family
 
 ### Pending Todos
 
@@ -109,6 +112,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T10:17:02.391Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-10-19T10:24:55.129Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None

@@ -19,6 +19,7 @@ import {
 import type { Session } from '../domain/types';
 import { Alert, Group, Row, Sheet, sessionSaveErrorMessage, useAnimatedClose } from './components';
 import { ExpenseEditor } from './ExpenseEditor';
+import type { PhotoStage } from './receiptPhotos';
 import { SessionFields } from './SessionFields';
 import { StudentPicker } from './StudentPicker';
 
@@ -40,6 +41,8 @@ function SessionSheetBody(props: { session: Session; drafts: ExpenseDraft[]; onC
   const { session } = props;
   const [initial] = useState(() => formFromSession(session, props.drafts));
   const [form, setForm] = useState<FormState>(initial);
+  // Receipt photos staged in memory; written with the session when Save runs.
+  const [stage] = useState<PhotoStage>(() => new Map());
   const [pickerOpen, setPickerOpen] = useState(false);
   // The open Expense editor: null (closed) or the expense being edited (id null = new).
   const [expenseOpen, setExpenseOpen] = useState<{ id: string | null } | null>(null);
@@ -64,7 +67,7 @@ function SessionSheetBody(props: { session: Session; drafts: ExpenseDraft[]; onC
     setSaving(true);
     setSaveError(null);
     try {
-      await updateSession(session.id, fresh.value, { expenses: form.expenses, photos: new Map() });
+      await updateSession(session.id, fresh.value, { expenses: form.expenses, photos: stage });
       close();
     } catch (e) {
       busy.current = false;
@@ -118,6 +121,7 @@ function SessionSheetBody(props: { session: Session; drafts: ExpenseDraft[]; onC
                 backLabel="Edit Session"
                 inSheet
                 splitFamilyIds={splitIds}
+                stage={stage}
                 onSave={(draft) => setForm((f) => upsertExpense(f, draft))}
                 onDelete={(id) => setForm((f) => removeExpense(f, id))}
                 onClosed={() => setExpenseOpen(null)}

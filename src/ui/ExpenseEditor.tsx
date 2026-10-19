@@ -1,5 +1,5 @@
 import { createPortal } from 'preact/compat';
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { useLive } from '../data/live';
 import { loadNameMaps } from '../data/sessions';
 import {
@@ -11,9 +11,13 @@ import {
   type ExpenseDraft,
 } from '../domain/expense';
 import { centsToInput, parseAmountToCents } from '../domain/money';
+import { photoFailureCaption } from '../domain/photos';
 import { applyShareInput, equalShareTexts, initialShareState, splitIsOverridden, type ShareState } from '../domain/split';
 import { EXPENSE_DESCRIPTION_MAX } from '../domain/types';
+import { prepareReceipts, type PhotoErrorCode } from '../pwa/photos';
 import { Alert, AmountField, Group, InputRow, NavBar, PushLayer, Row, Screen, useAnimatedClose } from './components';
+import type { PhotoStage } from './receiptPhotos';
+import { ReceiptsGroup } from './ReceiptsGroup';
 import { SplitGroup } from './SplitGroup';
 
 /** Pushed Expense editor. Save stages the draft in the session form; nothing is written here (D-01). */
@@ -23,6 +27,8 @@ export function ExpenseEditor(props: {
   inSheet?: boolean;
   /** The session's two families (pick order) when a two-family swim expense can be split; else null. */
   splitFamilyIds: [string, string] | null;
+  /** Photos staged in memory until the session saves; shared with the caller (the Log tab or Edit Session). */
+  stage: PhotoStage;
   onSave: (draft: ExpenseDraft) => void;
   /** Stages the removal of an existing expense; the Delete Expense group shows only when given. */
   onDelete?: (id: string) => void;
@@ -40,11 +46,56 @@ export function ExpenseEditor(props: {
   );
   const [discardOpen, setDiscardOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  // Receipts: the draft holds only photo ids; the bytes live in props.stage until the session saves.
+  const [photoIds, setPhotoIds] = useState<string[]>(() => [...(initial?.photoIds ?? [])]);
+  const [processing, setProcessing] = useState(0);
+  const [caption, setCaption] = useState<string | null>(null);
+  const adding = useRef(false); // one batch at a time
+  const stopped = useRef(false); // the editor is leaving: stop before the next file
+  const added = useRef(new Set<string>()); // ids staged during this editor session
+  const saved = useRef(false);
   const saving = useRef(false);
   const confirming = useRef(false); // a double-tapped alert button runs once
   const amountCents = parseAmountToCents(amountText);
   const splits = props.splitFamilyIds ? (share?.splits ?? null) : null;
-  const canSave = canSaveExpense({ amountText, description, shareError: share?.error != null });
+  const canSave = canSaveExpense({ amountText, description, processing, shareError: share?.error != null });
+
+  // Leaving without saving drops the photos this editor session staged; the in-flight batch stops before its next file.
+  useEffect(
+    () => () => {
+      stopped.current = true;
+      if (!saved.current) for (const id of added.current) props.stage.delete(id);
+    },
+    [],
+  );
+
+  async function addFiles(files: File[]) {
+    if (adding.current || stopped.current) return;
+    adding.current = true;
+    const failures = { tooLarge: 0, unreadable: 0 };
+    const fail = (code: PhotoErrorCode) => {
+      if (code === 'too-large') failures.tooLarge += 1;
+      else failures.unreadable += 1;
+      setProcessing((n) => n - 1);
+    };
+    let createdAt = Date.now();
+    setProcessing(files.length);
+    await prepareReceipts(files, {
+      isCancelled: () => stopped.current,
+      onPhoto: (photo) => {
+        const id = crypto.randomUUID();
+        props.stage.set(id, { blob: photo.blob, width: photo.width, height: photo.height, createdAt: createdAt++ });
+        added.current.add(id);
+        setPhotoIds((ids) => [...ids, id]);
+        setProcessing((n) => n - 1);
+      },
+      onFailure: fail,
+    });
+    adding.current = false;
+    if (stopped.current) return;
+    setProcessing(0);
+    setCaption(photoFailureCaption(failures));
+  }
 
   function save() {
     if (saving.current || closing || !canSave) return;
@@ -52,12 +103,13 @@ export function ExpenseEditor(props: {
     const text = validateExpenseText(description);
     if (cents === null || cents <= 0 || !text.ok) return;
     saving.current = true;
+    saved.current = true;
     props.onSave({
       id: initial?.id ?? crypto.randomUUID(),
       description: text.value,
       amountCents: cents,
       splits,
-      photoIds: initial?.photoIds ?? [],
+      photoIds,
       createdAt: initial?.createdAt ?? Date.now(),
     });
     close();
@@ -65,13 +117,17 @@ export function ExpenseEditor(props: {
 
   function back() {
     if (closing) return;
-    if (expenseEditorDirty(initial, amountText, description, props.splitFamilyIds ? splits : undefined)) setDiscardOpen(true);
-    else close();
+    if (expenseEditorDirty(initial, amountText, description, props.splitFamilyIds ? splits : undefined, photoIds)) setDiscardOpen(true);
+    else {
+      stopped.current = true;
+      close();
+    }
   }
 
   function discard() {
     if (confirming.current) return;
     confirming.current = true;
+    stopped.current = true;
     setDiscardOpen(false);
     close();
   }
@@ -152,6 +208,14 @@ export function ExpenseEditor(props: {
               onInput={setDescription}
             />
           </Group>
+          <ReceiptsGroup
+            photoIds={photoIds}
+            stage={props.stage}
+            processing={processing}
+            caption={caption}
+            onAddFiles={(files) => void addFiles(files)}
+            onOpen={() => undefined}
+          />
           {props.splitFamilyIds && names && (
             <SplitGroup
               familyIds={props.splitFamilyIds}

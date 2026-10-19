@@ -6,11 +6,12 @@ import { todayLocal } from '../domain/dates';
 import { blankForm, formToInput, prefillFromSession, setAttendees, type FormState } from '../domain/sessionForm';
 import { BackupReminder } from './BackupReminder';
 import { sessionSaveErrorMessage } from './components';
+import type { PhotoStage } from './receiptPhotos';
 import { SessionFields } from './SessionFields';
 
 const LOGGED_MS = 1500;
 
-export function Log(props: { draft: FormState | null; setDraft: (f: FormState) => void; onOpenPicker: () => void; onOpenExpense: (id: string | null) => void }) {
+export function Log(props: { draft: FormState | null; setDraft: (f: FormState) => void; stage: PhotoStage; onOpenPicker: () => void; onOpenExpense: (id: string | null) => void }) {
   const { draft } = props;
   const data = useLive(async () => ({ active: await listSessionEligibleStudents(), names: await loadNameMaps(), last: await getLastSession() }));
   const busy = useRef(false); // synchronous guard: a double tap writes once; held until "Logged" clears
@@ -59,7 +60,8 @@ export function Log(props: { draft: FormState | null; setDraft: (f: FormState) =
     busy.current = true;
     setSaveError(null);
     try {
-      const saved = await createSession(fresh.value, { expenses: draft.expenses, photos: new Map() });
+      const saved = await createSession(fresh.value, { expenses: draft.expenses, photos: props.stage });
+      props.stage.clear(); // a failed save above keeps the staged photos
       props.setDraft(prefillFromSession(saved, data.active));
       root.current?.closest('.scroll')?.scrollTo({ top: 0 });
       setLogged(true);

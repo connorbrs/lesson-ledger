@@ -10,6 +10,7 @@ import { FamilySheet } from './FamilySheet';
 import { NavBar, PushLayer, Screen, TabBar, useAnimatedClose, type TabId } from './components';
 import { Log } from './Log';
 import { People } from './People';
+import type { PhotoStage } from './receiptPhotos';
 import { Sessions } from './Sessions';
 import { Settings } from './Settings';
 import { RecordsError, SafariBanner, UpdateBanner } from './Status';
@@ -51,6 +52,8 @@ export function App() {
   const [archivedOpen, setArchivedOpen] = useState(false);
   // The Log draft lives here so an unsaved form survives switching tabs.
   const [logDraft, setLogDraft] = useState<FormState | null>(null);
+  // Receipt photos staged for the Log tab's session; written with it on Log Session.
+  const [logStage] = useState<PhotoStage>(() => new Map());
   const [logPickerOpen, setLogPickerOpen] = useState(false);
   // The Expense editor on the Log tab: null (closed) or the expense being edited (id null = new).
   const [logExpense, setLogExpense] = useState<{ id: string | null } | null>(null);
@@ -81,7 +84,7 @@ export function App() {
         {error ? (
           <RecordsError />
         ) : tab === 'log' ? (
-          <Log draft={logDraft} setDraft={setLogDraft} onOpenPicker={() => setLogPickerOpen(true)} onOpenExpense={(id) => setLogExpense({ id })} />
+          <Log draft={logDraft} setDraft={setLogDraft} stage={logStage} onOpenPicker={() => setLogPickerOpen(true)} onOpenExpense={(id) => setLogExpense({ id })} />
         ) : tab === 'sessions' ? (
           <Sessions onLogSession={() => setTab('log')} onEdit={(session) => setSheet({ kind: 'session', session })} />
         ) : tab === 'people' ? (
@@ -111,6 +114,7 @@ export function App() {
           initial={logDraft.expenses.find((e) => e.id === logExpense.id) ?? null}
           backLabel="Log"
           splitFamilyIds={splitPair(logDraft)}
+          stage={logStage}
           onSave={(draft) => setLogDraft((d) => d && upsertExpense(d, draft))}
           onDelete={(id) => setLogDraft((f) => f && removeExpense(f, id))}
           onClosed={() => setLogExpense(null)}

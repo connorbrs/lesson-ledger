@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Installable App & Roster
 status: planning
-stopped_at: Phase 1 UI-SPEC approved
-last_updated: "2026-10-19T05:17:23.172Z"
+stopped_at: Phase 1 context gathered
+last_updated: "2026-10-19T05:21:45.348Z"
 last_activity: 2026-10-18
 last_activity_desc: Roadmap created (4 phases, 36/36 v1 requirements mapped)
-state_head: 1e78b96f3a9403af8dd4a2845f8b454f15fa68f4
+state_head: 92a6cb163ac1970e2758251edf346cfbc47941a0
 progress:
   total_phases: 4
   completed_phases: 0
@@ -74,7 +74,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 1] Minimum supported iOS version not stated; assume the current iOS on the user's iPhone, confirm in Phase 1 discussion.
+- [Phase 1] User's iOS version unknown; target iOS 18+, record actual version in the Phase 1 device spike.
 - [All] iOS behaviors are unverified on device (persist, Blob round trip, Web Share with files, camera/HEIC, PDF memory). Each phase carries a Device spike note in ROADMAP.md; run it early in the phase.
 
 ## Deferred Items
@@ -87,6 +87,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T05:17:23.160Z
-Stopped at: Phase 1 UI-SPEC approved
-Resume file: .planning/phases/01-installable-app-roster/01-UI-SPEC.md
+Last session: 2026-10-19T05:21:45.336Z
+Stopped at: Phase 1 context gathered
+Resume file: .planning/phases/01-installable-app-roster/01-CONTEXT.md

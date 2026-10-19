@@ -123,6 +123,18 @@ const checks = [
     if (!has('light', '#f2f2f7')) fail('missing light theme-color #F2F2F7');
     if (!has('dark', '#000000')) fail('missing dark theme-color #000000');
   }],
+  ['C12', 'one service-worker registration path (virtual-module hook only)', () => {
+    if (existsSync(join(DIST, 'registerSW.js'))) fail('dist/registerSW.js exists (double registration)');
+    if (read('index.html').includes('registerSW')) fail('index.html mentions registerSW');
+    const files = walk(join(DIST, 'assets')).filter((f) => f.endsWith('.js'));
+    if (!files.some((f) => readFileSync(f, 'utf8').includes('serviceWorker'))) fail('no JS in dist/assets contains serviceWorker');
+  }],
+  ['C13', 'UI strings present in the bundle', () => {
+    const js = walk(join(DIST, 'assets')).filter((f) => f.endsWith('.js')).map((f) => readFileSync(f, 'utf8')).join('\n');
+    for (const s of ['Update available', 'Persistent storage', 'Retry Opening Records', 'in Safari']) {
+      if (!js.includes(s)) fail(`bundle lacks "${s}"`);
+    }
+  }],
 ];
 
 let passed = 0;

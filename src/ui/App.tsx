@@ -1,9 +1,14 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useErrorBoundary, useState } from 'preact/hooks';
 import type { Family, Student } from '../domain/types';
+import { isStandalone } from '../pwa/standalone';
+import { ensurePersistence } from '../pwa/storage';
+import { useAppUpdate } from '../pwa/useAppUpdate';
 import { Archived } from './Archived';
 import { FamilySheet } from './FamilySheet';
 import { NavBar, PushLayer, Screen, TabBar, useAnimatedClose, type TabId } from './components';
 import { People } from './People';
+import { Settings } from './Settings';
+import { RecordsError, SafariBanner, UpdateBanner } from './Status';
 import { StudentSheet } from './StudentSheet';
 import './styles.css';
 
@@ -27,6 +32,9 @@ export function App() {
   const [tab, setTab] = useState<TabId>('people');
   const [archivedOpen, setArchivedOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetState>(null);
+  const update = useAppUpdate();
+  // Any render error below (including a database that cannot open, rethrown by useLive) replaces only the content area.
+  const [error] = useErrorBoundary();
 
   // iOS Safari only applies :active styles when a touch listener exists on the document.
   useEffect(() => {
@@ -35,10 +43,21 @@ export function App() {
     return () => document.removeEventListener('touchstart', noop);
   }, []);
 
+  // Ask for persistent storage once per launch. Not awaited: it must never block rendering.
+  useEffect(() => {
+    void ensurePersistence();
+  }, []);
+
   return (
     <div class="app">
       <Screen nav={<NavBar />}>
-        {tab === 'people' ? (
+        {!isStandalone() && <SafariBanner />}
+        {update.needRefresh && (
+          <UpdateBanner applying={update.applying} failed={update.failed} onUpdate={update.apply} onNotNow={update.notNow} />
+        )}
+        {error ? (
+          <RecordsError />
+        ) : tab === 'people' ? (
           <People
             onAddFamily={() => setSheet({ kind: 'family' })}
             onEditFamily={(family) => setSheet({ kind: 'family', family })}
@@ -47,10 +66,10 @@ export function App() {
             onOpenArchived={() => setArchivedOpen(true)}
           />
         ) : (
-          <h1 class="large-title">Settings</h1>
+          <Settings />
         )}
       </Screen>
-      {archivedOpen && <ArchivedScreen onClosed={() => setArchivedOpen(false)} />}
+      {!error && archivedOpen && <ArchivedScreen onClosed={() => setArchivedOpen(false)} />}
       <TabBar
         tab={tab}
         onSelect={(next) => {
@@ -58,8 +77,8 @@ export function App() {
           setArchivedOpen(false);
         }}
       />
-      {sheet?.kind === 'family' && <FamilySheet family={sheet.family} onClosed={() => setSheet(null)} />}
-      {sheet?.kind === 'student' && (
+      {!error && sheet?.kind === 'family' && <FamilySheet family={sheet.family} onClosed={() => setSheet(null)} />}
+      {!error && sheet?.kind === 'student' && (
         <StudentSheet student={sheet.student} presetFamilyId={sheet.familyId} onClosed={() => setSheet(null)} />
       )}
     </div>

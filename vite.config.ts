@@ -1,13 +1,16 @@
 import { defineConfig } from 'vitest/config';
 import preact from '@preact/preset-vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { buildId } from './scripts/build-id.mjs';
 
 export default defineConfig({
   base: '/lesson-ledger/', // D-03
+  define: { __BUILD_ID__: JSON.stringify(buildId()) },
   plugins: [
     preact(),
     VitePWA({
       registerType: 'prompt',
+      injectRegister: false, // registration comes only from the virtual:pwa-register/preact hook
       includeAssets: ['apple-touch-icon.png', 'icons/icon-512.png'],
       manifest: {
         name: 'Lesson Ledger', // D-01

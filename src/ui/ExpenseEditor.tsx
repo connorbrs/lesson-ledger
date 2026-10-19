@@ -18,6 +18,7 @@ import { prepareReceipts, type PhotoErrorCode } from '../pwa/photos';
 import { Alert, AmountField, Group, InputRow, NavBar, PushLayer, Row, Screen, useAnimatedClose } from './components';
 import type { PhotoStage } from './receiptPhotos';
 import { ReceiptsGroup } from './ReceiptsGroup';
+import { ReceiptViewer } from './ReceiptViewer';
 import { SplitGroup } from './SplitGroup';
 
 /** Pushed Expense editor. Save stages the draft in the session form; nothing is written here (D-01). */
@@ -50,10 +51,12 @@ export function ExpenseEditor(props: {
   const [photoIds, setPhotoIds] = useState<string[]>(() => [...(initial?.photoIds ?? [])]);
   const [processing, setProcessing] = useState(0);
   const [caption, setCaption] = useState<string | null>(null);
+  const [viewer, setViewer] = useState<number | null>(null); // index of the open Receipt viewer
   const adding = useRef(false); // one batch at a time
   const stopped = useRef(false); // the editor is leaving: stop before the next file
   const added = useRef(new Set<string>()); // ids staged during this editor session
   const saved = useRef(false);
+  const removedEarlier = useRef(new Set<string>()); // removed photos staged before this editor opened; dropped from stage on Save
   const saving = useRef(false);
   const confirming = useRef(false); // a double-tapped alert button runs once
   const amountCents = parseAmountToCents(amountText);
@@ -112,7 +115,15 @@ export function ExpenseEditor(props: {
       photoIds,
       createdAt: initial?.createdAt ?? Date.now(),
     });
+    for (const id of removedEarlier.current) props.stage.delete(id);
     close();
+  }
+
+  /** Stages a photo's removal. The stored row is deleted by the session save, not here. */
+  function removePhoto(id: string) {
+    setPhotoIds((ids) => ids.filter((p) => p !== id));
+    if (added.current.delete(id)) props.stage.delete(id);
+    else removedEarlier.current.add(id); // stays in stage so discarding this editor restores it
   }
 
   function back() {
@@ -214,7 +225,7 @@ export function ExpenseEditor(props: {
             processing={processing}
             caption={caption}
             onAddFiles={(files) => void addFiles(files)}
-            onOpen={() => undefined}
+            onOpen={setViewer}
           />
           {props.splitFamilyIds && names && (
             <SplitGroup
@@ -242,6 +253,9 @@ export function ExpenseEditor(props: {
           )}
         </Screen>
       </PushLayer>
+      {viewer !== null && (
+        <ReceiptViewer photoIds={photoIds} index={viewer} stage={props.stage} inSheet={props.inSheet} onRemove={removePhoto} onClosed={() => setViewer(null)} />
+      )}
       {alerts && createPortal(alerts, document.querySelector('.app') ?? document.body)}
     </>
   );

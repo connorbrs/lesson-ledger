@@ -1,4 +1,4 @@
-import { db } from './db';
+import { db, type SessionRow } from './db';
 import { compareRoster, type DeleteResult } from '../domain/roster';
 import type { DefaultSubject, Student } from '../domain/types';
 import { RosterError, validateStudentInput } from '../domain/validate';
@@ -77,13 +77,14 @@ export const archiveStudent = (id: string) => setArchived(id, true);
 export const restoreStudent = (id: string) => setArchived(id, false);
 
 /**
- * Phase 2 contract: a session counts as history when its row in `sessions` has an
- * `attendees` array containing an object with `studentId === id`. Phase 2 must keep that
- * shape or update this function and its test in the same change.
+ * A session counts as history when its `attendees` array contains `studentId`. The guard fails
+ * closed: a row whose `attendees` is not an array has an unknown shape, so it counts as history
+ * rather than allowing a delete that could orphan it.
  */
-function hasAttendee(row: unknown, studentId: string): boolean {
-  const attendees = (row as { attendees?: unknown }).attendees;
-  return Array.isArray(attendees) && attendees.some((a) => (a as { studentId?: unknown } | null)?.studentId === studentId);
+function hasAttendee(row: SessionRow, studentId: string): boolean {
+  const attendees: unknown = row.attendees;
+  if (!Array.isArray(attendees)) return true;
+  return attendees.some((a) => (a as { studentId?: unknown } | null)?.studentId === studentId);
 }
 
 export async function studentHasHistory(id: string): Promise<boolean> {

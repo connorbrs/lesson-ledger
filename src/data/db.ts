@@ -7,10 +7,19 @@ interface IdRow {
   id: string;
 }
 
+/**
+ * The part of a session row that deleteStudent depends on (Phase 2 types the rest).
+ * Typing it here means renaming `attendees` or `studentId` breaks the build instead of silently
+ * letting the history guard allow a delete.
+ */
+export interface SessionRow extends IdRow {
+  attendees: { studentId: string }[];
+}
+
 export const db = new Dexie(DB_NAME) as Dexie & {
   families: EntityTable<Family, 'id'>;
   students: EntityTable<Student, 'id'>;
-  sessions: EntityTable<IdRow, 'id'>; // typed in Phase 2
+  sessions: EntityTable<SessionRow, 'id'>; // remaining fields typed in Phase 2
   expenses: EntityTable<IdRow, 'id'>; // typed in Phase 3
   attachments: EntityTable<IdRow, 'id'>; // typed in Phase 3
   meta: EntityTable<{ key: string; value: unknown }, 'key'>;

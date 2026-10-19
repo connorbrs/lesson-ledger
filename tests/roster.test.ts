@@ -291,7 +291,7 @@ describe('student repo', () => {
     const s = await createStudent({ familyId: f.id, name: 'Test Student A' });
     const t = await createStudent({ familyId: f.id, name: 'Test Student B' });
     expect(await studentHasHistory(s.id)).toBe(false);
-    await db.sessions.add({ id: 'session-1', attendees: [{ studentId: t.id }] } as never);
+    await db.sessions.add({ id: 'session-1', attendees: [{ studentId: t.id }] });
     expect(await studentHasHistory(t.id)).toBe(true);
     expect(await studentHasHistory(s.id)).toBe(false);
     expect(await deleteStudent(t.id)).toEqual({ ok: false, reason: 'has-history' });
@@ -299,6 +299,17 @@ describe('student repo', () => {
     expect(await deleteStudent(s.id)).toEqual({ ok: true });
     expect(await getStudent(s.id)).toBeUndefined();
     expect(await deleteStudent('missing')).toEqual({ ok: false, reason: 'not-found' });
+  });
+});
+
+describe('student delete guard', () => {
+  it('treats a session row with an unrecognised shape as history and refuses the delete', async () => {
+    const f = await createFamily('Test Family A');
+    const s = await createStudent({ familyId: f.id, name: 'Test Student A' });
+    await db.sessions.add({ id: 'session-x', studentIds: [s.id] } as never);
+    expect(await studentHasHistory(s.id)).toBe(true);
+    expect(await deleteStudent(s.id)).toEqual({ ok: false, reason: 'has-history' });
+    expect(await getStudent(s.id)).toBeDefined();
   });
 });
 

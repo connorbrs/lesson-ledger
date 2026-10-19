@@ -16,9 +16,9 @@
 ### Families & Students
 
 - [x] **FAM-01**: User can create, edit and archive a family (name used on summaries)
-- [ ] **FAM-02**: User can set each family's reporting period: weekly (Mon–Sun) or monthly (calendar month)
-- [ ] **FAM-03**: User can create, edit and archive a student belonging to one family
-- [ ] **FAM-04**: Archived families/students keep their history but are hidden from quick entry; only records with no history can be hard-deleted
+- [x] **FAM-02**: User can set each family's reporting period: weekly (Mon–Sun) or monthly (calendar month)
+- [x] **FAM-03**: User can create, edit and archive a student belonging to one family
+- [x] **FAM-04**: Archived families/students keep their history but are hidden from quick entry; only records with no history can be hard-deleted
 
 ### Session Logging
 
@@ -94,9 +94,9 @@
 | APP-04 | Phase 1 | Pending |
 | APP-05 | Phase 1 | Pending |
 | FAM-01 | Phase 1 | Complete |
-| FAM-02 | Phase 1 | Pending |
-| FAM-03 | Phase 1 | Pending |
-| FAM-04 | Phase 1 | Pending |
+| FAM-02 | Phase 1 | Complete |
+| FAM-03 | Phase 1 | Complete |
+| FAM-04 | Phase 1 | Complete |
 | LOG-01 | Phase 2 | Pending |
 | LOG-02 | Phase 2 | Pending |
 | LOG-03 | Phase 2 | Pending |

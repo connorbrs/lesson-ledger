@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Installable App & Roster
 status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-10-19T06:37:53.986Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-10-19T06:48:51.601Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 1 execution started
-state_head: d0a0add8504dbd69f4470cdd01c0e5b814a3c8ac
+state_head: ff86e2fcb00209d21ce18b1d4828fcd1165395c3
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-18)
 ## Current Position
 
 Phase: 1 (Installable App & Roster) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-10-18 — Phase 1 execution started
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 |------|----------|-------|-------|
 | Phase 1 P01 | 14min | 3 tasks | 18 files |
 | Phase 1 P02 | 33min | 5 tasks | 5 files |
+| Phase 1 P03 | 9min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,8 @@ Recent decisions affecting current work:
 - [Phase 1]: apple-touch-icon root-form href is rewritten by Vite to the /lesson-ledger/ base; no %BASE_URL% needed
 - [Phase 1]: Origin fixed at https://connorbrs.github.io/lesson-ledger/ (personal account connorbrs, one-way)
 - [Phase 1]: iPhone spike on iOS 26.6.1: persist true, Blob ok, Safari tab and home-screen data separate, offline relaunch ok
+- [Phase 1]: Roster validators are strict about defaults; repos apply weekly/both/empty-notes defaults only to undefined input
+- [Phase 1]: Student Save requires the chosen family to be in the active list; notes are read and written only in StudentSheet.tsx
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T06:37:51.318Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-10-19T06:48:51.582Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None

@@ -38,6 +38,8 @@ Log a session in a few taps (date, optional start time, subject, 1–2 students,
 - Session rows must use `attendees: {studentId}[]` (the student delete guard in src/data/students.ts reads it; `SessionRow` in src/data/db.ts).
 - Native iOS look, teal accent, iOS-native Cancel/Save labels (Phase 1 UI-SPEC).
 
+- **D-12:** Backup container is a single JSON file (`schemaVersion` + `attachments` slot), no new package — user decision 2026-10-19 at plan check. Phase 3 may introduce zip under a new schemaVersion while restore keeps reading v1.
+
 ### Claude's Discretion
 - Exact backup file name and extension (e.g. `lesson-ledger-backup-YYYY-MM-DD.json` or `.zip`), zip vs JSON (research recommends fflate zip; JSON acceptable while there are no photos — but keep the attachments slot).
 - Visual layout of the per-family credit controls (only shown for two-family swim sessions).

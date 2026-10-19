@@ -1,0 +1,1 @@
+No external API integration: Phase 2 touches only on-device IndexedDB (Dexie) and browser platform features (Web Share, file input, Blob download); there is no third-party service, SDK, or network call.

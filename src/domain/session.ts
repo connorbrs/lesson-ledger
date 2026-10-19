@@ -78,7 +78,7 @@ export function creditedMinutes(minutes: number, mode: CreditMode): number {
   return mode === 'half' ? minutes / 2 : minutes;
 }
 
-/** Within a day: start time ascending, untimed last; ties and untimed sessions in logging order (createdAt, then id). */
+/** Chronological order: start time ascending, untimed last; ties and untimed sessions in logging order (createdAt, then id). */
 function compareSessions(a: Session, b: Session): number {
   if (a.date !== b.date) return a.date < b.date ? -1 : 1;
   if (a.startTime !== b.startTime) {
@@ -94,10 +94,10 @@ export interface DayGroup {
   sessions: Session[];
 }
 
-/** Days in ascending order, each with its sessions in day order. */
+/** Newest first: latest day first, and within a day the latest session first. */
 export function groupSessionsByDate(sessions: Session[]): DayGroup[] {
   const groups: DayGroup[] = [];
-  for (const s of [...sessions].sort(compareSessions)) {
+  for (const s of [...sessions].sort((a, b) => compareSessions(b, a))) {
     const last = groups[groups.length - 1];
     if (last && last.date === s.date) last.sessions.push(s);
     else groups.push({ date: s.date, sessions: [s] });

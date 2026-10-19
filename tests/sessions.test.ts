@@ -205,22 +205,22 @@ describe('groupSessionsByDate and sessionRowText', () => {
     ...over,
   });
 
-  it('orders days ascending and, inside a day, timed sessions by start time with untimed last in logging order', () => {
+  it('orders newest first: latest day first and, inside a day, untimed (newest logged first) then latest start time', () => {
     const late = row({ id: 'late', startTime: '16:30', createdAt: 1 });
     const early = row({ id: 'early', startTime: '09:00', createdAt: 9 });
     const untimedFirst = row({ id: 'u1', createdAt: 2 });
     const untimedSecond = row({ id: 'u2', createdAt: 3 });
     const nextDay = row({ id: 'next', date: '2026-10-20', startTime: '07:00' });
     const groups = groupSessionsByDate([nextDay, untimedSecond, late, untimedFirst, early]);
-    expect(groups.map((g) => g.date)).toEqual(['2026-10-19', '2026-10-20']);
-    expect(groups[0].sessions.map((s) => s.id)).toEqual(['early', 'late', 'u1', 'u2']);
+    expect(groups.map((g) => g.date)).toEqual(['2026-10-20', '2026-10-19']);
+    expect(groups[1].sessions.map((s) => s.id)).toEqual(['u2', 'u1', 'late', 'early']);
   });
 
-  it('breaks a start-time tie by createdAt, then id', () => {
+  it('breaks a start-time tie newest logged first (createdAt, then id)', () => {
     const b = row({ id: 'b', startTime: '10:00', createdAt: 5 });
     const a = row({ id: 'a', startTime: '10:00', createdAt: 5 });
     const older = row({ id: 'z', startTime: '10:00', createdAt: 4 });
-    expect(groupSessionsByDate([b, a, older])[0].sessions.map((s) => s.id)).toEqual(['z', 'a', 'b']);
+    expect(groupSessionsByDate([b, a, older])[0].sessions.map((s) => s.id)).toEqual(['b', 'a', 'z']);
   });
 
   it('gives names, a meta line, and the two amount lines with none for zero', () => {

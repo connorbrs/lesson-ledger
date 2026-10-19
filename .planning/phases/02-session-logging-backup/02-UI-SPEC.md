@@ -195,7 +195,7 @@ Not accent: body text, chevrons, footers, values, Full/Half when unselected, min
   - Right (fixed, right-aligned, Label, tabular): line 1 "Lesson 1.5 h (1:30)" (text primary); line 2 "Activity 0.5 h (0:30)" (text secondary). A zero value reads "Lesson none" or "Activity none". Travel never appears in the row.
   - The right column shows the session's entered minutes (always whole), formatted by the Shared hour formatter. Credited per-family minutes never appear in rows.
   - Row min height 44px; padding 12px 16px; separator inset 16px.
-- **Order inside a day:** start time ascending; untimed sessions last, in logging order.
+- **Order:** newest first — latest day at the top; inside a day, latest start time first (user request 2026-10-19).
 
 ### Edit Session sheet
 

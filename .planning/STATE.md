@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Installable App & Roster
 status: verifying
-stopped_at: "Phase 1 verification: human_needed (UAT pending)"
-last_updated: "2026-10-19T08:57:38.914Z"
+stopped_at: Completed 01-05-PLAN.md
+last_updated: "2026-10-19T09:19:13.521Z"
 last_activity: 2026-10-18
 last_activity_desc: Phase 1 execution started
-state_head: 62a8dc96c6566848536f34819f243b823f6b379b
+state_head: d130417f98a4152e7eba642dfcfb72465a1cbae1
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 5
+  completed_plans: 5
   percent: 0
 ---
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 1 P02 | 33min | 5 tasks | 5 files |
 | Phase 1 P03 | 9min | 3 tasks | 14 files |
 | Phase 1 P04 | 21min | 4 tasks | 17 files |
+| Phase 1 P05 | 8min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 1]: Student Save requires the chosen family to be in the active list; notes are read and written only in StudentSheet.tsx
 - [Phase 1]: [01-04] Update prompt governs updates only while the app stays open; a force-quit lets the waiting service worker activate on next launch (standard lifecycle, no data loss)
 - [Phase 1]: [01-04] Tab-root NavBar uses a bare prop instead of an empty 44px row (found at device acceptance)
+- [Phase 1]: P-d resolved (HV-10): cold-launch activation of a waiting update after a force-quit is accepted platform behaviour; no reload while app is open
+- [Phase 1]: Archived delete: full-width destructive row beneath Restore plus per-family note row; ArchivedDeleteAlert mounted beside PushLayer
 
 ### Pending Todos
 
@@ -102,6 +105,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T08:57:38.886Z
-Stopped at: Phase 1 verification: human_needed (UAT pending)
-Resume file: .planning/phases/01-installable-app-roster/01-UAT.md
+Last session: 2026-10-19T09:19:13.441Z
+Stopped at: Completed 01-05-PLAN.md
+Resume file: None

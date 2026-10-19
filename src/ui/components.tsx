@@ -58,9 +58,11 @@ export function NavBar(props: {
   right?: ComponentChildren;
   inSheet?: boolean;
   left?: ComponentChildren;
+  /** Tab roots with a large title and no buttons: no empty 44px row, safe area only. */
+  bare?: boolean;
 }) {
   return (
-    <header class={`nav-bar${props.inSheet ? ' in-sheet' : ''}`}>
+    <header class={`nav-bar${props.inSheet ? ' in-sheet' : ''}${props.bare ? ' bare' : ''}`}>
       <div class="nav-left">
         {props.left}
         {props.back && (

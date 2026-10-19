@@ -195,6 +195,14 @@ p {
   opacity: 1;
 }
 
+.nav-bar.bare {
+  height: var(--safe-top);
+}
+
+.screen:has(> .nav-bar.bare) > .scroll {
+  padding-top: calc(var(--safe-top) + var(--space-sm));
+}
+
 .nav-bar.in-sheet {
   position: absolute;
   padding-top: 0;

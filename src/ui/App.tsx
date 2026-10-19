@@ -50,7 +50,7 @@ export function App() {
 
   return (
     <div class="app">
-      <Screen nav={<NavBar />}>
+      <Screen nav={<NavBar bare />}>
         {!isStandalone() && <SafariBanner />}
         {update.needRefresh && (
           <UpdateBanner applying={update.applying} failed={update.failed} onUpdate={update.apply} onNotNow={update.notNow} />

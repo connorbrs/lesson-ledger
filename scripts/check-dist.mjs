@@ -135,6 +135,14 @@ const checks = [
       if (!js.includes(s)) fail(`bundle lacks "${s}"`);
     }
   }],
+  ['C14', 'temporary device-check harness is gone from dist', () => {
+    if (walk(join(DIST, 'assets')).some((f) => /^spike/i.test(f.split('/').pop()))) fail('a spike chunk is still in dist/assets');
+    for (const f of walk(DIST)) {
+      if (!/\.(html|js|css|webmanifest)$/.test(f)) continue;
+      const text = readFileSync(f, 'utf8');
+      if (text.includes('spike-blob') || text.includes('Device check')) fail(`${f} contains the harness`);
+    }
+  }],
 ];
 
 let passed = 0;

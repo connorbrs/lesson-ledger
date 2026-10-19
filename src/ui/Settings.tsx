@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { ensurePersistence, formatBytes, readUsage, type PersistStatus } from '../pwa/storage';
+import { BackupGroup } from './BackupGroup';
 import { Group, Row } from './components';
 
 const TIMEOUT_MS = 2000;
@@ -18,7 +19,7 @@ const PERSIST_LABEL: Record<Persist, string> = {
 const PERSIST_FOOTER: Partial<Record<Persist, string>> = {
   granted: "iOS is less likely to clear Lesson Ledger's data when storage runs low.",
   'not-granted':
-    "iOS has not agreed to protect this app's data, so it could be cleared when storage runs low. Backup arrives in a later update.",
+    "iOS has not agreed to protect this app's data, so it could be cleared when storage runs low. Back up from Settings, then Backup.",
   'not-supported': "This version of iOS doesn't report persistent storage.",
 };
 
@@ -64,6 +65,7 @@ export function Settings() {
           Storage used
         </Row>
       </Group>
+      <BackupGroup />
       <Group header="About">
         <Row value={__BUILD_ID__}>Build</Row>
       </Group>

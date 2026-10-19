@@ -192,6 +192,7 @@ export function Row(props: {
   chevron?: boolean;
   value?: string;
   tone?: 'accent' | 'destructive' | 'secondary';
+  disabled?: boolean;
   children: ComponentChildren;
 }) {
   const cls = `row${props.tone ? ` tone-${props.tone}` : ''}`;
@@ -203,7 +204,7 @@ export function Row(props: {
     </>
   );
   return props.onClick ? (
-    <button type="button" class={cls} onClick={props.onClick}>
+    <button type="button" class={cls} disabled={props.disabled} onClick={props.onClick}>
       {content}
     </button>
   ) : (

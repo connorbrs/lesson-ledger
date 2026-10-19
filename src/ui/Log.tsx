@@ -4,6 +4,7 @@ import { createSession, getLastSession, loadNameMaps } from '../data/sessions';
 import { listActiveStudents } from '../data/students';
 import { todayLocal } from '../domain/dates';
 import { blankForm, formToInput, prefillFromSession, setAttendees, type FormState } from '../domain/sessionForm';
+import { BackupReminder } from './BackupReminder';
 import { sessionSaveErrorMessage } from './components';
 import { SessionFields } from './SessionFields';
 
@@ -79,6 +80,7 @@ export function Log(props: { draft: FormState | null; setDraft: (f: FormState) =
         hasActiveStudents={data.active.length > 0}
         onOpenPicker={props.onOpenPicker}
       />
+      <BackupReminder />
       <div style={{ height: footerHeight }} aria-hidden="true" />
       <div ref={footer} class="log-footer">
         {saveError && <p class="sheet-error" role="alert">{saveError}</p>}

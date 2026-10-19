@@ -3,16 +3,16 @@ gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Expenses & Receipts
 status: executing
-stopped_at: Phase 3 UI-SPEC approved
-last_updated: "2026-10-19T21:25:23.066Z"
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-10-19T21:41:17.340Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 2 complete, transitioned to Phase 3
-state_head: d4c28cfc44518c59c361def30f32c0f1b30a0e86
+state_head: c8c7f32ffd9957a8558ba3b070f294873a9cb7a3
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 13
-  completed_plans: 8
+  completed_plans: 9
   percent: 50
 ---
 
@@ -65,6 +65,7 @@ Progress: [█████░░░░░] 50%
 | Phase 02 P01 | 4 min | 3 tasks | 19 files |
 | Phase 02 P02 | not recorded | 3 tasks | 16 files |
 | Phase 2 P3 | not recorded | 4 tasks | 13 files |
+| Phase 03 P01 | 25min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,8 @@ Recent decisions affecting current work:
 - [Phase 02]: Period math uses Date.UTC as a calendar only (host time zone cannot shift a day); anchor-date period state; Week/Month switch keeps the containing period
 - [Phase 02]: updateSession keeps a retained attendee's stored familyId and remaps its credit to the snapshot; only new attendees must be active and match family
 - [Phase 2]: [02-03] Backup container is JSON (schemaVersion 1); restore is one rw transaction over all data tables plus lastBackupAt; device round trip passed on iPhone 14 Pro iOS 26.6.1 (share sheet and Save to Files work; same-day naming backstop not reported)
+- [Phase 03]: Expense amounts parse via BigInt over digit strings (no floats); three decimals rejected, not rounded
+- [Phase 03]: Expense and attachment rows use add so an id collision aborts the session transaction; unchanged expense rows are not rewritten
 
 ### Pending Todos
 
@@ -122,6 +125,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T20:30:04.295Z
-Stopped at: Phase 3 UI-SPEC approved
-Resume file: .planning/phases/03-expenses-receipts/03-UI-SPEC.md
+Last session: 2026-10-19T21:41:17.172Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None

@@ -94,12 +94,12 @@ Plans:
   4. User can edit or delete an expense and its receipt photos, and deleting leaves no orphaned photos behind
   5. Receipt photos are included in a backup and reappear intact after a restore (completes the receipt half of DATA-02/DATA-03 from Phase 2)
 
-**Plans**: 5 plans
+**Plans**: 1/5 plans executed
 
 Plans:
 
 **Wave 1**
-- [ ] 03-01-PLAN.md — Domain and data tracer: an expense (amount, description) saved with a session in one transaction, totalled for the Sessions row and cascade-deleted; complete update, shares and no-orphan rules with tested save, caption and footer predicates
+- [x] 03-01-PLAN.md — Domain and data tracer: an expense (amount, description) saved with a session in one transaction, totalled for the Sessions row and cascade-deleted; complete update, shares and no-orphan rules with tested save, caption and footer predicates
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 03-02-PLAN.md — Log tab UI: Expenses group, Expense editor, Log Session saves expenses, "Expenses $12.50" Sessions row line
@@ -142,7 +142,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Installable App & Roster | 5/5 | Complete    | 2026-10-19 |
 | 2. Session Logging & Backup | 3/3 | Complete    | 2026-10-19 |
-| 3. Expenses & Receipts | 0/5 | Planned | - |
+| 3. Expenses & Receipts | 1/5 | In Progress | - |
 | 4. Family Summaries & Overview | 0/TBD | Not started | - |
 
 ## Backlog

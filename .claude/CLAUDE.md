@@ -52,7 +52,7 @@ A personal iPhone app (installed as a home-screen web app) for a private swim an
 | Tool | Purpose | Notes |
 |------|---------|-------|
 | Vitest (version not verified) | Unit tests for period math, split logic (full/half credit, shared expenses), zip round-trip | Optional. Worth it for the money-adjacent math (hour splits, expense splits) even in a small app. |
-| GitHub Pages (via Actions or `gh-pages` branch) | Static hosting | Set Vite `base` to the repo path (e.g. `/lesson-log/`). The manifest `start_url`, `scope`, and service worker scope must all match that base. Mismatch is the most common Pages-PWA bug. |
+| GitHub Pages (via Actions or `gh-pages` branch) | Static hosting | Set Vite `base` to the repo path (e.g. `/lesson-ledger/`). The manifest `start_url`, `scope`, and service worker scope must all match that base. Mismatch is the most common Pages-PWA bug. |
 | Safari Web Inspector (Mac) | Debug the installed home-screen app on the phone | Connect the iPhone via USB; inspect IndexedDB, storage estimate, and console. Required for the on-device checks listed below. |
 
 ## Installation

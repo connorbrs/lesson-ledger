@@ -20,6 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Phase Details
 
 ### Phase 1: Installable App & Roster
+
 **Goal:** As a private instructor, I want to install the app and set up my families and students, so that I have an offline roster ready.
 **Mode:** mvp
 **Depends on**: Nothing (first phase)
@@ -30,18 +31,27 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. If user opens the URL in a Safari tab, they see a warning that their data lives in the home-screen app; after a new version is deployed, the home-screen app tells them an update is available and one tap applies it
   4. User can create, edit and archive families (name used on summaries, reporting period weekly Mon-Sun or monthly calendar month) and students (each belonging to one family); archived records are hidden from active lists but keep their history, and only records with no history can be hard-deleted
   5. Settings shows whether persistent storage was granted and how much storage is used
+
 **Plans**: 4 plans
 
 Plans:
+**Wave 1**
 - [ ] 01-01-PLAN.md — Walking skeleton: pinned toolchain, a family persisted end-to-end, installable precached build with the clock icon
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 01-02-PLAN.md — Go live on GitHub Pages and run the early iPhone device spike
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 01-03-PLAN.md — Roster: validation, family and student repos with delete guards, People, Family, Student and Archived UI
+
+**Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 01-04-PLAN.md — Storage status, Safari-tab banner, update prompt, Records error, harness removal, final on-device acceptance
 
 **UI hint**: yes
 **Device spike**: On a real iPhone: install from the live URL, go offline and relaunch, read `persisted()` and `estimate()` over several days, round-trip a ~2 MB JPEG Blob through IndexedDB, and deploy a marker build to test the update prompt in standalone mode.
 
 ### Phase 2: Session Logging & Backup
+
 **Goal:** As a private instructor, I want to log a session in seconds and back up my data, so that hours are accurate and never lost.
 **Mode:** mvp
 **Depends on**: Phase 1
@@ -52,11 +62,13 @@ Plans:
   3. User can view sessions by period and edit or delete any session
   4. User can export a full backup as one file via the iOS share sheet from the home-screen app, and the home screen shows "last backup N days ago"
   5. User can restore from a backup file: a corrupt or unrecognised file is rejected with existing data untouched, and a valid file replaces everything or nothing
+
 **Plans**: TBD
 **UI hint**: yes
 **Device spike**: On a real iPhone: share a backup file via the share sheet from the home-screen app, pick it back through the file picker, and verify a full round trip. The backup format should carry an attachments slot from day one so Phase 3 receipts need no format change.
 
 ### Phase 3: Expenses & Receipts
+
 **Goal:** As a private instructor, I want to attach expenses and receipt photos to sessions, so that families see what I paid.
 **Mode:** mvp
 **Depends on**: Phase 2
@@ -67,11 +79,13 @@ Plans:
   3. For a shared session, an expense is split equally between the families by default, user can override the split per expense, and the amounts always add up exactly to the expense total
   4. User can edit or delete an expense and its receipt photos, and deleting leaves no orphaned photos behind
   5. Receipt photos are included in a backup and reappear intact after a restore (completes the receipt half of DATA-02/DATA-03 from Phase 2)
+
 **Plans**: TBD
 **UI hint**: yes
 **Device spike**: On a real iPhone from the home-screen app: camera capture and library pick, HEIC photos from the library, portrait and landscape orientation, and memory behavior with about 20 receipts.
 
 ### Phase 4: Family Summaries & Overview
+
 **Goal:** As a private instructor, I want to send families correct summaries and see my own totals, so that billing and my records are right.
 **Mode:** mvp
 **Depends on**: Phase 3
@@ -82,6 +96,7 @@ Plans:
   3. User can generate a PDF of the summary including receipt images and share it through the iOS share sheet from the home-screen app (download fallback), and its totals are identical to the text summary
   4. Before sending, user sees warnings for expenses without a receipt and sessions with zero minutes; user can mark the period as sent, and editing a session or expense in it afterwards flags the period as changed since sent
   5. User can see their own lesson, activity and travel totals per week and per month, broken down by student, family and subject, where subject totals count actual time once and family/student totals use credited time
+
 **Plans**: TBD
 **UI hint**: yes
 **Device spike**: On a real iPhone from the home-screen app: `navigator.share` with a PDF to Messages and Mail, a monthly PDF with 30+ receipts, and jsPDF memory on the oldest supported phone. If jsPDF fails on device, swap to pdf-lib inside the PDF module only.

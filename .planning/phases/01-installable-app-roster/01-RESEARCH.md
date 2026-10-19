@@ -604,7 +604,9 @@ Spike plan (ROADMAP Phase 1): install from the live URL; airplane mode, force-qu
 
 **If this table is non-empty:** A1–A3, A5–A7, A12, A16 need confirmation at Wave 0 (build output) or on device. A10–A12 need user confirmation (Open Questions).
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Resolved by the orchestrator 2026-10-18: clock/ledger icon (D-02), 3-segment Swim/Math/Both (D-06), default subject Both and uncapped notes, Lesson Ledger rename (D-01), no VALIDATION.md (nyquist off). Items 4 and 7 are edit lists / user steps, carried into the plans.
 
 1. **Icon glyph conflict (user decision needed).**
    - What we know: UI-SPEC line 162 says "one centered white two-line wave glyph". D-02 (CONTEXT line 18) says "a stylised **clock or ledger book**" in teal with white, "iOS-style rounded square".

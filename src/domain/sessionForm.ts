@@ -119,3 +119,25 @@ export function prefillFromSession(last: Session, activeStudents: Student[]): Fo
     subjectTouched: true,
   };
 }
+
+/** The form an existing session opens with: stored values, stored family snapshots, stored credit modes. */
+export function formFromSession(s: Session): FormState {
+  return {
+    date: s.date,
+    startTime: s.startTime,
+    subject: s.subject,
+    attendees: s.attendees.map((a) => ({ ...a })),
+    lesson: String(s.lessonMinutes),
+    activity: String(s.activityMinutes),
+    travel: String(s.travelMinutes),
+    credits: Object.fromEntries(s.credits.map((c) => [c.familyId, { lesson: c.lesson, activity: c.activity }])),
+    subjectTouched: true,
+  };
+}
+
+/** True when two forms hold the same values; the order students were picked in does not count. */
+export function sameForm(a: FormState, b: FormState): boolean {
+  const norm = (f: FormState) =>
+    JSON.stringify({ ...f, attendees: [...f.attendees].sort((x, y) => (x.studentId < y.studentId ? -1 : x.studentId > y.studentId ? 1 : 0)) });
+  return norm(a) === norm(b);
+}

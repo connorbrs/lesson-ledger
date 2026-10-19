@@ -1,5 +1,5 @@
 import { useEffect, useErrorBoundary, useState } from 'preact/hooks';
-import type { Family, Student } from '../domain/types';
+import type { Family, Session, Student } from '../domain/types';
 import { isStandalone } from '../pwa/standalone';
 import { ensurePersistence } from '../pwa/storage';
 import { useAppUpdate } from '../pwa/useAppUpdate';
@@ -13,13 +13,15 @@ import { Sessions } from './Sessions';
 import { Settings } from './Settings';
 import { RecordsError, SafariBanner, UpdateBanner } from './Status';
 import { StudentPicker } from './StudentPicker';
+import { SessionSheet } from './SessionSheet';
 import { StudentSheet } from './StudentSheet';
 import './styles.css';
 
 type SheetState =
   | null
   | { kind: 'family'; family?: Family }
-  | { kind: 'student'; student?: Student; familyId?: string };
+  | { kind: 'student'; student?: Student; familyId?: string }
+  | { kind: 'session'; session: Session };
 
 function ArchivedScreen(props: { onClosed: () => void }) {
   const { closing, close, onAnimationEnd } = useAnimatedClose(props.onClosed, 310);
@@ -72,7 +74,7 @@ export function App() {
         ) : tab === 'log' ? (
           <Log draft={logDraft} setDraft={setLogDraft} onOpenPicker={() => setLogPickerOpen(true)} />
         ) : tab === 'sessions' ? (
-          <Sessions onLogSession={() => setTab('log')} />
+          <Sessions onLogSession={() => setTab('log')} onEdit={(session) => setSheet({ kind: 'session', session })} />
         ) : tab === 'people' ? (
           <People
             onAddFamily={() => setSheet({ kind: 'family' })}
@@ -104,6 +106,7 @@ export function App() {
         }}
       />
       {!error && sheet?.kind === 'family' && <FamilySheet family={sheet.family} onClosed={() => setSheet(null)} />}
+      {!error && sheet?.kind === 'session' && <SessionSheet session={sheet.session} onClosed={() => setSheet(null)} />}
       {!error && sheet?.kind === 'student' && (
         <StudentSheet student={sheet.student} presetFamilyId={sheet.familyId} onClosed={() => setSheet(null)} />
       )}

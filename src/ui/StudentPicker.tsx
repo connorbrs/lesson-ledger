@@ -1,6 +1,6 @@
-import { listActiveFamilies } from '../data/families';
+import { getFamily, listActiveFamilies } from '../data/families';
 import { useLive } from '../data/live';
-import { listActiveStudents } from '../data/students';
+import { getStudent, listActiveStudents } from '../data/students';
 import { togglePick } from '../domain/sessionForm';
 import type { Attendee, DefaultSubject, Subject } from '../domain/types';
 import { CheckIcon, Group, NavBar, PushLayer, Screen, useAnimatedClose } from './components';
@@ -15,7 +15,24 @@ export function StudentPicker(props: {
   onClosed: () => void;
 }) {
   const { closing, close, onAnimationEnd } = useAnimatedClose(props.onClosed, 310);
-  const data = useLive(async () => ({ families: await listActiveFamilies(), students: await listActiveStudents() }));
+  const data = useLive(async () => {
+    const families = await listActiveFamilies();
+    const students = await listActiveStudents();
+    // Edit Session: a student already on the session stays listed (archived or not) so they can be deselected.
+    if (props.inSheet) {
+      for (const a of props.attendees) {
+        if (students.some((s) => s.id === a.studentId)) continue;
+        const kept = await getStudent(a.studentId);
+        if (!kept) continue;
+        students.push(kept);
+        if (!families.some((f) => f.id === kept.familyId)) {
+          const family = await getFamily(kept.familyId);
+          if (family) families.push(family);
+        }
+      }
+    }
+    return { families, students };
+  });
 
   return (
     <PushLayer closing={closing} onAnimationEnd={onAnimationEnd}>
@@ -44,7 +61,10 @@ export function StudentPicker(props: {
                       aria-pressed={selected}
                       onClick={() => props.onChange(togglePick(props.subject, props.attendees, { studentId: s.id, familyId: s.familyId }), s.defaultSubject)}
                     >
-                      <span class="picker-row-name clamp2">{s.name}</span>
+                      <span class="picker-row-name clamp2">
+                        {s.name}
+                        {s.archivedAt !== null && <span class="row-sub">Archived</span>}
+                      </span>
                       {selected && (
                         <span class="picker-row-check">
                           <CheckIcon />

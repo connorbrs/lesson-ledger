@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { blankForm, changeSubject, formToInput, needsCreditGroups, parseMinutes, prefillFromSession, setAttendees, togglePick, type FormState } from '../src/domain/sessionForm';
+import { blankForm, changeSubject, formFromSession, sameForm, formToInput, needsCreditGroups, parseMinutes, prefillFromSession, setAttendees, togglePick, type FormState } from '../src/domain/sessionForm';
 import type { Attendee, Session, Student } from '../src/domain/types';
 
 const a1: Attendee = { studentId: 'a1', familyId: 'A' };
@@ -136,5 +136,41 @@ describe('prefillFromSession', () => {
   it('a pre-filled form saves with date today', () => {
     const r = formToInput(prefillFromSession(last, [student('a1', 'A')]), TODAY);
     expect(r.ok && r.value.date).toBe(TODAY);
+  });
+});
+
+describe('formFromSession', () => {
+  const stored: Session = {
+    id: 's1',
+    date: '2026-10-12',
+    startTime: '16:30',
+    subject: 'swim',
+    attendees: [a1, b1],
+    credits: [
+      { familyId: 'A', lesson: 'half', activity: 'full' },
+      { familyId: 'B', lesson: 'full', activity: 'full' },
+    ],
+    lessonMinutes: 45,
+    activityMinutes: 30,
+    travelMinutes: 15,
+    createdAt: 1,
+    updatedAt: 1,
+  };
+
+  it('round-trips a stored two-family swim through formToInput to the stored fields', () => {
+    const { id, createdAt, updatedAt, ...fields } = stored;
+    expect(formToInput(formFromSession(stored), TODAY)).toEqual({ ok: true, value: fields });
+  });
+
+  it('round-trips a one-family math session', () => {
+    const math: Session = { ...stored, subject: 'math', attendees: [a1], credits: [{ familyId: 'A', lesson: 'full', activity: 'full' }] };
+    const { id, createdAt, updatedAt, ...fields } = math;
+    expect(formToInput(formFromSession(math), TODAY)).toEqual({ ok: true, value: fields });
+  });
+
+  it('sameForm ignores the order students were picked in but not a changed value', () => {
+    const f = formFromSession(stored);
+    expect(sameForm(f, { ...f, attendees: [...f.attendees].reverse() })).toBe(true);
+    expect(sameForm(f, { ...f, lesson: '46' })).toBe(false);
   });
 });

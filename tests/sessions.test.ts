@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../src/data/db';
 import { createFamily } from '../src/data/families';
-import { createSession, getLastSession, listSessions, listSessionsInRange } from '../src/data/sessions';
+import { createSession, deleteSession, getLastSession, getSession, listSessions, listSessionsInRange, updateSession } from '../src/data/sessions';
 import { archiveStudent, createStudent, deleteStudent, studentHasHistory } from '../src/data/students';
 import { groupSessionsByDate, sessionRowText, SessionError, type SessionFields } from '../src/domain/session';
 import type { Attendee, Session } from '../src/domain/types';
@@ -211,5 +211,88 @@ describe('groupSessionsByDate and sessionRowText', () => {
     const all = Object.values(text).join(' | ');
     expect(all).not.toContain('777');
     expect(all).not.toContain('22.5');
+  });
+});
+
+describe('updateSession and deleteSession', () => {
+  it('updates the fields, keeps id and createdAt, and advances updatedAt', async () => {
+    const created = await createSession(swim([a1]));
+    const next = await updateSession(created.id, swim([a1], { lessonMinutes: 60 }));
+    expect(next).toMatchObject({ id: created.id, createdAt: created.createdAt, lessonMinutes: 60 });
+    expect(next.updatedAt).toBeGreaterThan(created.updatedAt);
+    expect(await getSession(created.id)).toEqual(next);
+  });
+
+  it('applying the same update twice leaves every field equal except a larger updatedAt', async () => {
+    const created = await createSession(swim([a1]));
+    const once = await updateSession(created.id, swim([a1], { lessonMinutes: 60 }));
+    const twice = await updateSession(created.id, swim([a1], { lessonMinutes: 60 }));
+    const { updatedAt: u1, ...rest1 } = once;
+    const { updatedAt: u2, ...rest2 } = twice;
+    expect(rest2).toEqual(rest1);
+    expect(u2).toBeGreaterThan(u1);
+  });
+
+  it('rejects an invalid edit and leaves the stored row unchanged', async () => {
+    const created = await createSession(swim([a1]));
+    await expect(updateSession(created.id, swim([a1], { lessonMinutes: 1000 }))).rejects.toMatchObject({ code: 'minutes-invalid' });
+    expect(await getSession(created.id)).toEqual(created);
+  });
+
+  it('deleteSession returns ok, then not-found on the second call', async () => {
+    const created = await createSession(swim([a1]));
+    expect(await deleteSession(created.id)).toEqual({ ok: true });
+    expect(await deleteSession(created.id)).toEqual({ ok: false, reason: 'not-found' });
+  });
+
+  it('an update of a deleted session rejects with not-found and never recreates the row', async () => {
+    const created = await createSession(swim([a1]));
+    await deleteSession(created.id);
+    await expect(updateSession(created.id, swim([a1]))).rejects.toMatchObject({ code: 'not-found' });
+    expect(await listSessions()).toEqual([]);
+  });
+
+  it.each(['update-first', 'delete-first'] as const)('an update racing a delete ends with the session gone (%s)', async (order) => {
+    const created = await createSession(swim([a1]));
+    const update = () => updateSession(created.id, swim([a1], { lessonMinutes: 60 }));
+    const remove = () => deleteSession(created.id);
+    const settled = await Promise.allSettled(order === 'update-first' ? [update(), remove()] : [remove(), update()]);
+    expect(await getSession(created.id)).toBeUndefined();
+    expect(await db.sessions.count()).toBe(0);
+    const updateResult = settled[order === 'update-first' ? 0 : 1];
+    if (updateResult.status === 'rejected') expect(updateResult.reason).toMatchObject({ code: 'not-found' });
+  });
+
+  it('edits a session whose second student has since been archived when that student stays on it', async () => {
+    const created = await createSession(swim([a1, a2]));
+    await archiveStudent(a2.studentId);
+    const next = await updateSession(created.id, swim([a1, a2], { lessonMinutes: 30 }));
+    expect(next.lessonMinutes).toBe(30);
+  });
+
+  it('keeps a retained attendee on its stored family after a move, and its credit follows', async () => {
+    const created = await createSession(swim([a1]));
+    await db.students.update(a1.studentId, { familyId: b1.familyId });
+    const next = await updateSession(created.id, swim([{ studentId: a1.studentId, familyId: b1.familyId }], { lessonMinutes: 50 }));
+    expect(next.attendees).toEqual([a1]);
+    expect(next.credits).toEqual([full(a1.familyId)]);
+  });
+
+  it('a newly added attendee must be active and match its current family', async () => {
+    const created = await createSession(swim([a1]));
+    await expect(updateSession(created.id, swim([a1, { studentId: b1.studentId, familyId: a1.familyId }]))).rejects.toMatchObject({
+      code: 'student-missing',
+    });
+    await archiveStudent(b1.studentId);
+    await expect(updateSession(created.id, swim([a1, b1]))).rejects.toMatchObject({ code: 'student-missing' });
+    expect(await getSession(created.id)).toEqual(created);
+  });
+
+  it('deleting the last session of a student makes the student deletable again', async () => {
+    const created = await createSession(swim([a1]));
+    expect(await studentHasHistory(a1.studentId)).toBe(true);
+    await deleteSession(created.id);
+    expect(await studentHasHistory(a1.studentId)).toBe(false);
+    expect(await deleteStudent(a1.studentId)).toEqual({ ok: true });
   });
 });

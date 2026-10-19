@@ -266,9 +266,27 @@ export function useAnimatedClose(onClosed: () => void, ms: number) {
   };
 }
 
+/**
+ * While the element is mounted, mark its siblings `inert` so VoiceOver and keyboard focus cannot reach
+ * the content it covers. `keep` is a selector for siblings that stay usable (the tab bar sits above pushed screens).
+ */
+function useInertBehind(ref: { current: HTMLElement | null }, keep?: string) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el?.parentElement) return;
+    const marked = Array.from(el.parentElement.children).filter(
+      (sib) => sib !== el && !sib.hasAttribute('inert') && !(keep && sib.matches(keep)),
+    );
+    marked.forEach((sib) => sib.setAttribute('inert', ''));
+    return () => marked.forEach((sib) => sib.removeAttribute('inert'));
+  }, []);
+}
+
 export function PushLayer(props: { closing: boolean; onAnimationEnd: (e: Event) => void; children: ComponentChildren }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useInertBehind(ref, '.tab-bar');
   return (
-    <div class={`push-layer${props.closing ? ' closing' : ''}`} onAnimationEnd={props.onAnimationEnd}>
+    <div ref={ref} class={`push-layer${props.closing ? ' closing' : ''}`} onAnimationEnd={props.onAnimationEnd}>
       {props.children}
     </div>
   );
@@ -286,8 +304,10 @@ export function Sheet(props: {
   children: ComponentChildren;
 }) {
   const [scrolled, setScrolled] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useInertBehind(ref);
   return (
-    <div class={`sheet-layer${props.closing ? ' closing' : ''}`}>
+    <div ref={ref} class={`sheet-layer${props.closing ? ' closing' : ''}`}>
       <div class="sheet-scrim" />
       <div class={`sheet${scrolled ? ' scrolled' : ''}`} role="dialog" aria-modal="true" aria-label={props.title} onAnimationEnd={props.onAnimationEnd}>
         <header class="nav-bar in-sheet">
@@ -322,8 +342,18 @@ export interface AlertButton {
 }
 
 export function Alert(props: { title: string; message?: string; buttons: AlertButton[] }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useInertBehind(ref);
+  // Move focus into the alert (the first button is the least destructive one) and give it back to the opener on close.
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    ref.current?.querySelector('button')?.focus();
+    return () => {
+      if (opener?.isConnected) opener.focus();
+    };
+  }, []);
   return (
-    <div class="alert-layer">
+    <div ref={ref} class="alert-layer">
       <div class="alert" role="alertdialog" aria-modal="true" aria-label={props.title}>
         <div class="alert-text">
           <h2 class="alert-title">{props.title}</h2>

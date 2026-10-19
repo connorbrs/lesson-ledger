@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 01-installable-app-roster
 source: [01-VERIFICATION.md]
 started: 2026-10-19T00:00:00Z
@@ -70,8 +70,17 @@ blocked: 0
   reason: "User reported: W-1 decision — add Delete for archived records with no history (currently the Archived screen has only Restore, so the 'Remove them before deleting the family' footer is a dead end)"
   severity: minor
   test: 10
-  artifacts: []
-  missing: []
+  root_cause: "src/ui/Archived.tsx offers only Restore Family / Restore Student; deleteStudent/deleteFamily (src/data/students.ts, src/data/families.ts) are only reachable from the edit sheets of ACTIVE records. deleteFamily blocks on any student (active or archived), so a family whose students are all archived can never be deleted. Diagnosed from 01-VERIFICATION.md W-1 (orchestrator, no debug session needed)."
+  artifacts:
+    - path: "src/ui/Archived.tsx"
+      issue: "no delete action for archived families/students"
+    - path: "src/data/families.ts"
+      issue: "deleteFamily refuses while any student exists, including archived no-history students"
+  missing:
+    - "Delete Student on archived students with no history (confirm alert, reuse deleteStudent guard)"
+    - "Delete Family on archived families with no students (confirm alert, reuse deleteFamily guard); footer explains to delete the archived students first when blocked"
+    - "Amend 01-04 prohibition P-d wording: cold-launch activation of a waiting update after a full force-quit is accepted platform behaviour (user decision 2026-10-19)"
+  debug_session: ""
 
 ## Decisions
 

@@ -13,7 +13,7 @@ Lesson Log goes from an empty GitHub Pages URL to a trusted tool for sending par
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Installable App & Roster** - Home-screen offline app with families, students and storage status (completed 2026-10-19)
-- [ ] **Phase 2: Session Logging & Backup** - Quick session entry with shared-swim credit, plus backup and restore
+- [x] **Phase 2: Session Logging & Backup** - Quick session entry with shared-swim credit, plus backup and restore (completed 2026-10-19)
 - [ ] **Phase 3: Expenses & Receipts** - Expenses with receipt photos and shared-expense splitting
 - [ ] **Phase 4: Family Summaries & Overview** - Per-family text and PDF summaries, plus personal overview totals
 
@@ -65,7 +65,7 @@ Plans:
   4. User can export a full backup as one file via the iOS share sheet from the home-screen app, and the home screen shows "last backup N days ago"
   5. User can restore from a backup file: a corrupt or unrecognised file is rejected with existing data untouched, and a valid file replaces everything or nothing
 
-**Plans**: 3/3 plans executed
+**Plans**: 3/3 plans complete
 
 Plans:
 
@@ -123,7 +123,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Installable App & Roster | 5/5 | Complete    | 2026-10-19 |
-| 2. Session Logging & Backup | 3/3 | In Progress | - |
+| 2. Session Logging & Backup | 3/3 | Complete    | 2026-10-19 |
 | 3. Expenses & Receipts | 0/TBD | Not started | - |
 | 4. Family Summaries & Overview | 0/TBD | Not started | - |
 

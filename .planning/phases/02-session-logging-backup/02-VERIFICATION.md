@@ -1,7 +1,7 @@
 ---
 phase: 02-session-logging-backup
 verified: 2026-10-19T20:02:07Z
-status: human_needed
+status: passed
 score: 22/23 truths verified (truth 3 typed-input path VERIFIED; Finish-derived Duration above 999 is a WARNING needing a human decision); quick-task 261019-gs0 must-haves 6/7 (N6 accepted as W-A)
 covered_files: [".planning/phases/02-session-logging-backup/02-01-PLAN.md", ".planning/phases/02-session-logging-backup/02-01-SUMMARY.md", ".planning/phases/02-session-logging-backup/02-02-PLAN.md", ".planning/phases/02-session-logging-backup/02-02-SUMMARY.md", ".planning/phases/02-session-logging-backup/02-03-PLAN.md", ".planning/phases/02-session-logging-backup/02-03-SUMMARY.md", "src/data/backup.ts", "src/data/db.ts", "src/data/families.ts", "src/data/sessions.ts", "src/data/students.ts", "src/domain/backup.ts", "src/domain/dates.ts", "src/domain/hours.ts", "src/domain/roster.ts", "src/domain/session.ts", "src/domain/sessionForm.ts", "src/domain/types.ts", "src/pwa/share.ts", "src/ui/App.tsx", "src/ui/Archived.tsx", "src/ui/BackupGroup.tsx", "src/ui/BackupReminder.tsx", "src/ui/FamilySheet.tsx", "src/ui/Log.tsx", "src/ui/SessionFields.tsx", "src/ui/SessionSheet.tsx", "src/ui/Sessions.tsx", "src/ui/Settings.tsx", "src/ui/StudentPicker.tsx", "src/ui/components.tsx", "src/ui/styles.css", "src/ui/useBackup.ts", "tests/backup.test.ts", "tests/dates.test.ts", "tests/hours.test.ts", "tests/roster.test.ts", "tests/sessionForm.test.ts", "tests/sessions.test.ts", "tests/share.test.ts"]
 covered_digest: "v3:sha256:cad83553e932f9740dfd34cbe15949f0e1817c0d881d429404db3783efc80904"

@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 2
-current_phase_name: Session Logging & Backup
-status: verifying
-stopped_at: "Phase 2 verification: human_needed (UAT pending)"
-last_updated: "2026-10-19T19:47:26.739Z"
+current_phase: 3
+current_phase_name: Expenses & Receipts
+status: planning
+stopped_at: Phase 2 complete, ready to plan Phase 3
+last_updated: "2026-10-19T20:04:17.587Z"
 last_activity: 2026-10-19
-last_activity_desc: Phase 2 execution started
-state_head: 179db1bb72f5b5b7f5ce18d0d7ccf2272674a0f7
+last_activity_desc: Phase 2 complete, transitioned to Phase 3
+state_head: 5ea273e29f3071735b4e337095247358824bc560
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
   completed_plans: 8
-  percent: 25
+  percent: 50
 ---
 
 # Project State
@@ -23,21 +23,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-19)
 
 **Core value:** Logging a session right after it ends takes seconds, and the per-family weekly/monthly summary is correct and ready to send — lesson hours and activity hours separated, expenses and receipts included.
-**Current focus:** Phase 2 — Session Logging & Backup
+**Current focus:** Phase 3 — Expenses & Receipts
 
 ## Current Position
 
-Phase: 2 (Session Logging & Backup) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-10-19 - Completed quick task 261019-gs0: Session Start/Finish/Duration times
+Phase: 3 — Expenses & Receipts
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-19 — Phase 2 complete, transitioned to Phase 3
 
-Progress: [███░░░░░░░] 25%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 8
 - Average duration: - min
 - Total execution time: 0.0 hours
 
@@ -46,6 +46,7 @@ Progress: [███░░░░░░░] 25%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 5 | - | - |
+| 2 | 3 | - | - |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -102,7 +103,7 @@ None yet.
 ### Blockers/Concerns
 
 - [Phase 2+] Still unverified on device: Web Share with files (backup zip, PDF), camera/HEIC, PDF memory. Verified in Phase 1: persist() granted, Blob round trip, offline relaunch, separate Safari storage (iOS 26.6.1, iPhone 14 Pro).
-- [Phase 2] Session rows must use the `SessionRow { attendees: {studentId}[] }` shape that the student delete guard reads (src/data/db.ts); backlog 999.1 rewords the Archived blocked-family note once sessions exist.
+- [Phase 3] Before writing expenses/attachments: fix WR-02 (restore clears expenses/attachments without the backup's check) and add receipt photos to the backup format (new schemaVersion; restore must keep reading v1).
 
 ### Quick Tasks Completed
 
@@ -121,6 +122,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T18:43:34.806Z
-Stopped at: Phase 2 verification: human_needed (UAT pending)
-Resume file: .planning/phases/02-session-logging-backup/02-UAT.md
+Last session: 2026-10-19T20:04:17.475Z
+Stopped at: Phase 2 complete, ready to plan Phase 3
+Resume file: None

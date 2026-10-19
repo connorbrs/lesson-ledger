@@ -16,18 +16,19 @@ Logging a session right after it ends takes seconds, and the per-family weekly/m
 - ✓ Each family has a reporting period: weekly (Mon–Sun) or monthly — Phase 1
 - ✓ Works offline, installs to the iPhone home screen, never expires (GitHub Pages PWA, persistent storage granted on iOS 26.6.1) — Phase 1
 
+- ✓ Log a session with Start / Finish / Duration (exact minutes), subject, 1–2 students, activity and travel minutes; Lesson = Duration − Activity — Phase 2
+- ✓ Swim sessions with 2 students from different families: per-family Full/Half credit for lesson and activity; math 1-on-1 — Phase 2
+- ✓ Sessions list by week/month, newest first; edit and delete sessions — Phase 2
+- ✓ Backup to one JSON file via the share sheet and validated all-or-nothing restore; 7-day reminder (receipt photos join backups in Phase 3) — Phase 2
+
 ### Active
 
-- [ ] Log a session after the fact: date, subject (swim or math), student(s), lesson minutes, activity minutes, travel minutes
-- [ ] Swim sessions can include 2 students, possibly from different families; per session choose whether each family is credited full time or half time
-- [ ] Math sessions are always 1-on-1
 - [ ] Log activity expenses (amount, description, receipt photo) on a session; shared-session expenses split between the families
 - [ ] Generate per-family summary for a period: lesson hours and activity hours separately, plus itemized expenses
 - [ ] Summary as copy-pasteable text message
 - [ ] Summary as PDF including receipt images, shareable via iOS share sheet (Messages)
 - [ ] Personal overview: totals per student / family / subject per week and month, including travel time
-- [ ] Edit and delete logged sessions and expenses
-- [ ] Backup/export all data to a file and restore from it
+- [ ] Edit and delete logged expenses
 
 ### Out of Scope
 
@@ -79,6 +80,9 @@ Logging a session right after it ends takes seconds, and the per-family weekly/m
 | Commit directly to main (solo project) | Deploys from main; simplest for one person | ✓ Good |
 | Update prompt; cold-launch activation after force-quit accepted | iOS service-worker lifecycle; no data/input lost | ✓ Good |
 | Archived records with no history can be deleted from Archived screen | Avoid dead end (UAT W-1) | ✓ Good |
+| Session times as Start/Finish/Duration instead of minute presets | User request after Phase 2 build | ✓ Good |
+| Backup is one JSON file (schemaVersion + attachments slot) | No new package; zip possible later | ✓ Good |
+| Sessions list newest first | User request | ✓ Good |
 | Karpathy coding guidelines apply (multica-ai/andrej-karpathy-skills, already in global CLAUDE.md) | User preference: simplicity, surgical changes | — Pending |
 
 ## Evolution
@@ -99,4 +103,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-19 after Phase 1*
+*Last updated: 2026-10-19 after Phase 2*

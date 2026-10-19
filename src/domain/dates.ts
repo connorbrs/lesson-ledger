@@ -108,3 +108,9 @@ export function formatDayHeader(ymd: string): string {
   const [, m, d] = ymd.split('-').map(Number);
   return `${WEEKDAYS[weekdayIndex(dayNumber(ymd))]}, ${MONTHS[m - 1]} ${d}`;
 }
+
+/** The local calendar date of an epoch-ms instant. */
+export const localYmdFromMs = (ms: number): string => todayLocal(new Date(ms));
+
+/** Whole local calendar days from `fromYmd` to `toYmd` (negative when `toYmd` is earlier). */
+export const daysBetween = (fromYmd: string, toYmd: string): number => dayNumber(toYmd) - dayNumber(fromYmd);

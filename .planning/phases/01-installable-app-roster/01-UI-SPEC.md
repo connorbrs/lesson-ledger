@@ -17,6 +17,17 @@ created: "2026-10-18"
 
 ---
 
+## Amendments during Phase 1 planning
+
+These edits were made while planning Phase 1 so this contract matches the locked decisions in 01-CONTEXT.md:
+
+- **D-01:** the product name in every user-visible string, the head tag and the manifest is Lesson Ledger.
+- **D-02:** the app icon is a white clock glyph on solid #00707A.
+- **D-06:** the Student sheet has a Default Subject control (Swim / Math / Both) styled identically to the Weekly / Monthly control.
+- **D-07:** the Student sheet has an optional multi-line Private Notes field; notes appear nowhere else.
+
+---
+
 ## Design System
 
 | Property | Value |
@@ -112,7 +123,7 @@ Accent is a proposed teal chosen for the swim context ("surprise me" brief). It 
 2. Nav-bar text actions: Back, Cancel, Save, and the family-group "Edit Family" and "Edit Student" actions.
 3. Alert text actions: "Cancel" in the delete alert and "Keep Editing" in the discard dialog.
 4. Add and restore rows: "Add Family", "Add Student", "Restore Family", "Restore Student".
-5. Selected segment fill of the Weekly/Monthly control (on-accent text).
+5. Selected segment fill of the Weekly/Monthly and Swim/Math/Both controls (on-accent text).
 6. Checkmark on the currently chosen family in the family picker.
 7. Primary buttons (accent fill, on-accent text): "Add Family" in the empty state, "Update App" in the update banner, and "Retry Opening Records" on the Records error screen.
 8. Banner text actions: "Not Now" in the update banner and "Show Install Steps" in the Safari-tab banner.
@@ -140,6 +151,7 @@ Accent is a proposed teal chosen for the swim context ("surprise me" brief). It 
 | Retry Opening Records | Records error screen | Accent fill, on-accent text, 600 (primary) |
 | Show Install Steps | Safari-tab banner | Accent text, regular |
 | Weekly / Monthly (selected) | Segmented control | Accent fill, on-accent text, 600 |
+| Swim / Math / Both (selected) | Segmented control, Student sheet | Accent fill, on-accent text, 600 |
 
 Not accent: body text, chevrons (text-secondary), group footers, values, the tab bar inactive state, "Archive Family" and "Archive Student" (neutral text-primary), "Archived" row, and "Delete Family" / "Delete Student" (destructive).
 
@@ -155,11 +167,11 @@ Not accent: body text, chevrons (text-secondary), group footers, values, the tab
   - `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`
   - `<meta name="apple-mobile-web-app-capable" content="yes">`
   - `<meta name="apple-mobile-web-app-status-bar-style" content="default">`
-  - `<meta name="apple-mobile-web-app-title" content="Lesson Log">`
+  - `<meta name="apple-mobile-web-app-title" content="Lesson Ledger">`
   - `<meta name="theme-color" media="(prefers-color-scheme: light)" content="#F2F2F7">`
   - `<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">`
-- Manifest: `name` and `short_name` "Lesson Log"; `display` standalone; `orientation` portrait; `background_color` #F2F2F7; `theme_color` #F2F2F7. `start_url` and `scope` equal the GitHub Pages base path (taken from Vite `base`).
-- App icon: solid #00707A full-bleed square with one centered white two-line wave glyph (about 60% of icon width). 180×180 PNG for `apple-touch-icon`, 512×512 PNG for the manifest. No text, no transparency (iOS masks the corners).
+- Manifest: `name` and `short_name` "Lesson Ledger"; `display` standalone; `orientation` portrait; `background_color` #F2F2F7; `theme_color` #F2F2F7. `start_url` and `scope` equal the GitHub Pages base path (taken from Vite `base`).
+- App icon: solid #00707A full-bleed square with one centered white clock glyph (ring, two hands and a center dot; about 60% of icon width), still full-bleed and opaque. 180×180 PNG for `apple-touch-icon`, 512×512 PNG for the manifest. No text, no transparency (iOS masks the corners).
 
 ### Top-level structure
 
@@ -190,7 +202,7 @@ One focal point per screen and state. Everything else on the screen is subordina
 |--------|-------|----------|------------|
 | People (tab root) | Tab bar, launch default | Large title "People". Grouped list: one group per family (family name header with trailing "Edit Family"; student rows; "Add Student" row; footer with reporting period). Then an "Add Family" group. Then an "Archived" row only when archived records exist. | Tap family header → Family sheet (edit). Tap student row → Student sheet (edit). Tap "Add Family" → Family sheet (new). Tap "Archived" → Archived screen (push). |
 | Family sheet (new/edit) | Modal sheet; title "New Family" or "Edit Family" | Name field; Weekly/Monthly segmented control; footer copy; in edit mode: Archive row and Delete row (when allowed). | Cancel or Save dismisses. Cancel with unsaved changes asks to discard. |
-| Student sheet (new/edit) | Modal sheet; title "New Student" or "Edit Student" | Name field; Family row (value = family name or "Choose Family"); in edit mode: Archive row and Delete row (when allowed). | Family row pushes Family picker. Cancel or Save dismisses. |
+| Student sheet (new/edit) | Modal sheet; title "New Student" or "Edit Student" | Name field; Family row (value = family name or "Choose Family"); Default Subject Swim / Math / Both segmented control (Both on a new student); Private Notes multi-line field (17px, grows with content, no length cap); in edit mode: Archive row and Delete row (when allowed). | Family row pushes Family picker. Cancel or Save dismisses. |
 | Family picker | Push inside Student sheet; title "Family" | Grouped list of active families; checkmark on the chosen one. | Tap a family → selects it and pops back to the Student sheet. |
 | Archived | Push from People | Two groups: "Families" and "Students" (archived only). Each row has a "Restore Family" or "Restore Student" action. | Back to People. |
 | Settings (tab root) | Tab bar | Large title "Settings". Group "Storage": Persistent storage; Storage used. Group "About": Build. | No navigation in Phase 1. |
@@ -222,7 +234,7 @@ One focal point per screen and state. Everything else on the screen is subordina
 - Alert (delete confirmation and discard confirmation): centered surface card, 272px wide, radius 12px, Heading title, Body message. Two full-width 44px buttons stacked with separators. Delete alert: Cancel (accent, regular) and "Delete Family" or "Delete Student" (destructive, 600). Discard alert: "Keep Editing" (accent) and "Discard Changes" (destructive, 600).
 - Banners sit in flow at the top of the scroll content and push content down. They never float over content. Update banner: 16px margin, surface, radius 12px, padding 16px. Safari-tab banner: full width under the nav bar, surface, 0.5px bottom separator, no radius, no icon.
 - Input row: Body 17px, text-primary, placeholder text-secondary, no box border (grouped-row style). Focus shows a 2px accent outline inset in the row. Inputs carry `autocapitalize="words"`, `autocorrect="off"` and `enterkeyhint="done"`, and the focused field scrolls above the keyboard.
-- Segmented control: 2 segments, height 32px, radius 8px, Body text. Selected segment: accent fill with on-accent text, weight 600. Unselected: text-primary on surface.
+- Segmented control: two segments (Weekly / Monthly) on the Family sheet and three segments (Swim / Math / Both) on the Student sheet, with identical styling: height 32px, radius 8px, Body text. Selected segment: accent fill with on-accent text, weight 600. Unselected: text-primary on surface.
 
 ### Motion and touch
 
@@ -245,7 +257,7 @@ One focal point per screen and state. Everything else on the screen is subordina
 | Primary CTA | "Add Family" (People, empty state and bottom group). Sheet confirm is "Save". |
 | Empty state heading | "No families yet" |
 | Empty state body | "Add a family, then add the students in it. Tap Add Family to start." |
-| Error state | "Can't open your records" + "Lesson Log couldn't open its storage on this phone. Nothing has been changed." Button: "Retry Opening Records". |
+| Error state | "Can't open your records" + "Lesson Ledger couldn't open its storage on this phone. Nothing has been changed." Button: "Retry Opening Records". |
 | Destructive confirmation | Delete (family or student): title "Delete “{name}”?" — message "This can't be undone." — buttons "Cancel" and "Delete Family" (or "Delete Student"). |
 
 ### Additional copy
@@ -266,6 +278,10 @@ One focal point per screen and state. Everything else on the screen is subordina
 | Student family missing | "Choose a family." (Label, destructive, shown after the Family row is tapped in the sheet and no family is set) |
 | Save failed | "Couldn't save. Your phone may be low on storage. Nothing was changed." (Label, destructive, above the Save area in the sheet body; sheet stays open with inputs intact) |
 | Discard dialog | Title "Discard changes to “{name}”?" Buttons "Keep Editing" (accent) and "Discard Changes" (destructive). |
+| Default Subject footer (Student sheet) | "Used to pre-pick the subject when you log a session." |
+| Private Notes footer (Student sheet) | "Only you can see these. They never appear on summaries." |
+| Student sheet, no active family | "Add a family first." (Label, destructive, under the Family row; Save stays disabled) |
+| Discard dialog title, blank name | "Discard changes to this family?" / "Discard changes to this student?" |
 | Archive family footer | "Archiving hides this family and its students from the roster. Their history is kept." |
 | Archive student footer | "Archiving hides this student from quick entry. Their history is kept." |
 | Archive action labels | "Archive Family", "Archive Student" (text-primary, no confirmation; reversible from Archived) |
@@ -274,23 +290,23 @@ One focal point per screen and state. Everything else on the screen is subordina
 | Delete action labels | "Delete Family", "Delete Student" (destructive) |
 | Archived screen title | "Archived" (back button "People"). Group headers "Families" and "Students". Row actions "Restore Family" and "Restore Student" (accent). |
 | Persistent storage value | "Granted", "Not granted", "Not supported", "Checking…" (while the first read is pending, up to 2s) |
-| Persistent storage footer, granted | "iOS is less likely to clear Lesson Log's data when storage runs low." |
+| Persistent storage footer, granted | "iOS is less likely to clear Lesson Ledger's data when storage runs low." |
 | Persistent storage footer, not granted | "iOS has not agreed to protect this app's data, so it could be cleared when storage runs low. Backup arrives in a later update." |
 | Persistent storage footer, not supported | "This version of iOS doesn't report persistent storage." |
 | Storage used value | "1.2 MB" style via Intl.NumberFormat, or "Unavailable" |
 | Storage used error | "Unavailable on this iOS version." (footer; value "Unavailable") |
 | Build row | Label "Build", value is the short build identifier (for example "a1b2c3"; at most 6 characters) |
 | Update banner heading | "Update available" |
-| Update banner body | "A new version of Lesson Log is ready. Your records stay on this phone. Save any open form first." |
+| Update banner body | "A new version of Lesson Ledger is ready. Your records stay on this phone. Save any open form first." |
 | Update banner buttons | "Update App" (primary, accent fill) and "Not Now" (accent text). While applying: "Updating App…" (disabled). |
-| Update failed | "Couldn't update. Close Lesson Log and reopen it from your Home Screen." |
+| Update failed | "Couldn't update. Close Lesson Ledger and reopen it from your Home Screen." |
 | Safari-tab banner heading | "You're in Safari" |
-| Safari-tab banner body | "Your records are saved by the Lesson Log app on your Home Screen. This Safari tab keeps separate data, so anything you add here won't appear there." |
-| Safari-tab banner action | "Show Install Steps" → expands to: "1. Tap the Share button. 2. Tap Add to Home Screen. 3. Open Lesson Log from your Home Screen and use it from there." |
+| Safari-tab banner body | "Your records are saved by the Lesson Ledger app on your Home Screen. This Safari tab keeps separate data, so anything you add here won't appear there." |
+| Safari-tab banner action | "Show Install Steps" → expands to: "1. Tap the Share button. 2. Tap Add to Home Screen. 3. Open Lesson Ledger from your Home Screen and use it from there." |
 | Tab labels | "People", "Settings" |
-| Form labels | "Name", "Period", "Family" |
-| Form placeholders | "Family name", "Student name" |
-| Segmented options | "Weekly", "Monthly" |
+| Form labels | "Name", "Period", "Family", "Default Subject", "Private Notes" |
+| Form placeholders | "Family name", "Student name", "Private notes" |
+| Segmented options | "Weekly", "Monthly"; "Swim", "Math", "Both" |
 
 Copy rules: no exclamation marks; no "Oops"; errors state what happened, that nothing was changed, and the next step. No record names in nav titles. Verb-only buttons are avoided: every button carries its noun, except the user-approved "Cancel" and "Save" (sheet nav bars and "Cancel" in confirmation alerts) and "Not Now" (update banner, see note below).
 

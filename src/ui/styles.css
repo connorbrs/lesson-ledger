@@ -342,8 +342,8 @@ p {
   color: var(--color-destructive);
 }
 
-.group-footer + .group-footer {
-  padding-top: 0;
+.footer-line {
+  display: block;
 }
 
 .row {
@@ -444,6 +444,10 @@ button.row:active:not(:disabled) {
   display: block;
 }
 
+.input-row.note-field {
+  align-items: flex-start;
+}
+
 /* ---------- Segmented control ---------- */
 
 .segmented {
@@ -459,8 +463,8 @@ button.row:active:not(:disabled) {
 }
 
 .segment {
-  min-width: 72px;
-  padding: 0 var(--space-md);
+  min-width: 0;
+  padding: 0 12px;
   font-size: 17px;
   line-height: 1.3;
   color: var(--color-text);
@@ -538,15 +542,21 @@ button.row:active:not(:disabled) {
   height: var(--space-lg);
 }
 
-.sheet .scroll.in-sheet .group-footer.standalone {
-  margin-top: 0;
-}
-
-.standalone {
-  padding-top: var(--space-sm);
-}
-
 /* ---------- Pushed screen ---------- */
+
+.sheet .push-layer {
+  z-index: 4;
+}
+
+.picker-row-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.picker-row-check {
+  color: var(--color-accent);
+}
+
 
 .push-layer {
   position: absolute;
@@ -557,11 +567,6 @@ button.row:active:not(:disabled) {
 
 .push-layer .screen {
   inset: 0;
-}
-
-.picker-name {
-  flex: 1;
-  min-width: 0;
 }
 
 /* ---------- Alert ---------- */

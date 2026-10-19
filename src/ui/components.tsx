@@ -104,12 +104,12 @@ export function TabBar(props: { tab: TabId; onSelect: (tab: TabId) => void }) {
 }
 
 /** A screen with a nav bar and a scroll container; the nav bar shows a hairline once content scrolls under it. */
-export function Screen(props: { nav: ComponentChildren; children: ComponentChildren }) {
+export function Screen(props: { nav: ComponentChildren; inSheet?: boolean; children: ComponentChildren }) {
   const [scrolled, setScrolled] = useState(false);
   return (
     <div class={`screen${scrolled ? ' scrolled' : ''}`}>
       {props.nav}
-      <div class="scroll" onScroll={(e) => setScrolled((e.currentTarget as HTMLElement).scrollTop > 0)}>
+      <div class={`scroll${props.inSheet ? ' in-sheet' : ''}`} onScroll={(e) => setScrolled((e.currentTarget as HTMLElement).scrollTop > 0)}>
         {props.children}
       </div>
     </div>
@@ -138,7 +138,7 @@ export function Group(props: {
         </div>
       )}
       <div class="group">{props.children}</div>
-      {props.footer && <p class={`group-footer${props.footerError ? ' error' : ''}`}>{props.footer}</p>}
+      {props.footer && <div class={`group-footer${props.footerError ? ' error' : ''}`}>{props.footer}</div>}
     </section>
   );
 }

@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'preact/hooks';
-import type { Family } from '../domain/types';
+import type { Family, Student } from '../domain/types';
 import { Archived } from './Archived';
 import { FamilySheet } from './FamilySheet';
 import { NavBar, PushLayer, Screen, TabBar, useAnimatedClose, type TabId } from './components';
 import { People } from './People';
+import { StudentSheet } from './StudentSheet';
 import './styles.css';
 
-type SheetState = null | { kind: 'family'; family?: Family };
+type SheetState =
+  | null
+  | { kind: 'family'; family?: Family }
+  | { kind: 'student'; student?: Student; familyId?: string };
 
 function ArchivedScreen(props: { onClosed: () => void }) {
   const { closing, close, onAnimationEnd } = useAnimatedClose(props.onClosed, 310);
@@ -38,6 +42,8 @@ export function App() {
           <People
             onAddFamily={() => setSheet({ kind: 'family' })}
             onEditFamily={(family) => setSheet({ kind: 'family', family })}
+            onAddStudent={(familyId) => setSheet({ kind: 'student', familyId })}
+            onEditStudent={(student) => setSheet({ kind: 'student', student })}
             onOpenArchived={() => setArchivedOpen(true)}
           />
         ) : (
@@ -53,6 +59,9 @@ export function App() {
         }}
       />
       {sheet?.kind === 'family' && <FamilySheet family={sheet.family} onClosed={() => setSheet(null)} />}
+      {sheet?.kind === 'student' && (
+        <StudentSheet student={sheet.student} presetFamilyId={sheet.familyId} onClosed={() => setSheet(null)} />
+      )}
     </div>
   );
 }

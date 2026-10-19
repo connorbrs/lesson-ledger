@@ -10,6 +10,7 @@ import {
   parseMinutes,
   prefillFromSession,
   setAttendees,
+  parseTypedDuration,
   setDuration,
   setFinishTime,
   setStartTime,
@@ -241,6 +242,14 @@ describe('Start, Finish and Duration sync (D-02, D-03)', () => {
   it('setDuration moves Finish from Start, and with no Start only changes Duration', () => {
     expect(setDuration(base(), 60)).toMatchObject({ endTime: '16:15', duration: 60 });
     expect(setDuration(setStartTime(base(), null), 60)).toMatchObject({ startTime: null, endTime: null, duration: 60 });
+  });
+
+  it('parseTypedDuration accepts 0–999 typed minutes and refuses 1234 instead of clipping it', () => {
+    expect(parseTypedDuration('')).toBe(0);
+    expect(parseTypedDuration('105')).toBe(105);
+    expect(parseTypedDuration('999')).toBe(999);
+    expect(parseTypedDuration('1234')).toBeNull();
+    expect(parseTypedDuration('1:45')).toBeNull();
   });
 
   it('setDuration ignores values outside whole minutes 0–999', () => {

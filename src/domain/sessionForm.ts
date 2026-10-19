@@ -177,6 +177,13 @@ export function setFinishTime(form: FormState, endTime: string): FormState {
 }
 
 /** D-02: Duration moves Finish from Start. With no Start, only Duration changes. */
+/** Duration typed as plain minutes: '' is 0; anything but 1–3 digits (so above 999) is null and refused. */
+export function parseTypedDuration(text: string): number | null {
+  const t = text.trim();
+  if (t === '') return 0;
+  return /^\d{1,3}$/.test(t) ? Number(t) : null;
+}
+
 export function setDuration(form: FormState, duration: number): FormState {
   // Whole minutes 0–999, the same range as the other minute fields; anything else is ignored.
   if (!Number.isInteger(duration) || duration < 0 || duration > 999) return form;

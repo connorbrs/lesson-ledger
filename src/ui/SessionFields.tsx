@@ -8,6 +8,7 @@ import {
   lessonMinutesOf,
   needsCreditGroups,
   parseMinutes,
+  parseTypedDuration,
   setDuration,
   setFinishTime,
   setStartTime,
@@ -59,6 +60,8 @@ export function SessionFields(props: {
   onOpenPicker: () => void;
 }) {
   const { form, names } = props;
+  // Duration text while the field is focused (plain minutes); null shows the h:mm display.
+  const [durationText, setDurationText] = useState<string | null>(null);
   // A form left open past midnight must show the new "Today": re-render when the app is shown again.
   const [, setClock] = useState(0);
   useEffect(() => {
@@ -139,13 +142,24 @@ export function SessionFields(props: {
             class="minutes-input duration-input"
             type="text"
             inputmode="numeric"
-            value={formatDuration(form.duration)}
-            aria-label="Duration"
-            onFocus={(e) => e.currentTarget.select()}
+            value={durationText ?? formatDuration(form.duration)}
+            aria-label="Duration in minutes"
+            onFocus={(e) => {
+              // While editing, the field shows plain minutes; on blur it shows h:mm again.
+              setDurationText(String(form.duration));
+              const input = e.currentTarget;
+              requestAnimationFrame(() => input.select());
+            }}
+            onBlur={() => setDurationText(null)}
             onInput={(e) => {
-              // Typed digits are whole minutes; the field shows them as h:mm.
-              const digits = e.currentTarget.value.replace(/\D/g, '').slice(-3);
-              props.onChange(setDuration(form, digits === '' ? 0 : Number(digits)));
+              const minutes = parseTypedDuration(e.currentTarget.value);
+              if (minutes === null) {
+                // Over 999 minutes or not digits: refuse the keystroke and keep the previous value.
+                e.currentTarget.value = durationText ?? String(form.duration);
+                return;
+              }
+              setDurationText(e.currentTarget.value.trim());
+              props.onChange(setDuration(form, minutes));
             }}
           />
         </div>

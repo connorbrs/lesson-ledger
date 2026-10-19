@@ -7,6 +7,8 @@ import { validateFamilyInput, validateStudentInput } from './validate';
  * The backup file contract (D-09, one-way: backups saved to Files must restore under every later version).
  * schemaVersion 1 is one JSON document. expenses and attachments are always empty in version 1;
  * attachments is the slot reserved for Phase 3 receipt photos, which raises schemaVersion.
+ * Sessions carry endTime (D-07): optional on read, since a file from before Finish existed has no endTime key
+ * and restores with null; every new export writes it. schemaVersion stays 1.
  */
 export const BACKUP_FORMAT = 'lesson-ledger-backup';
 export const BACKUP_SCHEMA_VERSION = 1;
@@ -92,9 +94,11 @@ function parseSession(raw: unknown): Session {
     const o = isObj(c) ? c : {};
     return { familyId: o.familyId as string, lesson: o.lesson as 'full', activity: o.activity as 'full' };
   });
+  const endTime = r.endTime === undefined ? null : (r.endTime as string | null);
   const v = validateSessionFields({
     date: r.date as string,
     startTime: r.startTime as string | null,
+    endTime,
     subject: r.subject as 'swim',
     attendees,
     credits,

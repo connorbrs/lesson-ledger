@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { containsDate, formatDateValue, formatDayHeader, formatTime12, isValidTime, isValidYmd, periodRange, rangeLabel, shiftPeriod, todayLocal } from '../src/domain/dates';
+import { containsDate, currentHHMM, formatDateValue, formatDayHeader, formatDuration, formatTime12, isValidTime, isValidYmd, minutesToTime, periodRange, rangeLabel, shiftPeriod, timeToMinutes, todayLocal } from '../src/domain/dates';
 
 describe('todayLocal', () => {
   it('reads the local calendar date late on a Sunday', () => {
@@ -95,5 +95,22 @@ describe('containsDate and formatDayHeader', () => {
     expect(formatDayHeader('2026-10-19')).toBe('Mon, Oct 19');
     expect(formatDayHeader('2026-10-18')).toBe('Sun, Oct 18');
     expect(formatDayHeader('2028-02-29')).toBe('Tue, Feb 29');
+  });
+});
+
+describe('Start, Finish and Duration helpers', () => {
+  it('timeToMinutes and minutesToTime convert HH:MM, and minutesToTime is null outside the day', () => {
+    expect(timeToMinutes('16:30')).toBe(990);
+    expect(minutesToTime(990)).toBe('16:30');
+    expect(minutesToTime(0)).toBe('00:00');
+    expect(minutesToTime(1439)).toBe('23:59');
+    expect(minutesToTime(1440)).toBeNull();
+    expect(minutesToTime(-1)).toBeNull();
+  });
+  it('currentHHMM reads the local hour and minute and drops the seconds', () => {
+    expect(currentHHMM(new Date(2026, 9, 19, 9, 5, 59))).toBe('09:05');
+  });
+  it('formatDuration gives h:mm with unpadded hours', () => {
+    expect([0, 47, 105, 999].map(formatDuration)).toEqual(['0:00', '0:47', '1:45', '16:39']);
   });
 });

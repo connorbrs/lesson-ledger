@@ -1,5 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { blankForm, changeSubject, formFromSession, sameForm, formToInput, needsCreditGroups, parseMinutes, prefillFromSession, setAttendees, togglePick, type FormState } from '../src/domain/sessionForm';
+import {
+  blankForm,
+  changeSubject,
+  formFromSession,
+  sameForm,
+  formToInput,
+  lessonMinutesOf,
+  needsCreditGroups,
+  parseMinutes,
+  prefillFromSession,
+  setAttendees,
+  setDuration,
+  setFinishTime,
+  setStartTime,
+  timeCaption,
+  togglePick,
+  type FormState,
+} from '../src/domain/sessionForm';
 import type { Attendee, Session, Student } from '../src/domain/types';
 
 const a1: Attendee = { studentId: 'a1', familyId: 'A' };
@@ -20,8 +37,11 @@ describe('parseMinutes', () => {
 });
 
 describe('blankForm', () => {
-  it('starts with Lesson 45, Activity 0, Travel 0, swim and no students', () => {
-    expect(blankForm()).toMatchObject({ lesson: '45', activity: '0', travel: '0', subject: 'swim', attendees: [], date: null, startTime: null, subjectTouched: false });
+  it('starts with Finish at now, Start 45 minutes earlier, Activity 0, Travel 0, swim and no students', () => {
+    expect(blankForm('16:00')).toMatchObject({ startTime: '15:15', endTime: '16:00', duration: 45, activity: '0', travel: '0', subject: 'swim', attendees: [], date: null, subjectTouched: false });
+  });
+  it('clamps Start at 00:00 and shrinks Duration so Start plus Duration still equals Finish', () => {
+    expect(blankForm('00:20')).toMatchObject({ startTime: '00:00', endTime: '00:20', duration: 20 });
   });
 });
 
@@ -99,7 +119,7 @@ describe('formToInput', () => {
   it('rejects no students and invalid minutes', () => {
     expect(formToInput(blankForm(), TODAY)).toEqual({ ok: false, code: 'students-invalid' });
     expect(formToInput(form({ attendees: [a1], travel: '1000' }), TODAY)).toEqual({ ok: false, code: 'minutes-invalid' });
-    expect(formToInput(form({ attendees: [a1], lesson: '' }), TODAY)).toEqual({ ok: false, code: 'minutes-invalid' });
+    expect(formToInput(form({ attendees: [a1], activity: '' }), TODAY)).toEqual({ ok: false, code: 'minutes-invalid' });
   });
 });
 
@@ -108,6 +128,7 @@ describe('prefillFromSession', () => {
     id: 's1',
     date: '2026-10-12',
     startTime: '16:30',
+    endTime: '17:45',
     subject: 'math',
     attendees: [a1],
     credits: [{ familyId: 'A', lesson: 'full', activity: 'full' }],
@@ -128,9 +149,10 @@ describe('prefillFromSession', () => {
     updatedAt: 1,
   });
 
-  it('copies subject and minutes as text, resets date (null) and start time, credit empty, subject touched', () => {
-    const f = prefillFromSession(last, [student('a1', 'A')]);
-    expect(f).toMatchObject({ date: null, startTime: null, subject: 'math', lesson: '60', activity: '15', travel: '20', credits: {}, subjectTouched: true });
+  it('copies subject and Activity and Travel, resets date (null), sets Start and Finish from now and the last Duration, credit empty, subject touched', () => {
+    const f = prefillFromSession(last, [student('a1', 'A')], '18:00');
+    expect(f).toMatchObject({ date: null, startTime: '16:45', endTime: '18:00', duration: 75, subject: 'math', activity: '15', travel: '20', credits: {}, subjectTouched: true });
+    expect(f).not.toHaveProperty('lesson');
     expect(f.attendees).toEqual([a1]);
   });
   it('drops a student who is archived (not in the active list) and gives no attendees for a math session whose student is gone', () => {
@@ -152,6 +174,7 @@ describe('formFromSession', () => {
     id: 's1',
     date: '2026-10-12',
     startTime: '16:30',
+    endTime: '17:45',
     subject: 'swim',
     attendees: [a1, b1],
     credits: [
@@ -176,9 +199,71 @@ describe('formFromSession', () => {
     expect(formToInput(formFromSession(math), TODAY)).toEqual({ ok: true, value: fields });
   });
 
+  it('a row saved before Finish existed opens with Finish = Start plus Duration, and the save stores it', () => {
+    const legacy = { ...stored } as Partial<Session>;
+    delete legacy.endTime;
+    expect(formFromSession(legacy as Session).endTime).toBe('17:45');
+    expect(formToInput(formFromSession(legacy as Session), TODAY)).toMatchObject({ ok: true, value: { endTime: '17:45' } });
+  });
+
   it('sameForm ignores the order students were picked in but not a changed value', () => {
     const f = formFromSession(stored);
     expect(sameForm(f, { ...f, attendees: [...f.attendees].reverse() })).toBe(true);
-    expect(sameForm(f, { ...f, lesson: '46' })).toBe(false);
+    expect(sameForm(f, { ...f, activity: '31' })).toBe(false);
+  });
+});
+
+describe('Start, Finish and Duration sync (D-02, D-03)', () => {
+  const base = () => ({ ...blankForm('16:00'), attendees: [a1] }); // Start 15:15, Finish 16:00, Duration 45
+
+  it('setStartTime keeps Duration and moves Finish; null clears Start and Finish', () => {
+    expect(setStartTime(base(), '14:00')).toMatchObject({ startTime: '14:00', endTime: '14:45', duration: 45 });
+    expect(setStartTime(base(), null)).toMatchObject({ startTime: null, endTime: null });
+  });
+
+  it('setFinishTime sets Duration from Start', () => {
+    expect(setFinishTime(base(), '15:30')).toMatchObject({ endTime: '15:30', duration: 15 });
+  });
+
+  it('a Finish before Start keeps the typed Finish and Duration, blocks Save and shows the Finish caption', () => {
+    const f = setFinishTime(base(), '15:00');
+    expect(f).toMatchObject({ endTime: '15:00', duration: 45 });
+    expect(formToInput(f, TODAY)).toEqual({ ok: false, code: 'time-invalid' });
+    expect(timeCaption(f)).toEqual({ row: 'finish', text: "Finish can't be before Start." });
+  });
+
+  it('a Finish equal to Start is a zero-minute Duration and saves', () => {
+    const f = setFinishTime(base(), '15:15');
+    expect(f.duration).toBe(0);
+    expect(formToInput(f, TODAY)).toMatchObject({ ok: true, value: { startTime: '15:15', endTime: '15:15', lessonMinutes: 0, activityMinutes: 0 } });
+  });
+
+  it('setDuration moves Finish from Start, and with no Start only changes Duration', () => {
+    expect(setDuration(base(), 60)).toMatchObject({ endTime: '16:15', duration: 60 });
+    expect(setDuration(setStartTime(base(), null), 60)).toMatchObject({ startTime: null, endTime: null, duration: 60 });
+  });
+
+  it('a Start past midnight leaves Finish null, blocks Save and shows the midnight caption', () => {
+    const f = setStartTime(base(), '23:30');
+    expect(f.endTime).toBeNull();
+    expect(formToInput(f, TODAY)).toEqual({ ok: false, code: 'time-invalid' });
+    expect(timeCaption(f)).toEqual({ row: 'finish', text: "Session can't run past midnight." });
+  });
+
+  it('Lesson is Duration minus Activity, stored as lessonMinutes', () => {
+    const f = { ...base(), activity: '10' };
+    expect(lessonMinutesOf(f)).toBe(35);
+    expect(formToInput(f, TODAY)).toMatchObject({ ok: true, value: { lessonMinutes: 35, activityMinutes: 10 } });
+  });
+
+  it('Activity above Duration has no Lesson, blocks Save and shows the Activity caption', () => {
+    const f = { ...base(), activity: '50' };
+    expect(lessonMinutesOf(f)).toBeNull();
+    expect(formToInput(f, TODAY)).toEqual({ ok: false, code: 'minutes-invalid' });
+    expect(timeCaption(f)).toEqual({ row: 'activity', text: "Activity can't be longer than Duration." });
+  });
+
+  it('a valid form has no caption', () => {
+    expect(timeCaption(base())).toBeNull();
   });
 });

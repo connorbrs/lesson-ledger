@@ -1,3 +1,4 @@
+import { currentHHMM, minutesToTime, timeToMinutes } from './dates';
 import { validateSessionFields, type SessionCheck } from './session';
 import type { Attendee, CreditMode, DefaultSubject, Session, Student, Subject } from './types';
 
@@ -6,27 +7,46 @@ export interface FormCredit {
   activity: CreditMode;
 }
 
+/** D-05: Duration is 45 minutes when there is no previous session. */
+const DEFAULT_DURATION = 45;
+
 export interface FormState {
   /** null means today, so a form left open past midnight still saves today's date. */
   date: string | null;
+  /** Start as HH:MM, or null. Clearing Start clears Finish too. */
   startTime: string | null;
+  /** Finish as HH:MM. Null when there is no Start, or when Start plus Duration passes midnight (D-02). */
+  endTime: string | null;
   subject: Subject;
   attendees: Attendee[];
+  /** Whole minutes of Lesson plus Activity (D-03). Lesson is derived from it, never typed. */
+  duration: number;
   /** Raw text so a half-typed or invalid value stays visible. */
-  lesson: string;
   activity: string;
   travel: string;
   credits: Record<string, FormCredit>;
   subjectTouched: boolean;
 }
 
-export function blankForm(): FormState {
+/** Start plus minutes as HH:MM, or null when the result passes midnight. */
+const finishFrom = (start: string, minutes: number): string | null => minutesToTime(timeToMinutes(start) + minutes);
+
+/**
+ * Finish is now (to the minute) and Start is Finish minus minutes. Start clamps at 00:00 and Duration
+ * shrinks with it, so Start plus Duration still equals Finish.
+ */
+function startingTimes(now: string, minutes: number): Pick<FormState, 'startTime' | 'endTime' | 'duration'> {
+  const finish = timeToMinutes(now);
+  const start = Math.max(0, finish - minutes);
+  return { startTime: minutesToTime(start) as string, endTime: now, duration: finish - start };
+}
+
+export function blankForm(now: string = currentHHMM()): FormState {
   return {
     date: null,
-    startTime: null,
+    ...startingTimes(now, DEFAULT_DURATION),
     subject: 'swim',
     attendees: [],
-    lesson: '45',
     activity: '0',
     travel: '0',
     credits: {},
@@ -80,16 +100,18 @@ export function setAttendees(form: FormState, attendees: Attendee[], pickedDefau
 
 /** The only path from the form to the repo: normalizes credits, then runs the shared validation. */
 export function formToInput(form: FormState, today: string): SessionCheck {
+  if (form.startTime !== null && form.endTime === null) return { ok: false, code: 'time-invalid' };
   const families = creditFamilies(form.attendees);
   const choosable = form.subject === 'swim' && families.length === 2;
   const full: FormCredit = { lesson: 'full', activity: 'full' };
   return validateSessionFields({
     date: form.date ?? today,
     startTime: form.startTime,
+    endTime: form.endTime,
     subject: form.subject,
     attendees: form.attendees,
     credits: families.map((familyId) => ({ familyId, ...(choosable ? (form.credits[familyId] ?? full) : full) })),
-    lessonMinutes: parseMinutes(form.lesson) ?? NaN,
+    lessonMinutes: lessonMinutesOf(form) ?? NaN,
     activityMinutes: parseMinutes(form.activity) ?? NaN,
     travelMinutes: parseMinutes(form.travel) ?? NaN,
   });
@@ -100,7 +122,7 @@ export function formToInput(form: FormState, today: string): SessionCheck {
  * active, with their current family). Date and start time reset, credit resets to Full, and the
  * subject counts as chosen so a picked student's Default Subject does not override it.
  */
-export function prefillFromSession(last: Session, activeStudents: Student[]): FormState {
+export function prefillFromSession(last: Session, activeStudents: Student[], now: string = currentHHMM()): FormState {
   const byId = new Map(activeStudents.map((s) => [s.id, s]));
   const attendees: Attendee[] = [];
   for (const a of last.attendees) {
@@ -109,10 +131,9 @@ export function prefillFromSession(last: Session, activeStudents: Student[]): Fo
   }
   return {
     date: null,
-    startTime: null,
+    ...startingTimes(now, last.lessonMinutes + last.activityMinutes),
     subject: last.subject,
     attendees,
-    lesson: String(last.lessonMinutes),
     activity: String(last.activityMinutes),
     travel: String(last.travelMinutes),
     credits: {},
@@ -122,17 +143,67 @@ export function prefillFromSession(last: Session, activeStudents: Student[]): Fo
 
 /** The form an existing session opens with: stored values, stored family snapshots, stored credit modes. */
 export function formFromSession(s: Session): FormState {
+  const duration = s.lessonMinutes + s.activityMinutes;
+  // A row saved before Finish existed has no endTime; its Finish is Start plus Duration.
+  const endTime = s.startTime === null ? null : (s.endTime ?? finishFrom(s.startTime, duration));
   return {
     date: s.date,
     startTime: s.startTime,
+    endTime,
     subject: s.subject,
     attendees: s.attendees.map((a) => ({ ...a })),
-    lesson: String(s.lessonMinutes),
+    duration,
     activity: String(s.activityMinutes),
     travel: String(s.travelMinutes),
     credits: Object.fromEntries(s.credits.map((c) => [c.familyId, { lesson: c.lesson, activity: c.activity }])),
     subjectTouched: true,
   };
+}
+
+/** D-02: Start keeps Duration and moves Finish. Clearing Start clears Finish too. */
+export function setStartTime(form: FormState, startTime: string | null): FormState {
+  if (startTime === null) return { ...form, startTime: null, endTime: null };
+  return { ...form, startTime, endTime: finishFrom(startTime, form.duration) };
+}
+
+/**
+ * D-02: Finish sets Duration from Start. A Finish before Start is kept as typed, so its caption can show,
+ * and Duration stays put. With no Start there is no Finish to set.
+ */
+export function setFinishTime(form: FormState, endTime: string): FormState {
+  if (form.startTime === null) return form;
+  const span = timeToMinutes(endTime) - timeToMinutes(form.startTime);
+  return span < 0 ? { ...form, endTime } : { ...form, endTime, duration: span };
+}
+
+/** D-02: Duration moves Finish from Start. With no Start, only Duration changes. */
+export function setDuration(form: FormState, duration: number): FormState {
+  if (form.startTime === null) return { ...form, duration };
+  return { ...form, duration, endTime: finishFrom(form.startTime, duration) };
+}
+
+/** D-03: Lesson is Duration minus Activity, or null when Activity does not parse or exceeds Duration. */
+export function lessonMinutesOf(form: FormState): number | null {
+  const activity = parseMinutes(form.activity);
+  if (activity === null) return null;
+  const lesson = form.duration - activity;
+  return lesson < 0 ? null : lesson;
+}
+
+export interface TimeCaption {
+  row: 'finish' | 'activity';
+  text: string;
+}
+
+/** The one caption to show under Finish or Activity, Finish checked first; null when the times and minutes agree. */
+export function timeCaption(form: FormState): TimeCaption | null {
+  if (form.startTime !== null && form.endTime === null) return { row: 'finish', text: "Session can't run past midnight." };
+  if (form.startTime !== null && form.endTime !== null && form.endTime < form.startTime) {
+    return { row: 'finish', text: "Finish can't be before Start." };
+  }
+  const activity = parseMinutes(form.activity);
+  if (activity !== null && activity > form.duration) return { row: 'activity', text: "Activity can't be longer than Duration." };
+  return null;
 }
 
 /** True when two forms hold the same values; the order students were picked in does not count. */

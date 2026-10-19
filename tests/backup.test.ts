@@ -32,13 +32,13 @@ async function seed() {
   const s1 = await createStudent({ familyId: famA.id, name: 'Test Student A1', notes: 'Test note' });
   const s2 = await createStudent({ familyId: famB.id, name: 'Test Student B1' });
   await createSession({
-    date: '2026-10-19', startTime: '16:00', subject: 'swim',
+    date: '2026-10-19', startTime: '16:00', endTime: '17:15', subject: 'swim',
     attendees: [{ studentId: s1.id, familyId: famA.id }, { studentId: s2.id, familyId: famB.id }],
     credits: [{ familyId: famA.id, lesson: 'half', activity: 'full' }, full(famB.id)],
     lessonMinutes: 45, activityMinutes: 30, travelMinutes: 10,
   });
   await createSession({
-    date: '2026-10-19', startTime: null, subject: 'math',
+    date: '2026-10-19', startTime: null, endTime: null, subject: 'math',
     attendees: [{ studentId: s1.id, familyId: famA.id }], credits: [full(famA.id)],
     lessonMinutes: 60, activityMinutes: 0, travelMinutes: 0,
   });
@@ -90,7 +90,7 @@ describe('buildBackup', () => {
         while (!stop) {
           const st = await createStudent({ familyId: fam.id, name: 'Test Student R' });
           await createSession({
-            date: '2026-10-19', startTime: null, subject: 'math',
+            date: '2026-10-19', startTime: null, endTime: null, subject: 'math',
             attendees: [{ studentId: st.id, familyId: fam.id }], credits: [full(fam.id)],
             lessonMinutes: 30, activityMinutes: 0, travelMinutes: 0,
           });
@@ -160,6 +160,9 @@ describe('parseBackup rejection', () => {
     ['session with bad date', (d) => (d.sessions[0].date = '2026-02-30')],
     ['session with negative minutes', (d) => (d.sessions[0].lessonMinutes = -1)],
     ['session missing startTime', (d) => delete d.sessions[0].startTime],
+    ['session whose finish does not match its minutes', (d) => (d.sessions.find((s: any) => s.startTime === '16:00').endTime = '17:00')],
+    ['session with a finish but no start', (d) => (d.sessions.find((s: any) => s.startTime === null).endTime = '10:00')],
+    ['session with a malformed finish', (d) => (d.sessions.find((s: any) => s.startTime === '16:00').endTime = '25:00')],
     ['row is not an object', (d) => (d.families[0] = 5)],
     ['duplicate family id', (d) => (d.families[1].id = d.families[0].id)],
     ['duplicate session id', (d) => (d.sessions[1].id = d.sessions[0].id)],
@@ -176,6 +179,15 @@ describe('parseBackup rejection', () => {
     mutate(d);
     expect(parseBackup(JSON.stringify(d))).toEqual({ ok: false, code: 'damaged' });
     expect(await snapshot()).toEqual(before);
+  });
+
+  it('a backup whose sessions have no endTime key parses ok, and every session reads endTime null', async () => {
+    const d = await doc();
+    for (const s of d.sessions) delete s.endTime;
+    const parsed = parseBackup(JSON.stringify(d));
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.file.sessions.every((s) => s.endTime === null)).toBe(true);
   });
 
   it('rebuilds rows from whitelisted fields: extra and __proto__ keys never reach the result', async () => {
@@ -204,6 +216,7 @@ describe('restoreBackup', () => {
     await restoreBackup(parsed.file);
     expect({ ...(await snapshot()), last: undefined }).toEqual({ ...before, last: undefined });
     expect((await listSessions()).map((s) => s.id)).toEqual(order);
+    expect((await listSessions()).find((s) => s.startTime === '16:00')?.endTime).toBe('17:15');
     expect((await readBackupStatus()).lastBackupAt).toBe(7_000);
   });
 

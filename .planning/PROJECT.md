@@ -1,4 +1,4 @@
-# Lesson Log
+# Lesson Ledger
 
 ## What This Is
 
@@ -76,6 +76,7 @@ Logging a session right after it ends takes seconds, and the per-family weekly/m
 | 0..n receipt photos per expense | User choice | — Pending |
 | GitHub Pages URL, no custom domain | Personal use; origin must not change once data exists | — Pending |
 | Unencrypted backup file may leave the phone (Files/iCloud/Mail) | User accepted | — Pending |
+| App renamed Lesson Ledger (was Lesson Log); URL github.io/lesson-ledger | User choice in Phase 1 discussion | — Pending |
 | Karpathy coding guidelines apply (multica-ai/andrej-karpathy-skills, already in global CLAUDE.md) | User preference: simplicity, surgical changes | — Pending |
 
 ## Evolution

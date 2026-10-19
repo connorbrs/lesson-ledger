@@ -94,7 +94,7 @@ Plans:
   4. User can edit or delete an expense and its receipt photos, and deleting leaves no orphaned photos behind
   5. Receipt photos are included in a backup and reappear intact after a restore (completes the receipt half of DATA-02/DATA-03 from Phase 2)
 
-**Plans**: 2/5 plans executed
+**Plans**: 3/5 plans executed
 
 Plans:
 
@@ -105,7 +105,7 @@ Plans:
 - [x] 03-02-PLAN.md — Log tab UI: Expenses group, Expense editor, Log Session saves expenses, "Expenses $12.50" Sessions row line
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 03-03-PLAN.md — Edit Session sheet loads, edits and deletes expenses (counted delete alert), plus the two-family split override
+- [x] 03-03-PLAN.md — Edit Session sheet loads, edits and deletes expenses (counted delete alert), plus the two-family split override
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 03-04-PLAN.md — Receipt photos: sequential downscale pipeline, Receipts group and thumbnails, viewer and Remove Photo
@@ -142,7 +142,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Installable App & Roster | 5/5 | Complete    | 2026-10-19 |
 | 2. Session Logging & Backup | 3/3 | Complete    | 2026-10-19 |
-| 3. Expenses & Receipts | 2/5 | In Progress | - |
+| 3. Expenses & Receipts | 3/5 | In Progress | - |
 | 4. Family Summaries & Overview | 0/TBD | Not started | - |
 
 ## Backlog

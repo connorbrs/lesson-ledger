@@ -2,18 +2,18 @@
 gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Expenses & Receipts
-current_plan: 4
+current_plan: 5
 status: executing
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-10-19T21:48:03.562Z"
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-10-19T23:55:14.851Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 2 complete, transitioned to Phase 3
-state_head: 647a499cce4d49f222384c2c8a77bd533fdd50ce
+state_head: 46cb4afe60ba1319450618463557e71b71a6dfe6
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
   percent: 50
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-19)
 ## Current Position
 
 Phase: 3 (Expenses & Receipts) — EXECUTING
-Current Plan: 4
+Current Plan: 5
 Total Plans in Phase: 5
 Status: Ready to execute
 Last activity: 2026-10-19 — Phase 2 complete, transitioned to Phase 3
@@ -70,6 +70,7 @@ Progress: [█████░░░░░] 50%
 | Phase 03 P01 | 25min | 2 tasks | 14 files |
 | Phase 03 P02 | 10min | 2 tasks | 8 files |
 | Phase 03 P03 | 12min | 2 tasks | 8 files |
+| Phase 03 P04 | 14min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Expense and attachment rows use add so an id collision aborts the session transaction; unchanged expense rows are not rewritten
 - [Phase 03]: SessionFields renders the Expenses group only when onOpenExpense is provided; Edit Session unchanged until 03-03
 - [Phase 03]: Any edit to the expense Amount resets the split to equal; Split group renders after family names load
+- [Phase 03]: 03-04: removing an earlier-staged receipt photo stays in the stage until editor Save so Discard restores it; viewer fixes its photo id at open
 
 ### Pending Todos
 
@@ -131,6 +133,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-19T21:47:52.277Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-10-19T23:55:14.667Z
+Stopped at: Completed 03-04-PLAN.md
 Resume file: None

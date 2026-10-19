@@ -34,8 +34,8 @@
 ### Expenses & Receipts
 
 - [x] **EXP-01**: User can add one or more expenses to a session (amount, description), on swim or math sessions
-- [ ] **EXP-02**: User can attach any number of receipt photos (zero or more) to an expense, from the camera or photo library
-- [ ] **EXP-03**: Receipt photos are downscaled and stored on the phone
+- [x] **EXP-02**: User can attach any number of receipt photos (zero or more) to an expense, from the camera or photo library
+- [x] **EXP-03**: Receipt photos are downscaled and stored on the phone
 - [x] **EXP-04**: A shared session's expense is split equally between families by default; user can override the split amounts per expense
 - [x] **EXP-05**: User can edit or delete expenses and their receipt photos
 
@@ -106,8 +106,8 @@
 | LOG-07 | Phase 2 | Complete |
 | LOG-08 | Phase 2 | Complete |
 | EXP-01 | Phase 3 | Complete |
-| EXP-02 | Phase 3 | Pending |
-| EXP-03 | Phase 3 | Pending |
+| EXP-02 | Phase 3 | Complete |
+| EXP-03 | Phase 3 | Complete |
 | EXP-04 | Phase 3 | Complete |
 | EXP-05 | Phase 3 | Complete |
 | SUM-01 | Phase 4 | Pending |

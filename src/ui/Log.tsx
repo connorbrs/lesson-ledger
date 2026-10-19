@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useLive } from '../data/live';
 import { createSession, getLastSession, loadNameMaps } from '../data/sessions';
-import { listActiveStudents } from '../data/students';
+import { listSessionEligibleStudents } from '../data/students';
 import { todayLocal } from '../domain/dates';
 import { blankForm, formToInput, prefillFromSession, setAttendees, type FormState } from '../domain/sessionForm';
 import { BackupReminder } from './BackupReminder';
@@ -12,7 +12,7 @@ const LOGGED_MS = 1500;
 
 export function Log(props: { draft: FormState | null; setDraft: (f: FormState) => void; onOpenPicker: () => void }) {
   const { draft } = props;
-  const data = useLive(async () => ({ active: await listActiveStudents(), names: await loadNameMaps(), last: await getLastSession() }));
+  const data = useLive(async () => ({ active: await listSessionEligibleStudents(), names: await loadNameMaps(), last: await getLastSession() }));
   const busy = useRef(false); // synchronous guard: a double tap writes once; held until "Logged" clears
   const root = useRef<HTMLDivElement>(null);
   const footer = useRef<HTMLDivElement>(null);

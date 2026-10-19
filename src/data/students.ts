@@ -109,6 +109,12 @@ export async function listActiveStudents(): Promise<Student[]> {
   return (await db.students.toArray()).filter((s) => s.archivedAt === null).sort(compareRoster);
 }
 
+/** Active students whose family is also active: the only students a new session may include. */
+export async function listSessionEligibleStudents(): Promise<Student[]> {
+  const activeFamilies = new Set((await db.families.toArray()).filter((f) => f.archivedAt === null).map((f) => f.id));
+  return (await listActiveStudents()).filter((s) => activeFamilies.has(s.familyId));
+}
+
 export async function listArchivedStudents(): Promise<Student[]> {
   return (await db.students.toArray()).filter((s) => s.archivedAt !== null).sort(compareRoster);
 }

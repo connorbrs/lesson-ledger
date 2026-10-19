@@ -2,16 +2,23 @@ import { db } from './db';
 import { SessionError, validateSessionFields, type SessionFields } from '../domain/session';
 import type { Attendee, Session } from '../domain/types';
 
+/** A new attendee must be an active student whose family is active and is still the family the session names. */
+async function attendeeIsEligible(a: Attendee): Promise<boolean> {
+  const student = await db.students.get(a.studentId);
+  if (!student || student.archivedAt !== null || student.familyId !== a.familyId) return false;
+  const family = await db.families.get(a.familyId);
+  return family !== undefined && family.archivedAt === null;
+}
+
 /** Validates first, re-checks every attendee inside the write transaction, then stores one row. */
 export async function createSession(input: SessionFields): Promise<Session> {
   const r = validateSessionFields(input);
   if (!r.ok) throw new SessionError(r.code);
   const now = Date.now();
   const session: Session = { id: crypto.randomUUID(), ...r.value, createdAt: now, updatedAt: now };
-  await db.transaction('rw', db.students, db.sessions, async () => {
+  await db.transaction('rw', db.students, db.families, db.sessions, async () => {
     for (const a of session.attendees) {
-      const student = await db.students.get(a.studentId);
-      if (!student || student.archivedAt !== null || student.familyId !== a.familyId) throw new SessionError('student-missing');
+      if (!(await attendeeIsEligible(a))) throw new SessionError('student-missing');
     }
     await db.sessions.add(session);
   });
@@ -21,12 +28,12 @@ export async function createSession(input: SessionFields): Promise<Session> {
 /**
  * Replaces the editable fields of one session in one transaction. A retained attendee (same studentId)
  * keeps its stored familyId, and its credit follows that snapshot, so a later family move never rewrites
- * billing history. Only a newly added attendee must be active and match its current family.
+ * billing history. Only a newly added attendee must be an active student in an active family.
  */
 export async function updateSession(id: string, input: SessionFields): Promise<Session> {
   const first = validateSessionFields(input);
   if (!first.ok) throw new SessionError(first.code);
-  return db.transaction('rw', db.students, db.sessions, async () => {
+  return db.transaction('rw', db.students, db.families, db.sessions, async () => {
     const current = await db.sessions.get(id);
     if (!current) throw new SessionError('not-found');
     const stored = new Map(current.attendees.map((a) => [a.studentId, a.familyId]));
@@ -39,8 +46,7 @@ export async function updateSession(id: string, input: SessionFields): Promise<S
         attendees.push({ studentId: a.studentId, familyId: snapshot });
         continue;
       }
-      const student = await db.students.get(a.studentId);
-      if (!student || student.archivedAt !== null || student.familyId !== a.familyId) throw new SessionError('student-missing');
+      if (!(await attendeeIsEligible(a))) throw new SessionError('student-missing');
       attendees.push(a);
     }
     const credits = first.value.credits.map((c) => ({ ...c, familyId: remap.get(c.familyId) ?? c.familyId }));

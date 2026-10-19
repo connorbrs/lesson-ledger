@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../src/data/db';
 import { archiveFamily, createFamily, deleteFamily, getFamily, hasFamilyHistory } from '../src/data/families';
 import { createSession, deleteSession, getLastSession, getSession, listSessions, listSessionsInRange, updateSession } from '../src/data/sessions';
-import { archiveStudent, createStudent, deleteStudent, studentHasHistory, updateStudent } from '../src/data/students';
+import { archiveStudent, createStudent, deleteStudent, listSessionEligibleStudents, studentHasHistory, updateStudent } from '../src/data/students';
+import { prefillFromSession } from '../src/domain/sessionForm';
 import { groupSessionsByDate, sessionRowText, SessionError, type SessionFields } from '../src/domain/session';
 import type { Attendee, Session } from '../src/domain/types';
 
@@ -117,6 +118,12 @@ describe('createSession', () => {
 
     it('a student whose familyId does not match', async () => {
       await expect(createSession(swim([{ ...a1, familyId: b1.familyId }]))).rejects.toMatchObject({ code: 'student-missing' });
+      expect(await db.sessions.count()).toBe(0);
+    });
+
+    it('an active student whose family is archived', async () => {
+      await archiveFamily(a1.familyId);
+      await expect(createSession(swim([a1]))).rejects.toMatchObject({ code: 'student-missing' });
       expect(await db.sessions.count()).toBe(0);
     });
 
@@ -288,6 +295,15 @@ describe('updateSession and deleteSession', () => {
     expect(await getSession(created.id)).toEqual(created);
   });
 
+  it('keeps a retained attendee editable after its family is archived, but refuses a new one from that family', async () => {
+    const created = await createSession(swim([a1]));
+    await archiveFamily(a1.familyId);
+    const kept = await updateSession(created.id, swim([a1], { lessonMinutes: 30 }));
+    expect(kept.lessonMinutes).toBe(30);
+    await expect(updateSession(created.id, swim([a1, a2]))).rejects.toMatchObject({ code: 'student-missing' });
+    expect(await getSession(created.id)).toEqual(kept);
+  });
+
   it('deleting the last session of a student makes the student deletable again', async () => {
     const created = await createSession(swim([a1]));
     expect(await studentHasHistory(a1.studentId)).toBe(true);
@@ -320,5 +336,15 @@ describe('family delete with lesson history', () => {
     await deleteSession(created.id);
     expect(await hasFamilyHistory(fam.id)).toBe(false);
     expect(await deleteFamily(fam.id)).toEqual({ ok: true });
+  });
+});
+
+describe('session students exclude archived families', () => {
+  it('lists only students of active families, so a prefill cannot carry an archived family into a new session', async () => {
+    const last = await createSession(swim([a1, b1]));
+    await archiveFamily(a1.familyId);
+    const eligible = await listSessionEligibleStudents();
+    expect(eligible.map((s) => s.id)).not.toContain(a1.studentId);
+    expect(prefillFromSession(last, eligible).attendees).toEqual([b1]);
   });
 });

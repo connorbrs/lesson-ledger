@@ -1,43 +1,58 @@
-import { useState } from 'preact/hooks';
-import { createFamily, listActiveFamilies } from '../data/families';
-import { useLive } from '../data/live';
+import { useEffect, useState } from 'preact/hooks';
+import type { Family } from '../domain/types';
+import { Archived } from './Archived';
+import { FamilySheet } from './FamilySheet';
+import { NavBar, PushLayer, Screen, TabBar, useAnimatedClose, type TabId } from './components';
+import { People } from './People';
+import './styles.css';
+
+type SheetState = null | { kind: 'family'; family?: Family };
+
+function ArchivedScreen(props: { onClosed: () => void }) {
+  const { closing, close, onAnimationEnd } = useAnimatedClose(props.onClosed, 310);
+  return (
+    <PushLayer closing={closing} onAnimationEnd={onAnimationEnd}>
+      <Screen nav={<NavBar title="Archived" back={{ label: 'People', onClick: close }} />}>
+        <Archived onEmpty={close} />
+      </Screen>
+    </PushLayer>
+  );
+}
 
 export function App() {
-  const [name, setName] = useState('');
-  const [busy, setBusy] = useState(false);
-  const families = useLive(listActiveFamilies);
+  const [tab, setTab] = useState<TabId>('people');
+  const [archivedOpen, setArchivedOpen] = useState(false);
+  const [sheet, setSheet] = useState<SheetState>(null);
 
-  async function add() {
-    setBusy(true);
-    try {
-      await createFamily(name);
-      setName('');
-    } finally {
-      setBusy(false);
-    }
-  }
+  // iOS Safari only applies :active styles when a touch listener exists on the document.
+  useEffect(() => {
+    const noop = () => undefined;
+    document.addEventListener('touchstart', noop, { passive: true });
+    return () => document.removeEventListener('touchstart', noop);
+  }, []);
 
   return (
-    <main>
-      <h1>Lesson Ledger</h1>
-      <input
-        type="text"
-        value={name}
-        autocapitalize="words"
-        style={{ fontSize: '17px' }}
-        onInput={(e) => setName((e.currentTarget as HTMLInputElement).value)}
+    <div class="app">
+      <Screen nav={<NavBar />}>
+        {tab === 'people' ? (
+          <People
+            onAddFamily={() => setSheet({ kind: 'family' })}
+            onEditFamily={(family) => setSheet({ kind: 'family', family })}
+            onOpenArchived={() => setArchivedOpen(true)}
+          />
+        ) : (
+          <h1 class="large-title">Settings</h1>
+        )}
+      </Screen>
+      {archivedOpen && <ArchivedScreen onClosed={() => setArchivedOpen(false)} />}
+      <TabBar
+        tab={tab}
+        onSelect={(next) => {
+          setTab(next);
+          setArchivedOpen(false);
+        }}
       />
-      <button type="button" disabled={busy || name.trim() === ''} onClick={add}>
-        Add Family
-      </button>
-      <ul>
-        {(families ?? []).map((f) => (
-          <li key={f.id}>{f.name}</li>
-        ))}
-      </ul>
-      <p>
-        <a href="?spike">Device check</a>
-      </p>
-    </main>
+      {sheet?.kind === 'family' && <FamilySheet family={sheet.family} onClosed={() => setSheet(null)} />}
+    </div>
   );
 }

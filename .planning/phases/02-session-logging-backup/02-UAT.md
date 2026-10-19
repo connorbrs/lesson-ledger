@@ -11,13 +11,13 @@ updated: 2026-10-19T00:00:00Z
 number: 1
 name: Log form on the phone
 expected: |
-  Date and Start open native wheels, minute fields open the number keypad, presets 30/45/60 work, Log Session sits above the tab bar at all times, and "Logged ✓" shows then the form resets pre-filled.
+  Date and Start open native wheels, Start/Finish wheels step by 1 minute, Duration (typed minutes, shown h:mm) and Finish stay in sync, Lesson = Duration − Activity, number fields open the keypad, Log Session sits above the tab bar at all times, and "Logged ✓" shows then the form resets pre-filled.
 awaiting: user response
 
 ## Tests
 
 ### 1. Log form on the phone
-expected: Date and Start open native wheels, minute fields open the number keypad, presets 30/45/60 work, Log Session sits above the tab bar at all times, and "Logged ✓" shows then the form resets pre-filled.
+expected: Date and Start open native wheels, Start/Finish wheels step by 1 minute, Duration (typed minutes, shown h:mm) and Finish stay in sync, Lesson = Duration − Activity, number fields open the keypad, Log Session sits above the tab bar at all times, and "Logged ✓" shows then the form resets pre-filled.
 result: [pending]
 
 ### 2. Shared swim credit

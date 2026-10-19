@@ -1,0 +1,1 @@
+{"content":"Apple Safari 15 release notes: Web Share Level 2 file sharing added. web.dev: canShare() Safari 14, share() Safari 12.1. canShare({files}) reported false on some older iOS builds; verify on current iOS.","source":"web","provider":"websearch","confidence":"LOW","fetched_at":"2026-10-19T04:09:17.627Z","ttl":86400000,"kind":"docs"}

@@ -114,3 +114,13 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Session Logging & Backup | 0/TBD | Not started | - |
 | 3. Expenses & Receipts | 0/TBD | Not started | - |
 | 4. Family Summaries & Overview | 0/TBD | Not started | - |
+
+## Backlog
+
+### Phase 999.1: Follow-up — Phase 01 deferred UAT follow-up: Test 12 (BACKLOG)
+
+**Goal:** Resolve the UAT checkpoint deferred during Phase 01 verification
+**Source phase:** 01
+**Deferred at:** 2026-10-19 during /gsd-verify-work 1 session completion
+**Follow-ups:**
+- [ ] Test 12: Reword the Archived blocked-family note ('Delete its archived students first') for archived students that have lesson history, once Phase 2 adds sessions (deferred 2026-10-19)

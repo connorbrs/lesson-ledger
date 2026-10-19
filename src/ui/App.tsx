@@ -35,6 +35,9 @@ export function App() {
           <li key={f.id}>{f.name}</li>
         ))}
       </ul>
+      <p>
+        <a href="?spike">Device check</a>
+      </p>
     </main>
   );
 }

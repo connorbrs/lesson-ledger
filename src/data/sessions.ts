@@ -1,6 +1,7 @@
 import { db } from './db';
 import { deleteSessionExpenses, EMPTY_PAYLOAD, writeSessionExpenses, type ExpensePayload } from './expenses';
 import { SessionError, validateSessionFields, type SessionFields } from '../domain/session';
+import { remapSplitFamilies } from '../domain/expense';
 import { creditFamilies } from '../domain/sessionForm';
 import type { Attendee, Session } from '../domain/types';
 
@@ -33,7 +34,7 @@ export async function createSession(input: SessionFields, payload: ExpensePayloa
  * keeps its stored familyId, and its credit follows that snapshot, so a later family move never rewrites
  * billing history. Only a newly added attendee must be an active student in an active family.
  */
-export async function updateSession(id: string, input: SessionFields): Promise<Session> {
+export async function updateSession(id: string, input: SessionFields, payload?: ExpensePayload): Promise<Session> {
   const first = validateSessionFields(input);
   if (!first.ok) throw new SessionError(first.code);
   return db.transaction('rw', db.students, db.families, db.sessions, db.expenses, db.attachments, async () => {
@@ -57,6 +58,10 @@ export async function updateSession(id: string, input: SessionFields): Promise<S
     if (!r.ok) throw new SessionError(r.code);
     const next: Session = { ...current, ...r.value, updatedAt: Math.max(Date.now(), current.updatedAt + 1) };
     await db.sessions.put(next);
+    if (payload) {
+      // Shares are keyed by the family as entered; retained attendees keep their stored family, exactly as credits do.
+      await writeSessionExpenses(id, creditFamilies(attendees), { ...payload, expenses: remapSplitFamilies(payload.expenses, remap) });
+    }
     return next;
   });
 }

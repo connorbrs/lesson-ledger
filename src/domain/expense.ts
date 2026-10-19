@@ -1,5 +1,5 @@
-import { formatCents, equalSplit, sumCents } from './money';
-import { EXPENSE_DESCRIPTION_MAX, type ExpenseSplit } from './types';
+import { equalSplit, formatCents, parseAmountToCents, sumCents } from './money';
+import { EXPENSE_DESCRIPTION_MAX, type Expense, type ExpenseSplit } from './types';
 import { codePointLength, normalizeName } from './validate';
 
 /** A JSON-safe expense as held in form state: ids, strings and integers only, no Blob (D-01). */
@@ -101,4 +101,56 @@ export function splitLine(splits: readonly ExpenseSplit[], familyNames: Record<s
 
 export function formatExpensesLine(totalCents: number): string {
   return `Expenses ${formatCents(totalCents)}`;
+}
+
+/**
+ * The draft a stored expense edits as. Shares equal to the equal split (or a single family) become null,
+ * so the default keeps following the amount; a stored override is kept as is.
+ */
+export function draftFromExpense(expense: Expense, photoIds: readonly string[], familyIds: readonly string[]): ExpenseDraft {
+  const equal = equalShares(expense.amountCents, familyIds);
+  const isEqual =
+    equal !== null &&
+    equal.length === expense.splits.length &&
+    equal.every((s, i) => s.familyId === expense.splits[i].familyId && s.cents === expense.splits[i].cents);
+  return {
+    id: expense.id,
+    description: expense.description,
+    amountCents: expense.amountCents,
+    splits: isEqual ? null : expense.splits.map((s) => ({ ...s })),
+    photoIds: [...photoIds],
+    createdAt: expense.createdAt,
+  };
+}
+
+/** Rewrites the family ids of non-null splits through the map (unmapped ids unchanged). */
+export function remapSplitFamilies(drafts: readonly ExpenseDraft[], remap: ReadonlyMap<string, string>): ExpenseDraft[] {
+  return drafts.map((d) => (d.splits === null ? d : { ...d, splits: d.splits.map((s) => ({ ...s, familyId: remap.get(s.familyId) ?? s.familyId })) }));
+}
+
+export interface SaveGate {
+  amountText: string;
+  description: string;
+  /** Photos still being processed. */
+  processing?: number;
+  /** A share caption is showing. */
+  shareError?: boolean;
+}
+
+/** The expense editor's Save is enabled only when this is true. */
+export function canSaveExpense({ amountText, description, processing = 0, shareError = false }: SaveGate): boolean {
+  const cents = parseAmountToCents(amountText);
+  return cents !== null && cents > 0 && validateExpenseText(description).ok && processing === 0 && shareError !== true;
+}
+
+/** The caption under the amount field, or null. A blank untouched field stays quiet. */
+export function amountCaption(text: string, touched: boolean): string | null {
+  if (text.trim() === '' && !touched) return null;
+  const cents = parseAmountToCents(text);
+  if (cents === null) return 'Use dollars and cents, like 12.50.';
+  return cents === 0 ? 'Amount must be more than $0.00.' : null;
+}
+
+export function expensesFooterText(expenses: readonly { amountCents: number }[]): string {
+  return expenses.length === 0 ? 'Expenses are saved with this session.' : `Total ${formatCents(expenseTotal(expenses))}.`;
 }

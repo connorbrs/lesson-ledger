@@ -1,5 +1,5 @@
 import { db } from './db';
-import { validateExpenseDrafts, type ExpenseDraft } from '../domain/expense';
+import { draftFromExpense, validateExpenseDrafts, type ExpenseDraft } from '../domain/expense';
 import { sumCents } from '../domain/money';
 import { SessionError } from '../domain/session';
 import type { Expense, ExpenseSplit } from '../domain/types';
@@ -104,4 +104,30 @@ export async function expenseTotalsBySession(sessionIds: readonly string[]): Pro
   const bySession: Record<string, number[]> = {};
   for (const r of rows) (bySession[r.sessionId] ??= []).push(r.amountCents);
   return Object.fromEntries(Object.entries(bySession).map(([id, list]) => [id, sumCents(list)]));
+}
+
+/**
+ * The drafts a session's expenses edit as, ordered by createdAt then id, each with photo ids ordered by
+ * attachment createdAt then id. Only ids and createdAt of the photo rows are used; no Blob is read.
+ */
+export async function loadExpenseDrafts(sessionId: string, familyIds: readonly string[]): Promise<ExpenseDraft[]> {
+  const rows = (await db.expenses.where('sessionId').equals(sessionId).toArray()).sort(
+    (a, b) => a.createdAt - b.createdAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+  );
+  const drafts: ExpenseDraft[] = [];
+  for (const row of rows) {
+    const photos: { id: string; createdAt: number }[] = [];
+    await db.attachments
+      .where('expenseId')
+      .equals(row.id)
+      .each((a) => photos.push({ id: a.id, createdAt: a.createdAt }));
+    photos.sort((a, b) => a.createdAt - b.createdAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    drafts.push(draftFromExpense(row, photos.map((p) => p.id), familyIds));
+  }
+  return drafts;
+}
+
+/** The stored receipt Blob, or undefined. No write transaction. */
+export async function getAttachmentBlob(id: string): Promise<Blob | undefined> {
+  return (await db.attachments.get(id))?.blob;
 }

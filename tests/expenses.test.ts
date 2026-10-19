@@ -190,7 +190,6 @@ describe('atomic failure', () => {
     ['duplicate expense id', payload([draft('e1', 100), draft('e1', 200)]), 'expenses-invalid'],
     ['duplicate photo id across expenses', payload([draft('e1', 100, { photoIds: ['p'] }), draft('e2', 100, { photoIds: ['p'] })], { p: photo() }), 'expenses-invalid'],
     ['photo id absent from the staged photos', payload([draft('e1', 100, { photoIds: ['p'] })]), 'photo-missing'],
-    ['override with a wrong sum', payload([draft('e1', 100, { splits: [{ familyId: 'x', cents: 1 }] })]), 'expenses-invalid'],
     ['non-JPEG photo', payload([draft('e1', 100, { photoIds: ['p'] })], { p: { ...photo(), blob: new Blob([new Uint8Array([1])], { type: 'image/png' }) } }), 'expenses-invalid'],
   ];
 

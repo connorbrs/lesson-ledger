@@ -18,6 +18,7 @@ import {
 } from '../domain/sessionForm';
 import type { CreditMode, Subject } from '../domain/types';
 import { Group, Row, SegmentedControl } from './components';
+import { ExpensesGroup } from './ExpensesGroup';
 
 const CREDIT_OPTIONS: { value: CreditMode; label: string }[] = [
   { value: 'full', label: 'Full' },
@@ -58,6 +59,8 @@ export function SessionFields(props: {
   names: { students: Record<string, string>; families: Record<string, string> };
   hasActiveStudents: boolean;
   onOpenPicker: () => void;
+  /** Opens the Expense editor (null = new). Without it the form shows no Expenses group. */
+  onOpenExpense?: (id: string | null) => void;
 }) {
   const { form, names } = props;
   // Duration text while the field is focused (plain minutes); null shows the h:mm display.
@@ -219,6 +222,9 @@ export function SessionFields(props: {
             </Group>
           );
         })}
+      {props.onOpenExpense && (
+        <ExpensesGroup expenses={form.expenses} familyIds={creditFamilies(form.attendees)} familyNames={names.families} onOpen={props.onOpenExpense} />
+      )}
     </>
   );
 }

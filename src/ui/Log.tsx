@@ -10,7 +10,7 @@ import { SessionFields } from './SessionFields';
 
 const LOGGED_MS = 1500;
 
-export function Log(props: { draft: FormState | null; setDraft: (f: FormState) => void; onOpenPicker: () => void }) {
+export function Log(props: { draft: FormState | null; setDraft: (f: FormState) => void; onOpenPicker: () => void; onOpenExpense: (id: string | null) => void }) {
   const { draft } = props;
   const data = useLive(async () => ({ active: await listSessionEligibleStudents(), names: await loadNameMaps(), last: await getLastSession() }));
   const busy = useRef(false); // synchronous guard: a double tap writes once; held until "Logged" clears
@@ -59,7 +59,7 @@ export function Log(props: { draft: FormState | null; setDraft: (f: FormState) =
     busy.current = true;
     setSaveError(null);
     try {
-      const saved = await createSession(fresh.value);
+      const saved = await createSession(fresh.value, { expenses: draft.expenses, photos: new Map() });
       props.setDraft(prefillFromSession(saved, data.active));
       root.current?.closest('.scroll')?.scrollTo({ top: 0 });
       setLogged(true);
@@ -82,6 +82,7 @@ export function Log(props: { draft: FormState | null; setDraft: (f: FormState) =
         names={data.names}
         hasActiveStudents={data.active.length > 0}
         onOpenPicker={props.onOpenPicker}
+        onOpenExpense={props.onOpenExpense}
       />
       <BackupReminder />
       <div style={{ height: footerHeight }} aria-hidden="true" />

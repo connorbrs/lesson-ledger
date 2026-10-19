@@ -4,7 +4,8 @@ import { isStandalone } from '../pwa/standalone';
 import { ensurePersistence } from '../pwa/storage';
 import { useAppUpdate } from '../pwa/useAppUpdate';
 import { Archived, ArchivedDeleteAlert, type ArchivedDeleteTarget } from './Archived';
-import { setAttendees, type FormState } from '../domain/sessionForm';
+import { setAttendees, upsertExpense, type FormState } from '../domain/sessionForm';
+import { ExpenseEditor } from './ExpenseEditor';
 import { FamilySheet } from './FamilySheet';
 import { NavBar, PushLayer, Screen, TabBar, useAnimatedClose, type TabId } from './components';
 import { Log } from './Log';
@@ -45,6 +46,8 @@ export function App() {
   // The Log draft lives here so an unsaved form survives switching tabs.
   const [logDraft, setLogDraft] = useState<FormState | null>(null);
   const [logPickerOpen, setLogPickerOpen] = useState(false);
+  // The Expense editor on the Log tab: null (closed) or the expense being edited (id null = new).
+  const [logExpense, setLogExpense] = useState<{ id: string | null } | null>(null);
   const [sheet, setSheet] = useState<SheetState>(null);
   const update = useAppUpdate();
   // Any render error below (including a database that cannot open, rethrown by useLive) replaces only the content area.
@@ -72,7 +75,7 @@ export function App() {
         {error ? (
           <RecordsError />
         ) : tab === 'log' ? (
-          <Log draft={logDraft} setDraft={setLogDraft} onOpenPicker={() => setLogPickerOpen(true)} />
+          <Log draft={logDraft} setDraft={setLogDraft} onOpenPicker={() => setLogPickerOpen(true)} onOpenExpense={(id) => setLogExpense({ id })} />
         ) : tab === 'sessions' ? (
           <Sessions onLogSession={() => setTab('log')} onEdit={(session) => setSheet({ kind: 'session', session })} />
         ) : tab === 'people' ? (
@@ -96,6 +99,15 @@ export function App() {
           onClosed={() => setLogPickerOpen(false)}
         />
       )}
+      {!error && logExpense && logDraft && (
+        <ExpenseEditor
+          key={logExpense.id ?? 'new'}
+          initial={logDraft.expenses.find((e) => e.id === logExpense.id) ?? null}
+          backLabel="Log"
+          onSave={(draft) => setLogDraft((d) => d && upsertExpense(d, draft))}
+          onClosed={() => setLogExpense(null)}
+        />
+      )}
       {!error && archivedOpen && <ArchivedScreen onClosed={() => setArchivedOpen(false)} />}
       <TabBar
         tab={tab}
@@ -103,6 +115,7 @@ export function App() {
           setTab(next);
           setArchivedOpen(false);
           setLogPickerOpen(false);
+          setLogExpense(null);
         }}
       />
       {!error && sheet?.kind === 'family' && <FamilySheet family={sheet.family} onClosed={() => setSheet(null)} />}

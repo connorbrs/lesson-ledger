@@ -220,6 +220,10 @@ export function InputRow(props: {
   onBlur?: () => void;
   invalid?: boolean;
   autoFocus?: boolean;
+  maxLength?: number;
+  autoCapitalize?: 'words' | 'sentences';
+  /** 96px label column instead of 88px (the Expense editor's Description row). */
+  wideLabel?: boolean;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -227,7 +231,7 @@ export function InputRow(props: {
   }, []);
   return (
     <label class="row input-row">
-      <span class="row-fixed-label">{props.label}</span>
+      <span class={`row-fixed-label${props.wideLabel ? ' wide' : ''}`}>{props.label}</span>
       <input
         ref={ref}
         type="text"
@@ -235,7 +239,8 @@ export function InputRow(props: {
         placeholder={props.placeholder}
         aria-label={props.label}
         aria-invalid={props.invalid ? true : undefined}
-        autocapitalize="words"
+        maxLength={props.maxLength}
+        autocapitalize={props.autoCapitalize ?? 'words'}
         autocorrect="off"
         enterkeyhint="done"
         onInput={(e) => props.onInput(e.currentTarget.value)}
@@ -245,6 +250,48 @@ export function InputRow(props: {
         }}
       />
     </label>
+  );
+}
+
+/** A money row: label, a secondary '$' prefix and a right-aligned decimal input, with its caption below. */
+export function AmountField(props: {
+  label: string;
+  value: string;
+  hint: string;
+  caption: string | null;
+  invalid?: boolean;
+  autoFocus?: boolean;
+  onInput: (value: string) => void;
+  onBlur?: () => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (props.autoFocus) ref.current?.focus({ preventScroll: true });
+  }, []);
+  return (
+    <div class="row minutes-block">
+      <div class="minutes-line">
+        <span class="row-label clamp2">{props.label}</span>
+        <span class="amount-prefix">$</span>
+        <input
+          ref={ref}
+          class="minutes-input amount-input"
+          type="text"
+          inputmode="decimal"
+          placeholder={props.hint}
+          value={props.value}
+          aria-label={props.label}
+          aria-invalid={props.invalid ? true : undefined}
+          autocorrect="off"
+          onInput={(e) => props.onInput(e.currentTarget.value)}
+          onBlur={props.onBlur}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur();
+          }}
+        />
+      </div>
+      {props.caption && <p class="label minutes-error">{props.caption}</p>}
+    </div>
   );
 }
 

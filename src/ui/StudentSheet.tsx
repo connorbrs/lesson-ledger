@@ -21,10 +21,9 @@ import {
   Screen,
   SegmentedControl,
   Sheet,
+  saveErrorMessage,
   useAnimatedClose,
 } from './components';
-
-const SAVE_FAILED = "Couldn't save. Your phone may be low on storage. Nothing was changed.";
 
 /** Pushed screen inside the Student sheet: active families only, accent check on the chosen one. */
 function FamilyPicker(props: {
@@ -114,7 +113,7 @@ export function StudentSheet(props: { student?: Student; presetFamilyId?: string
   const [familyTouched, setFamilyTouched] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [saveFailed, setSaveFailed] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [discardOpen, setDiscardOpen] = useState(false);
   const [del, setDel] = useState<null | { busy: boolean; failed: boolean }>(null);
   const busy = useRef(false); // synchronous guard: a double tap writes once
@@ -147,28 +146,28 @@ export function StudentSheet(props: { student?: Student; presetFamilyId?: string
     if (busy.current || !check.ok) return;
     busy.current = true;
     setSaving(true);
-    setSaveFailed(false);
+    setSaveError(null);
     try {
       if (student) await updateStudent(student.id, check.value);
       else await createStudent(check.value);
       close();
-    } catch {
+    } catch (e) {
       busy.current = false;
       setSaving(false);
-      setSaveFailed(true);
+      setSaveError(saveErrorMessage(e));
     }
   }
 
   async function archive() {
     if (busy.current || !student) return;
     busy.current = true;
-    setSaveFailed(false);
+    setSaveError(null);
     try {
       await archiveStudent(student.id);
       close();
-    } catch {
+    } catch (e) {
       busy.current = false;
-      setSaveFailed(true);
+      setSaveError(saveErrorMessage(e));
     }
   }
 
@@ -213,9 +212,9 @@ export function StudentSheet(props: { student?: Student; presetFamilyId?: string
           )
         }
       >
-        {saveFailed && (
+        {saveError && (
           <p class="sheet-error" role="alert">
-            {SAVE_FAILED}
+            {saveError}
           </p>
         )}
         <Group footer={nameCaption} footerError>

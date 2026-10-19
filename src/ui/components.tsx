@@ -1,5 +1,15 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { RosterError } from '../domain/validate';
+
+/** Message for a failed save or archive: storage wording only when the failure is not a known roster problem. */
+export function saveErrorMessage(e: unknown): string {
+  if (e instanceof RosterError) {
+    if (e.code === 'family-missing') return "Couldn't save. This family was archived or deleted. Choose another family. Nothing was changed.";
+    if (e.code === 'not-found') return "Couldn't save. This record no longer exists. Nothing was changed.";
+  }
+  return "Couldn't save. Your phone may be low on storage. Nothing was changed.";
+}
 
 /* ---------- Icons: inline SVG, 24x24, 2px stroke, currentColor ---------- */
 

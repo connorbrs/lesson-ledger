@@ -1,10 +1,15 @@
-import { useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { getFamily, listArchivedFamilies, restoreFamily } from '../data/families';
 import { useLive } from '../data/live';
 import { listArchivedStudents, restoreStudent } from '../data/students';
 import { Group } from './components';
 
 export function Archived(props: { onEmpty: () => void }) {
+  const [failed, setFailed] = useState(false);
+  const restore = (action: Promise<unknown>) => {
+    setFailed(false);
+    action.catch(() => setFailed(true));
+  };
   const data = useLive(async () => ({
     families: await listArchivedFamilies(),
     students: await Promise.all(
@@ -19,12 +24,17 @@ export function Archived(props: { onEmpty: () => void }) {
 
   return (
     <>
+      {failed && (
+        <p class="sheet-error" role="alert">
+          Couldn't restore. Nothing was changed. Try again.
+        </p>
+      )}
       {data && data.families.length > 0 && (
         <Group header="Families">
           {data.families.map((f) => (
             <div class="row" key={f.id}>
               <span class="row-label clamp2">{f.name}</span>
-              <button type="button" class="text-button" onClick={() => void restoreFamily(f.id).catch(() => undefined)}>
+              <button type="button" class="text-button" onClick={() => restore(restoreFamily(f.id))}>
                 Restore Family
               </button>
             </div>
@@ -49,7 +59,7 @@ export function Archived(props: { onEmpty: () => void }) {
                   type="button"
                   class="text-button"
                   disabled={familyArchived}
-                  onClick={() => void restoreStudent(s.id).catch(() => undefined)}
+                  onClick={() => restore(restoreStudent(s.id))}
                 >
                   Restore Student
                 </button>

@@ -34,7 +34,7 @@ export function App() {
   const [sheet, setSheet] = useState<SheetState>(null);
   const update = useAppUpdate();
   // Any render error below (including a database that cannot open, rethrown by useLive) replaces only the content area.
-  const [error] = useErrorBoundary();
+  const [error] = useErrorBoundary((e) => console.error('Lesson Ledger render error:', e));
 
   // iOS Safari only applies :active styles when a touch listener exists on the document.
   useEffect(() => {

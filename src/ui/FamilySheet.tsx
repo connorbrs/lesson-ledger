@@ -3,9 +3,7 @@ import { archiveFamily, createFamily, deleteFamily, hasFamilyHistory, updateFami
 import { useLive } from '../data/live';
 import type { Family, Period } from '../domain/types';
 import { validateFamilyInput } from '../domain/validate';
-import { Alert, Group, InputRow, Row, SegmentedControl, Sheet, useAnimatedClose } from './components';
-
-const SAVE_FAILED = "Couldn't save. Your phone may be low on storage. Nothing was changed.";
+import { Alert, Group, InputRow, Row, SegmentedControl, Sheet, saveErrorMessage, useAnimatedClose } from './components';
 
 export function FamilySheet(props: { family?: Family; onClosed: () => void }) {
   const { family } = props;
@@ -13,7 +11,7 @@ export function FamilySheet(props: { family?: Family; onClosed: () => void }) {
   const [period, setPeriod] = useState<Period>(family?.period ?? 'weekly');
   const [touched, setTouched] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [saveFailed, setSaveFailed] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [discardOpen, setDiscardOpen] = useState(false);
   const [del, setDel] = useState<null | { busy: boolean; failed: boolean }>(null);
   const busy = useRef(false); // synchronous guard: a double tap writes once
@@ -30,28 +28,28 @@ export function FamilySheet(props: { family?: Family; onClosed: () => void }) {
     if (busy.current || !check.ok) return;
     busy.current = true;
     setSaving(true);
-    setSaveFailed(false);
+    setSaveError(null);
     try {
       if (family) await updateFamily(family.id, check.value);
       else await createFamily(check.value.name, check.value.period);
       close();
-    } catch {
+    } catch (e) {
       busy.current = false;
       setSaving(false);
-      setSaveFailed(true);
+      setSaveError(saveErrorMessage(e));
     }
   }
 
   async function archive() {
     if (busy.current || !family) return;
     busy.current = true;
-    setSaveFailed(false);
+    setSaveError(null);
     try {
       await archiveFamily(family.id);
       close();
-    } catch {
+    } catch (e) {
       busy.current = false;
-      setSaveFailed(true);
+      setSaveError(saveErrorMessage(e));
     }
   }
 
@@ -83,9 +81,9 @@ export function FamilySheet(props: { family?: Family; onClosed: () => void }) {
         closing={closing}
         onAnimationEnd={onAnimationEnd}
       >
-        {saveFailed && (
+        {saveError && (
           <p class="sheet-error" role="alert">
-            {SAVE_FAILED}
+            {saveError}
           </p>
         )}
         <Group footer={nameCaption} footerError>

@@ -1,5 +1,7 @@
 import { createPortal } from 'preact/compat';
 import { useRef, useState } from 'preact/hooks';
+import { useLive } from '../data/live';
+import { loadNameMaps } from '../data/sessions';
 import {
   amountCaption,
   canSaveExpense,
@@ -9,14 +11,18 @@ import {
   type ExpenseDraft,
 } from '../domain/expense';
 import { centsToInput, parseAmountToCents } from '../domain/money';
+import { applyShareInput, equalShareTexts, initialShareState, splitIsOverridden, type ShareState } from '../domain/split';
 import { EXPENSE_DESCRIPTION_MAX } from '../domain/types';
 import { Alert, AmountField, Group, InputRow, NavBar, PushLayer, Row, Screen, useAnimatedClose } from './components';
+import { SplitGroup } from './SplitGroup';
 
 /** Pushed Expense editor. Save stages the draft in the session form; nothing is written here (D-01). */
 export function ExpenseEditor(props: {
   initial: ExpenseDraft | null;
   backLabel: string;
   inSheet?: boolean;
+  /** The session's two families (pick order) when a two-family swim expense can be split; else null. */
+  splitFamilyIds: [string, string] | null;
   onSave: (draft: ExpenseDraft) => void;
   /** Stages the removal of an existing expense; the Delete Expense group shows only when given. */
   onDelete?: (id: string) => void;
@@ -27,11 +33,18 @@ export function ExpenseEditor(props: {
   const [amountText, setAmountText] = useState(initial ? centsToInput(initial.amountCents) : '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [touched, setTouched] = useState(false);
+  const names = useLive(loadNameMaps);
+  // null is the equal default; otherwise the typed share texts (and the override they make, unless one is invalid).
+  const [share, setShare] = useState<ShareState | null>(() =>
+    props.splitFamilyIds && initial ? initialShareState(initial.amountCents, props.splitFamilyIds, initial.splits) : null,
+  );
   const [discardOpen, setDiscardOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const saving = useRef(false);
   const confirming = useRef(false); // a double-tapped alert button runs once
-  const canSave = canSaveExpense({ amountText, description });
+  const amountCents = parseAmountToCents(amountText);
+  const splits = props.splitFamilyIds ? (share?.splits ?? null) : null;
+  const canSave = canSaveExpense({ amountText, description, shareError: share?.error != null });
 
   function save() {
     if (saving.current || closing || !canSave) return;
@@ -43,8 +56,7 @@ export function ExpenseEditor(props: {
       id: initial?.id ?? crypto.randomUUID(),
       description: text.value,
       amountCents: cents,
-      // An unchanged amount keeps its split; a changed amount resets to the equal default.
-      splits: initial && initial.amountCents === cents ? initial.splits : null,
+      splits,
       photoIds: initial?.photoIds ?? [],
       createdAt: initial?.createdAt ?? Date.now(),
     });
@@ -53,7 +65,7 @@ export function ExpenseEditor(props: {
 
   function back() {
     if (closing) return;
-    if (expenseEditorDirty(initial, amountText, description)) setDiscardOpen(true);
+    if (expenseEditorDirty(initial, amountText, description, props.splitFamilyIds ? splits : undefined)) setDiscardOpen(true);
     else close();
   }
 
@@ -124,7 +136,10 @@ export function ExpenseEditor(props: {
               caption={amountCaption(amountText, touched)}
               invalid={amountCaption(amountText, touched) !== null}
               autoFocus={!initial}
-              onInput={setAmountText}
+              onInput={(text) => {
+              setAmountText(text);
+              setShare(null); // a changed amount resets the split to equal
+            }}
               onBlur={() => setTouched(true)}
             />
             <InputRow
@@ -137,6 +152,23 @@ export function ExpenseEditor(props: {
               onInput={setDescription}
             />
           </Group>
+          {props.splitFamilyIds && names && (
+            <SplitGroup
+              familyIds={props.splitFamilyIds}
+              familyNames={names.families}
+              texts={share?.texts ?? equalShareTexts(amountCents ?? 0)}
+              error={share?.error ?? null}
+              total={amountCents ?? 0}
+              overridden={splitIsOverridden(share)}
+              onInput={(index, text) =>
+                props.splitFamilyIds &&
+                setShare((cur) =>
+                  applyShareInput(amountCents ?? 0, props.splitFamilyIds as [string, string], cur?.texts ?? equalShareTexts(amountCents ?? 0), index, text),
+                )
+              }
+              onSplitEqually={() => setShare(null)}
+            />
+          )}
           {initial && props.onDelete && (
             <Group>
               <Row tone="destructive" onClick={() => setDeleteOpen(true)}>

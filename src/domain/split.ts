@@ -65,7 +65,7 @@ export function applyShareInput(
   };
 }
 
-export function shareCaption(error: Pick<ShareError, 'kind'>, total: number): string {
+export function shareCaption(error: ShareError, total: number): string {
   return error.kind === 'invalid' ? 'Use dollars and cents, like 6.25.' : `A share can't be more than ${formatCents(total)}.`;
 }
 

@@ -9,6 +9,7 @@ import {
   creditFamilies,
   formFromSession,
   formToInput,
+  needsCreditGroups,
   removeExpense,
   sameForm,
   setAttendees,
@@ -50,6 +51,8 @@ function SessionSheetBody(props: { session: Session; drafts: ExpenseDraft[]; onC
   const { closing, close, onAnimationEnd } = useAnimatedClose(props.onClosed, 360);
   const people = useLive(async () => ({ names: await loadNameMaps(), active: await listActiveStudents() }));
 
+  const families = creditFamilies(form.attendees);
+  const splitIds: [string, string] | null = needsCreditGroups(form.subject, form.attendees) ? [families[0], families[1]] : null;
   const check = formToInput(form, todayLocal());
   const dirty = !sameForm(form, initial);
 
@@ -114,6 +117,7 @@ function SessionSheetBody(props: { session: Session; drafts: ExpenseDraft[]; onC
                 initial={form.expenses.find((e) => e.id === expenseOpen.id) ?? null}
                 backLabel="Edit Session"
                 inSheet
+                splitFamilyIds={splitIds}
                 onSave={(draft) => setForm((f) => upsertExpense(f, draft))}
                 onDelete={(id) => setForm((f) => removeExpense(f, id))}
                 onClosed={() => setExpenseOpen(null)}

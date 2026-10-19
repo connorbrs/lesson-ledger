@@ -4,7 +4,7 @@ import { isStandalone } from '../pwa/standalone';
 import { ensurePersistence } from '../pwa/storage';
 import { useAppUpdate } from '../pwa/useAppUpdate';
 import { Archived, ArchivedDeleteAlert, type ArchivedDeleteTarget } from './Archived';
-import { removeExpense, setAttendees, upsertExpense, type FormState } from '../domain/sessionForm';
+import { creditFamilies, needsCreditGroups, removeExpense, setAttendees, upsertExpense, type FormState } from '../domain/sessionForm';
 import { ExpenseEditor } from './ExpenseEditor';
 import { FamilySheet } from './FamilySheet';
 import { NavBar, PushLayer, Screen, TabBar, useAnimatedClose, type TabId } from './components';
@@ -23,6 +23,12 @@ type SheetState =
   | { kind: 'family'; family?: Family }
   | { kind: 'student'; student?: Student; familyId?: string }
   | { kind: 'session'; session: Session };
+
+/** The two families of a two-family swim form, in pick order, else null (no Split group). */
+function splitPair(form: FormState): [string, string] | null {
+  const ids = creditFamilies(form.attendees);
+  return needsCreditGroups(form.subject, form.attendees) ? [ids[0], ids[1]] : null;
+}
 
 function ArchivedScreen(props: { onClosed: () => void }) {
   const { closing, close, onAnimationEnd } = useAnimatedClose(props.onClosed, 310);
@@ -104,6 +110,7 @@ export function App() {
           key={logExpense.id ?? 'new'}
           initial={logDraft.expenses.find((e) => e.id === logExpense.id) ?? null}
           backLabel="Log"
+          splitFamilyIds={splitPair(logDraft)}
           onSave={(draft) => setLogDraft((d) => d && upsertExpense(d, draft))}
           onDelete={(id) => setLogDraft((f) => f && removeExpense(f, id))}
           onClosed={() => setLogExpense(null)}

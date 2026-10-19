@@ -119,19 +119,15 @@ export function StudentSheet(props: { student?: Student; presetFamilyId?: string
   const busy = useRef(false); // synchronous guard: a double tap writes once
   const { closing, close, onAnimationEnd } = useAnimatedClose(props.onClosed, 360);
 
-  const data = useLive(
-    async () => ({
-      active: await listActiveFamilies(),
-      chosen: familyId ? await getFamily(familyId) : undefined,
-    }),
-    [familyId],
-  );
+  // Two queries: the family list never depends on the selection, so only `chosenFamily` resets when familyId changes.
+  const activeFamilies = useLive(() => listActiveFamilies());
+  const chosenFamily = useLive(() => (familyId ? getFamily(familyId) : undefined), [familyId]);
   const hasHistory = useLive(() => (student ? studentHasHistory(student.id) : false), [student?.id]);
 
-  const active = data?.active ?? [];
-  const noActiveFamily = data !== undefined && active.length === 0;
+  const active = activeFamilies ?? [];
+  const noActiveFamily = activeFamilies !== undefined && active.length === 0;
   // Only an active family counts as chosen (the picker lists active families only).
-  const chosen = data?.chosen && active.some((f) => f.id === data.chosen?.id) ? data.chosen : undefined;
+  const chosen = chosenFamily && active.some((f) => f.id === chosenFamily.id) ? chosenFamily : undefined;
 
   const check = validateStudentInput({ familyId: chosen?.id, name, defaultSubject: subject, notes });
   const nameError = !check.ok && (check.code === 'name-empty' || check.code === 'name-too-long') ? check.code : null;

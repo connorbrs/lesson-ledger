@@ -1,18 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 01-installable-app-roster
 source: [01-VERIFICATION.md]
 started: 2026-10-19T00:00:00Z
-updated: 2026-10-19T09:22:53Z
+updated: 2026-10-19T09:27:21.693Z
 ---
 
 ## Current Test
 
-number: 11
-name: Delete archived records on the phone (HV-A/HV-B, gap G-01-10)
-expected: |
-  Archived screen offers Delete Student / Delete Family for no-history records with the confirm popup; note turns into Delete Family; returns to People when empty.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -60,25 +56,28 @@ severity: minor
 
 ### 11. Delete archived records on the phone (HV-A/HV-B, gap G-01-10)
 expected: On the Archived screen (light and dark), an archived student with no lessons shows Delete Student; confirming asks "Delete “{name}”?" with Cancel / Delete Student and removes it; the family's note then turns into Delete Family, which removes the family too; nothing behind the popup can be tapped; when nothing archived is left it returns to People.
-result: [pending]
+result: pass
 
 ### 12. Blocked-family note wording (HV-D)
 expected: Decide: keep "This family still has students. Delete its archived students first." for all cases (lesson history only exists from Phase 2), or reword it for students that have lessons in Phase 2.
-result: [pending]
+result: skipped
+reason: "Deferred follow-up: reword the blocked-family note for archived students with lesson history when Phase 2 adds sessions"
 
 ## Summary
 
 total: 12
-passed: 9
+passed: 10
 issues: 1
-pending: 2
-skipped: 0
+pending: 0
+skipped: 1
 blocked: 0
 
 ## Gaps
 - gap_id: G-01-10
   truth: "Archived families and students with no lesson history can be deleted from the Archived screen, so a family whose only students are archived (and have no history) can be fully removed"
-  status: failed
+  status: resolved
+  resolved_by: 01-05-PLAN.md
+  resolved_at: 2026-10-19
   reason: "User reported: W-1 decision — add Delete for archived records with no history (currently the Archived screen has only Restore, so the 'Remove them before deleting the family' footer is a dead end)"
   severity: minor
   test: 10
@@ -98,3 +97,9 @@ blocked: 0
 
 - P-d (APP-05): accepted 2026-10-19 — after a full force-quit, iOS activates the waiting service worker on the next cold launch without a tap; no reload happens while the app is open and no input or data is lost. Amend the 01-04 prohibition wording accordingly.
 - P-a, P-b, P-c, P-e: signed off as pass.
+
+## Deferred Follow-Ups
+
+- test: 12
+  idea: "Reword the Archived blocked-family note ('Delete its archived students first') for archived students that have lesson history, once Phase 2 adds sessions"
+  deferred_at: 2026-10-19

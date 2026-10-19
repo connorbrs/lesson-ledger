@@ -1,5 +1,6 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { SessionError } from '../domain/session';
 import { RosterError } from '../domain/validate';
 
 /** Message for a failed save or archive: storage wording only when the failure is not a known roster problem. */
@@ -9,6 +10,15 @@ export function saveErrorMessage(e: unknown): string {
     if (e.code === 'not-found') return "Couldn't save. This record no longer exists. Nothing was changed.";
   }
   return "Couldn't save. Your phone may be low on storage. Nothing was changed.";
+}
+
+/** Message for a failed session save: storage wording unless the cause is a known session problem. */
+export function sessionSaveErrorMessage(e: unknown): string {
+  if (e instanceof SessionError) {
+    if (e.code === 'student-missing') return "Couldn't save. A chosen student was archived or deleted. Choose the students again. Nothing was changed.";
+    if (e.code === 'not-found') return "Couldn't save. This session no longer exists. Nothing was changed.";
+  }
+  return "Couldn't save. Your phone may be low on storage. Nothing was changed. Try again.";
 }
 
 /* ---------- Icons: inline SVG, 24x24, 2px stroke, currentColor ---------- */

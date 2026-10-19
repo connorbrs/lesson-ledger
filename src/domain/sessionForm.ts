@@ -1,5 +1,5 @@
 import { validateSessionFields, type SessionCheck } from './session';
-import type { Attendee, CreditMode, DefaultSubject, Subject } from './types';
+import type { Attendee, CreditMode, DefaultSubject, Session, Student, Subject } from './types';
 
 export interface FormCredit {
   lesson: CreditMode;
@@ -93,4 +93,29 @@ export function formToInput(form: FormState, today: string): SessionCheck {
     activityMinutes: parseMinutes(form.activity) ?? NaN,
     travelMinutes: parseMinutes(form.travel) ?? NaN,
   });
+}
+
+/**
+ * D-02: the next form starts from the last session (subject, minutes, and the students who are still
+ * active, with their current family). Date and start time reset, credit resets to Full, and the
+ * subject counts as chosen so a picked student's Default Subject does not override it.
+ */
+export function prefillFromSession(last: Session, activeStudents: Student[]): FormState {
+  const byId = new Map(activeStudents.map((s) => [s.id, s]));
+  const attendees: Attendee[] = [];
+  for (const a of last.attendees) {
+    const student = byId.get(a.studentId);
+    if (student) attendees.push({ studentId: student.id, familyId: student.familyId });
+  }
+  return {
+    date: null,
+    startTime: null,
+    subject: last.subject,
+    attendees,
+    lesson: String(last.lessonMinutes),
+    activity: String(last.activityMinutes),
+    travel: String(last.travelMinutes),
+    credits: {},
+    subjectTouched: true,
+  };
 }

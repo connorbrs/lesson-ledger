@@ -1,51 +1,92 @@
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { useLive } from '../data/live';
-import { createSession, loadNameMaps } from '../data/sessions';
+import { createSession, getLastSession, loadNameMaps } from '../data/sessions';
 import { listActiveStudents } from '../data/students';
 import { todayLocal } from '../domain/dates';
-import { blankForm, formToInput, type FormState } from '../domain/sessionForm';
-import { saveErrorMessage } from './components';
+import { blankForm, formToInput, prefillFromSession, setAttendees, type FormState } from '../domain/sessionForm';
+import { sessionSaveErrorMessage } from './components';
 import { SessionFields } from './SessionFields';
 
-export function Log(props: { draft: FormState; setDraft: (f: FormState) => void; onOpenPicker: () => void }) {
+const LOGGED_MS = 1500;
+
+export function Log(props: { draft: FormState | null; setDraft: (f: FormState) => void; onOpenPicker: () => void }) {
   const { draft } = props;
-  const data = useLive(async () => ({ active: await listActiveStudents(), names: await loadNameMaps() }));
-  const busy = useRef(false); // synchronous guard: a double tap writes once
+  const data = useLive(async () => ({ active: await listActiveStudents(), names: await loadNameMaps(), last: await getLastSession() }));
+  const busy = useRef(false); // synchronous guard: a double tap writes once; held until "Logged" clears
+  const root = useRef<HTMLDivElement>(null);
+  const footer = useRef<HTMLDivElement>(null);
+  const timer = useRef<number | undefined>(undefined);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [logged, setLogged] = useState(false);
+  const [footerHeight, setFooterHeight] = useState(0);
+  const ready = draft !== null && data !== undefined;
+
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  // D-02: the first time Log opens, pre-fill from the last session (or start blank).
+  useEffect(() => {
+    if (draft === null && data) props.setDraft(data.last ? prefillFromSession(data.last, data.active) : blankForm());
+  }, [data, draft === null]);
+
+  // A student archived (or moved to another family) on People while the draft is open cannot be saved.
+  useEffect(() => {
+    if (!draft || !data) return;
+    const byId = new Map(data.active.map((s) => [s.id, s]));
+    const next = draft.attendees.filter((a) => byId.has(a.studentId)).map((a) => ({ studentId: a.studentId, familyId: byId.get(a.studentId)!.familyId }));
+    if (next.length === draft.attendees.length && next.every((a, i) => a.familyId === draft.attendees[i].familyId)) return;
+    props.setDraft(setAttendees(draft, next));
+  }, [data?.active, draft?.attendees]);
+
+  // Keep the last Minutes row reachable above the sticky footer.
+  useEffect(() => {
+    const el = footer.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => setFooterHeight(el.offsetHeight));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ready]);
+
+  if (!draft || !data) return <h1 class="large-title">Log</h1>;
+
   const check = formToInput(draft, todayLocal());
 
   async function save() {
-    if (busy.current || !check.ok) return;
+    if (busy.current || !check.ok || !data) return;
     busy.current = true;
     setSaveError(null);
     try {
-      await createSession(check.value);
-      props.setDraft(blankForm());
+      const saved = await createSession(check.value);
+      props.setDraft(prefillFromSession(saved, data.active));
+      root.current?.closest('.scroll')?.scrollTo({ top: 0 });
+      setLogged(true);
+      timer.current = window.setTimeout(() => {
+        setLogged(false);
+        busy.current = false;
+      }, LOGGED_MS);
     } catch (e) {
-      setSaveError(saveErrorMessage(e));
-    } finally {
       busy.current = false;
+      setSaveError(sessionSaveErrorMessage(e));
     }
   }
 
   return (
-    <>
+    <div ref={root}>
       <h1 class="large-title">Log</h1>
-      {data && (
-        <SessionFields
-          form={draft}
-          onChange={props.setDraft}
-          names={data.names}
-          hasActiveStudents={data.active.length > 0}
-          onOpenPicker={props.onOpenPicker}
-        />
-      )}
-      {saveError && <p class="sheet-error" role="alert">{saveError}</p>}
-      <div class="log-actions">
-        <button type="button" class="primary-button full" disabled={!check.ok} onClick={() => void save()}>
-          Log Session
+      <SessionFields
+        form={draft}
+        onChange={props.setDraft}
+        names={data.names}
+        hasActiveStudents={data.active.length > 0}
+        onOpenPicker={props.onOpenPicker}
+      />
+      <div style={{ height: footerHeight }} aria-hidden="true" />
+      <div ref={footer} class="log-footer">
+        {saveError && <p class="sheet-error" role="alert">{saveError}</p>}
+        <button type="button" class="primary-button" disabled={logged || !check.ok} onClick={() => void save()}>
+          {logged ? 'Logged ✓' : 'Log Session'}
         </button>
+        <span class="visually-hidden" role="status">{logged ? 'Session logged' : ''}</span>
       </div>
-    </>
+    </div>
   );
 }

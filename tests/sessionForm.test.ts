@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { blankForm, changeSubject, formToInput, needsCreditGroups, parseMinutes, setAttendees, togglePick, type FormState } from '../src/domain/sessionForm';
-import type { Attendee } from '../src/domain/types';
+import { blankForm, changeSubject, formToInput, needsCreditGroups, parseMinutes, prefillFromSession, setAttendees, togglePick, type FormState } from '../src/domain/sessionForm';
+import type { Attendee, Session, Student } from '../src/domain/types';
 
 const a1: Attendee = { studentId: 'a1', familyId: 'A' };
 const a2: Attendee = { studentId: 'a2', familyId: 'A' };
@@ -92,5 +92,49 @@ describe('formToInput', () => {
     expect(formToInput(blankForm(), TODAY)).toEqual({ ok: false, code: 'students-invalid' });
     expect(formToInput(form({ attendees: [a1], travel: '1000' }), TODAY)).toEqual({ ok: false, code: 'minutes-invalid' });
     expect(formToInput(form({ attendees: [a1], lesson: '' }), TODAY)).toEqual({ ok: false, code: 'minutes-invalid' });
+  });
+});
+
+describe('prefillFromSession', () => {
+  const last: Session = {
+    id: 's1',
+    date: '2026-10-12',
+    startTime: '16:30',
+    subject: 'math',
+    attendees: [a1],
+    credits: [{ familyId: 'A', lesson: 'full', activity: 'full' }],
+    lessonMinutes: 60,
+    activityMinutes: 15,
+    travelMinutes: 20,
+    createdAt: 1,
+    updatedAt: 1,
+  };
+  const student = (id: string, familyId: string, archivedAt: number | null = null): Student => ({
+    id,
+    familyId,
+    name: id,
+    defaultSubject: 'both',
+    notes: '',
+    archivedAt,
+    createdAt: 1,
+    updatedAt: 1,
+  });
+
+  it('copies subject and minutes as text, resets date (null) and start time, credit empty, subject touched', () => {
+    const f = prefillFromSession(last, [student('a1', 'A')]);
+    expect(f).toMatchObject({ date: null, startTime: null, subject: 'math', lesson: '60', activity: '15', travel: '20', credits: {}, subjectTouched: true });
+    expect(f.attendees).toEqual([a1]);
+  });
+  it('drops a student who is archived (not in the active list) and gives no attendees for a math session whose student is gone', () => {
+    expect(prefillFromSession(last, []).attendees).toEqual([]);
+    const two = { ...last, subject: 'swim' as const, attendees: [a1, b1] };
+    expect(prefillFromSession(two, [student('b1', 'B')]).attendees).toEqual([b1]);
+  });
+  it('uses the student current family', () => {
+    expect(prefillFromSession(last, [student('a1', 'C')]).attendees).toEqual([{ studentId: 'a1', familyId: 'C' }]);
+  });
+  it('a pre-filled form saves with date today', () => {
+    const r = formToInput(prefillFromSession(last, [student('a1', 'A')]), TODAY);
+    expect(r.ok && r.value.date).toBe(TODAY);
   });
 });

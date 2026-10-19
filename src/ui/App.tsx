@@ -4,7 +4,7 @@ import { isStandalone } from '../pwa/standalone';
 import { ensurePersistence } from '../pwa/storage';
 import { useAppUpdate } from '../pwa/useAppUpdate';
 import { Archived, ArchivedDeleteAlert, type ArchivedDeleteTarget } from './Archived';
-import { blankForm, setAttendees, type FormState } from '../domain/sessionForm';
+import { setAttendees, type FormState } from '../domain/sessionForm';
 import { FamilySheet } from './FamilySheet';
 import { NavBar, PushLayer, Screen, TabBar, useAnimatedClose, type TabId } from './components';
 import { Log } from './Log';
@@ -41,7 +41,7 @@ export function App() {
   const [tab, setTab] = useState<TabId>('log');
   const [archivedOpen, setArchivedOpen] = useState(false);
   // The Log draft lives here so an unsaved form survives switching tabs.
-  const [logDraft, setLogDraft] = useState<FormState>(blankForm);
+  const [logDraft, setLogDraft] = useState<FormState | null>(null);
   const [logPickerOpen, setLogPickerOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetState>(null);
   const update = useAppUpdate();
@@ -85,11 +85,11 @@ export function App() {
           <Settings />
         )}
       </Screen>
-      {!error && logPickerOpen && (
+      {!error && logPickerOpen && logDraft && (
         <StudentPicker
           attendees={logDraft.attendees}
           subject={logDraft.subject}
-          onChange={(attendees, tappedDefault) => setLogDraft((d) => setAttendees(d, attendees, tappedDefault))}
+          onChange={(attendees, tappedDefault) => setLogDraft((d) => d && setAttendees(d, attendees, tappedDefault))}
           backLabel="Log"
           onClosed={() => setLogPickerOpen(false)}
         />

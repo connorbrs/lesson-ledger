@@ -23,6 +23,15 @@ export async function listSessions(): Promise<Session[]> {
   return (await db.sessions.toArray()).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.createdAt - b.createdAt));
 }
 
+/** The most recently logged session (greatest createdAt, ties by id), or undefined. No index: the table is small. */
+export async function getLastSession(): Promise<Session | undefined> {
+  let last: Session | undefined;
+  for (const s of await db.sessions.toArray()) {
+    if (!last || s.createdAt > last.createdAt || (s.createdAt === last.createdAt && s.id > last.id)) last = s;
+  }
+  return last;
+}
+
 /** Names for every student and family, archived included, so history still reads correctly. */
 export async function loadNameMaps(): Promise<{ students: Record<string, string>; families: Record<string, string> }> {
   const students: Record<string, string> = {};

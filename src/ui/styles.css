@@ -816,8 +816,34 @@ button.row:active:not(:disabled) {
   width: 100%;
 }
 
-.log-actions {
-  padding: 0 var(--space-md);
+.log-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tab-height) + var(--safe-bottom));
+  z-index: 2;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-bg-grouped);
+  border-top: var(--hairline) solid var(--color-separator);
+}
+
+.log-footer .sheet-error {
+  padding: 0 0 var(--space-sm);
+}
+
+.log-footer .primary-button {
+  display: block;
+  width: 100%;
+  margin-top: 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .row .segmented {

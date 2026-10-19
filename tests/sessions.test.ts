@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../src/data/db';
 import { createFamily } from '../src/data/families';
-import { createSession, listSessions } from '../src/data/sessions';
+import { createSession, getLastSession, listSessions } from '../src/data/sessions';
 import { archiveStudent, createStudent, deleteStudent, studentHasHistory } from '../src/data/students';
 import { SessionError, type SessionFields } from '../src/domain/session';
 import type { Attendee } from '../src/domain/types';
@@ -124,5 +124,26 @@ describe('createSession', () => {
       await expect(createSession(swim([{ studentId: 'nope', familyId: a1.familyId }]))).rejects.toMatchObject({ code: 'student-missing' });
       expect(await db.sessions.count()).toBe(0);
     });
+  });
+});
+
+describe('getLastSession', () => {
+  it('is undefined with no sessions', async () => {
+    expect(await getLastSession()).toBeUndefined();
+  });
+
+  it('returns the only session, then the one with the greatest createdAt', async () => {
+    const first = await createSession(swim([a1]));
+    expect((await getLastSession())?.id).toBe(first.id);
+    await db.sessions.add({ ...first, id: 'newer', createdAt: first.createdAt + 5 });
+    await db.sessions.add({ ...first, id: 'older', createdAt: first.createdAt - 5, date: '2030-01-01' });
+    expect((await getLastSession())?.id).toBe('newer');
+  });
+
+  it('breaks a createdAt tie by id', async () => {
+    const base = await createSession(swim([a1]));
+    await db.sessions.add({ ...base, id: 'zzz' });
+    await db.sessions.add({ ...base, id: 'aaa' });
+    expect((await getLastSession())?.id).toBe(base.id > 'zzz' ? base.id : 'zzz');
   });
 });

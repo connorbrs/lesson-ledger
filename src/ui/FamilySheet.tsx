@@ -125,7 +125,7 @@ export function FamilySheet(props: { family?: Family; onClosed: () => void }) {
         )}
         {family && hasStudents === true && (
           <section class="section">
-            <p class="group-footer">This family still has students. Remove them before deleting the family.</p>
+            <p class="group-footer">This family can't be deleted while it has students or lesson history.</p>
           </section>
         )}
       </Sheet>

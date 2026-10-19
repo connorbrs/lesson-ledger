@@ -47,11 +47,16 @@ async function setArchived(id: string, archived: boolean): Promise<Family> {
 export const archiveFamily = (id: string) => setArchived(id, true);
 export const restoreFamily = (id: string) => setArchived(id, false);
 
-/** Hard delete, allowed only when no student (active or archived) belongs to the family. */
+/**
+ * Hard delete, allowed only when no student (active or archived) belongs to the family and no session
+ * references it. Sessions snapshot familyId on each attendee and credit, so a student moved away after a
+ * lesson still leaves history that the backup must be able to restore.
+ */
 export async function deleteFamily(id: string): Promise<DeleteResult> {
-  return db.transaction('rw', db.families, db.students, async () => {
+  return db.transaction('rw', db.families, db.students, db.sessions, async () => {
     if (!(await db.families.get(id))) return { ok: false, reason: 'not-found' } as const;
     if ((await db.students.where('familyId').equals(id).count()) > 0) return { ok: false, reason: 'has-students' } as const;
+    if (await familyHasSessions(id)) return { ok: false, reason: 'has-history' } as const;
     await db.families.delete(id);
     return { ok: true } as const;
   });
@@ -61,8 +66,13 @@ export function getFamily(id: string): Promise<Family | undefined> {
   return db.families.get(id);
 }
 
+export async function familyHasSessions(id: string): Promise<boolean> {
+  return (await db.sessions.filter((s) => s.attendees.some((a) => a.familyId === id) || s.credits.some((c) => c.familyId === id)).count()) > 0;
+}
+
+/** True when the family cannot be deleted for its students or its lesson history. */
 export async function hasFamilyHistory(id: string): Promise<boolean> {
-  return (await db.students.where('familyId').equals(id).count()) > 0;
+  return (await db.students.where('familyId').equals(id).count()) > 0 || (await familyHasSessions(id));
 }
 
 // archivedAt is filtered in memory: null is not a valid IndexedDB key (RESEARCH Pitfall 7).

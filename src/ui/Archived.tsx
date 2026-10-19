@@ -1,6 +1,6 @@
 import { Fragment } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { deleteFamily, getFamily, hasFamilyHistory, listArchivedFamilies, restoreFamily } from '../data/families';
+import { deleteFamily, familyHasSessions, getFamily, hasFamilyHistory, listArchivedFamilies, restoreFamily } from '../data/families';
 import { useLive } from '../data/live';
 import { deleteStudent, listArchivedStudents, restoreStudent, studentHasHistory } from '../data/students';
 import { blockedFamilyNote } from '../domain/roster';
@@ -61,7 +61,11 @@ export function Archived(props: { onEmpty: () => void; onDelete: (target: Archiv
   };
   const data = useLive(async () => ({
     families: await Promise.all(
-      (await listArchivedFamilies()).map(async (family) => ({ family, hasStudents: await hasFamilyHistory(family.id) })),
+      (await listArchivedFamilies()).map(async (family) => ({
+        family,
+        hasStudents: await hasFamilyHistory(family.id),
+        hasSessions: await familyHasSessions(family.id),
+      })),
     ),
     students: await Promise.all(
       (await listArchivedStudents()).map(async (student) => ({
@@ -86,7 +90,7 @@ export function Archived(props: { onEmpty: () => void; onDelete: (target: Archiv
       )}
       {data && data.families.length > 0 && (
         <Group header="Families">
-          {data.families.map(({ family: f, hasStudents }) => (
+          {data.families.map(({ family: f, hasStudents, hasSessions }) => (
             <Fragment key={f.id}>
               <div class="row">
                 <span class="row-label clamp2">{f.name}</span>
@@ -104,6 +108,7 @@ export function Archived(props: { onEmpty: () => void; onDelete: (target: Archiv
                     {blockedFamilyNote({
                       hasArchivedStudents: data.students.some(({ student }) => student.familyId === f.id),
                       hasArchivedStudentWithHistory: data.students.some(({ student, hasHistory }) => student.familyId === f.id && hasHistory),
+                      hasSessions,
                     })}
                   </span>
                 </div>

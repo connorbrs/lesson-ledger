@@ -1,9 +1,9 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../src/data/db';
-import { createFamily } from '../src/data/families';
+import { archiveFamily, createFamily, deleteFamily, getFamily, hasFamilyHistory } from '../src/data/families';
 import { createSession, deleteSession, getLastSession, getSession, listSessions, listSessionsInRange, updateSession } from '../src/data/sessions';
-import { archiveStudent, createStudent, deleteStudent, studentHasHistory } from '../src/data/students';
+import { archiveStudent, createStudent, deleteStudent, studentHasHistory, updateStudent } from '../src/data/students';
 import { groupSessionsByDate, sessionRowText, SessionError, type SessionFields } from '../src/domain/session';
 import type { Attendee, Session } from '../src/domain/types';
 
@@ -294,5 +294,31 @@ describe('updateSession and deleteSession', () => {
     await deleteSession(created.id);
     expect(await studentHasHistory(a1.studentId)).toBe(false);
     expect(await deleteStudent(a1.studentId)).toEqual({ ok: true });
+  });
+});
+
+describe('family delete with lesson history', () => {
+  // A family whose only student had a lesson, then moved to family B and the family was archived: no students left.
+  async function familyWithOrphanedHistory() {
+    const fam = await createFamily('Test Family C');
+    const student = await createStudent({ familyId: fam.id, name: 'Test Student C1' });
+    const created = await createSession(swim([{ studentId: student.id, familyId: fam.id }]));
+    await updateStudent(student.id, { familyId: b1.familyId });
+    await archiveFamily(fam.id);
+    return { fam, created };
+  }
+
+  it('refuses to delete a family whose session still references it after its only student moved away', async () => {
+    const { fam } = await familyWithOrphanedHistory();
+    expect(await hasFamilyHistory(fam.id)).toBe(true);
+    expect(await deleteFamily(fam.id)).toEqual({ ok: false, reason: 'has-history' });
+    expect(await getFamily(fam.id)).toBeDefined();
+  });
+
+  it('deletes the family once its lesson history is gone', async () => {
+    const { fam, created } = await familyWithOrphanedHistory();
+    await deleteSession(created.id);
+    expect(await hasFamilyHistory(fam.id)).toBe(false);
+    expect(await deleteFamily(fam.id)).toEqual({ ok: true });
   });
 });

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { deleteFamily, getFamily, hasFamilyHistory, listArchivedFamilies, restoreFamily } from '../data/families';
 import { useLive } from '../data/live';
 import { deleteStudent, listArchivedStudents, restoreStudent, studentHasHistory } from '../data/students';
+import { blockedFamilyNote } from '../domain/roster';
 import { Alert, Group, Row } from './components';
 
 export interface ArchivedDeleteTarget {
@@ -100,9 +101,10 @@ export function Archived(props: { onEmpty: () => void; onDelete: (target: Archiv
               ) : (
                 <div class="row">
                   <span class="row-label row-sub">
-                    {data.students.some(({ student }) => student.familyId === f.id)
-                      ? 'This family still has students. Delete its archived students first.'
-                      : 'This family still has active students. Restore it to manage them.'}
+                    {blockedFamilyNote({
+                      hasArchivedStudents: data.students.some(({ student }) => student.familyId === f.id),
+                      hasArchivedStudentWithHistory: data.students.some(({ student, hasHistory }) => student.familyId === f.id && hasHistory),
+                    })}
                   </span>
                 </div>
               )}

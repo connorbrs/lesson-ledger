@@ -26,3 +26,10 @@ export function studentCountLabel(count: number): string {
 export function subjectLabel(subject: DefaultSubject): string {
   return subject === 'swim' ? 'Swim' : subject === 'math' ? 'Math' : 'Both';
 }
+
+/** The note under an archived family that cannot be deleted (backlog 999.1: lesson history wins over the other two). */
+export function blockedFamilyNote(f: { hasArchivedStudents: boolean; hasArchivedStudentWithHistory: boolean }): string {
+  if (f.hasArchivedStudentWithHistory) return "This family has archived students with lesson history, so it can't be deleted.";
+  if (f.hasArchivedStudents) return 'This family still has students. Delete its archived students first.';
+  return 'This family still has active students. Restore it to manage them.';
+}

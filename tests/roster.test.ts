@@ -23,7 +23,7 @@ import {
   studentHasHistory,
   updateStudent,
 } from '../src/data/students';
-import { compareRoster, periodLabel, studentCountLabel, subjectLabel } from '../src/domain/roster';
+import { blockedFamilyNote, compareRoster, periodLabel, studentCountLabel, subjectLabel } from '../src/domain/roster';
 import type { Period } from '../src/domain/types';
 
 beforeEach(async () => {
@@ -367,5 +367,23 @@ describe('concurrency', () => {
         expect(students).toHaveLength(1);
       }
     }
+  });
+});
+
+describe('blocked family note (backlog 999.1)', () => {
+  it('names lesson history when an archived student has sessions, even beside students without', () => {
+    expect(blockedFamilyNote({ hasArchivedStudents: true, hasArchivedStudentWithHistory: true })).toBe(
+      "This family has archived students with lesson history, so it can't be deleted.",
+    );
+  });
+  it('keeps the archived-students sentence when none of them has history', () => {
+    expect(blockedFamilyNote({ hasArchivedStudents: true, hasArchivedStudentWithHistory: false })).toBe(
+      'This family still has students. Delete its archived students first.',
+    );
+  });
+  it('keeps the active-students sentence when no student is archived', () => {
+    expect(blockedFamilyNote({ hasArchivedStudents: false, hasArchivedStudentWithHistory: false })).toBe(
+      'This family still has active students. Restore it to manage them.',
+    );
   });
 });

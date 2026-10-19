@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { formatDateValue, formatTime12, todayLocal } from '../domain/dates';
 import { formatMinutes } from '../domain/hours';
 import { creditedMinutes } from '../domain/session';
@@ -53,6 +53,19 @@ export function SessionFields(props: {
   onOpenPicker: () => void;
 }) {
   const { form, names } = props;
+  // A form left open past midnight must show the new "Today": re-render when the app is shown again.
+  const [, setClock] = useState(0);
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === 'visible') setClock((n) => n + 1);
+    };
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      document.removeEventListener('visibilitychange', refresh);
+      window.removeEventListener('focus', refresh);
+    };
+  }, []);
   const today = todayLocal();
   const set = (patch: Partial<FormState>) => props.onChange({ ...form, ...patch });
   const studentNames = form.attendees.map((a) => names.students[a.studentId]).filter(Boolean);

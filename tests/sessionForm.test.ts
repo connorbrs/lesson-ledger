@@ -59,6 +59,14 @@ describe('changeSubject and setAttendees', () => {
   });
 });
 
+describe('formToInput date', () => {
+  it('a null date means the day of the call, so a form open past midnight saves the new day', () => {
+    const f = form({ attendees: [a1] });
+    expect(formToInput(f, '2026-10-18')).toMatchObject({ ok: true, value: { date: '2026-10-18' } });
+    expect(formToInput(f, '2026-10-19')).toMatchObject({ ok: true, value: { date: '2026-10-19' } });
+  });
+});
+
 describe('formToInput credits', () => {
   const half = { A: { lesson: 'half' as const, activity: 'full' as const } };
   it('gives one entry per distinct family in pick order; two siblings give one', () => {

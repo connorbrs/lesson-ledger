@@ -27,12 +27,14 @@ export function SessionSheet(props: { session: Session; onClosed: () => void }) 
   const dirty = !sameForm(form, initial);
 
   async function save() {
-    if (busy.current || !check.ok) return;
+    // "Today" is resolved now, not at render: a date cleared back to today is stored as null and must save today.
+    const fresh = formToInput(form, todayLocal());
+    if (busy.current || !fresh.ok) return;
     busy.current = true;
     setSaving(true);
     setSaveError(null);
     try {
-      await updateSession(session.id, check.value);
+      await updateSession(session.id, fresh.value);
       close();
     } catch (e) {
       busy.current = false;

@@ -52,11 +52,14 @@ export function Log(props: { draft: FormState | null; setDraft: (f: FormState) =
   const check = formToInput(draft, todayLocal());
 
   async function save() {
-    if (busy.current || !check.ok || !data) return;
+    // "Today" is resolved now, not at render: a form left open past midnight saves the day it was logged.
+    if (!draft || busy.current || !data) return;
+    const fresh = formToInput(draft, todayLocal());
+    if (!fresh.ok) return;
     busy.current = true;
     setSaveError(null);
     try {
-      const saved = await createSession(check.value);
+      const saved = await createSession(fresh.value);
       props.setDraft(prefillFromSession(saved, data.active));
       root.current?.closest('.scroll')?.scrollTo({ top: 0 });
       setLogged(true);

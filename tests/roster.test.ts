@@ -313,6 +313,40 @@ describe('student delete guard', () => {
   });
 });
 
+describe('archived delete path', () => {
+  it('deletes an archived student with no sessions, then its emptied archived family', async () => {
+    const f = await createFamily('Test Family A');
+    const s = await createStudent({ familyId: f.id, name: 'Test Student A' });
+    await archiveStudent(s.id);
+    await archiveFamily(f.id);
+    expect((await listArchivedStudents()).map((x) => x.id)).toEqual([s.id]);
+    expect((await listArchivedFamilies()).map((x) => x.id)).toEqual([f.id]);
+    expect(await studentHasHistory(s.id)).toBe(false);
+    expect(await hasFamilyHistory(f.id)).toBe(true);
+    expect(await deleteFamily(f.id)).toEqual({ ok: false, reason: 'has-students' });
+    expect(await deleteStudent(s.id)).toEqual({ ok: true });
+    expect(await getStudent(s.id)).toBeUndefined();
+    expect(await listArchivedStudents()).toEqual([]);
+    expect(await hasFamilyHistory(f.id)).toBe(false);
+    expect(await deleteFamily(f.id)).toEqual({ ok: true });
+    expect(await getFamily(f.id)).toBeUndefined();
+    expect(await listArchivedFamilies()).toEqual([]);
+  });
+
+  it('keeps an archived student with a session, and its archived family, undeletable', async () => {
+    const f = await createFamily('Test Family A');
+    const s = await createStudent({ familyId: f.id, name: 'Test Student A' });
+    await db.sessions.add({ id: 'session-1', attendees: [{ studentId: s.id }] });
+    await archiveStudent(s.id);
+    await archiveFamily(f.id);
+    expect(await studentHasHistory(s.id)).toBe(true);
+    expect(await deleteStudent(s.id)).toEqual({ ok: false, reason: 'has-history' });
+    expect(await deleteFamily(f.id)).toEqual({ ok: false, reason: 'has-students' });
+    expect(await getStudent(s.id)).toBeDefined();
+    expect(await getFamily(f.id)).toBeDefined();
+  });
+});
+
 describe('concurrency', () => {
   it('never leaves a student pointing at a missing family when delete and create race', async () => {
     for (let i = 0; i < 10; i++) {

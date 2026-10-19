@@ -1,10 +1,58 @@
-import { useEffect, useState } from 'preact/hooks';
-import { getFamily, listArchivedFamilies, restoreFamily } from '../data/families';
+import { Fragment } from 'preact';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { deleteFamily, getFamily, listArchivedFamilies, restoreFamily } from '../data/families';
 import { useLive } from '../data/live';
-import { listArchivedStudents, restoreStudent } from '../data/students';
-import { Group } from './components';
+import { deleteStudent, listArchivedStudents, restoreStudent, studentHasHistory } from '../data/students';
+import { Alert, Group, Row } from './components';
 
-export function Archived(props: { onEmpty: () => void }) {
+export interface ArchivedDeleteTarget {
+  kind: 'family' | 'student';
+  id: string;
+  name: string;
+}
+
+/** Confirm alert for a hard delete. Mounted by the screen (a sibling of the pushed layer), never inside the list. */
+export function ArchivedDeleteAlert(props: { target: ArchivedDeleteTarget; onClose: () => void }) {
+  const { target, onClose } = props;
+  const [state, setState] = useState({ busy: false, failed: false });
+  const busy = useRef(false);
+
+  async function confirmDelete() {
+    if (busy.current) return;
+    busy.current = true;
+    setState({ busy: true, failed: false });
+    try {
+      const result = target.kind === 'student' ? await deleteStudent(target.id) : await deleteFamily(target.id);
+      if (result.ok) {
+        onClose();
+        return;
+      }
+    } catch {
+      // fall through to the failure state
+    }
+    busy.current = false;
+    setState({ busy: false, failed: true });
+  }
+
+  return (
+    <Alert
+      title={`Delete “${target.name}”?`}
+      message={state.failed ? `Couldn't delete “${target.name}”. Nothing was changed.` : "This can't be undone."}
+      buttons={[
+        { label: 'Cancel', tone: 'accent', onClick: onClose },
+        {
+          label: target.kind === 'student' ? 'Delete Student' : 'Delete Family',
+          tone: 'destructive',
+          strong: true,
+          disabled: state.busy,
+          onClick: () => void confirmDelete(),
+        },
+      ]}
+    />
+  );
+}
+
+export function Archived(props: { onEmpty: () => void; onDelete: (target: ArchivedDeleteTarget) => void }) {
   const [failed, setFailed] = useState(false);
   const restore = (action: Promise<unknown>) => {
     setFailed(false);
@@ -13,7 +61,11 @@ export function Archived(props: { onEmpty: () => void }) {
   const data = useLive(async () => ({
     families: await listArchivedFamilies(),
     students: await Promise.all(
-      (await listArchivedStudents()).map(async (student) => ({ student, family: await getFamily(student.familyId) })),
+      (await listArchivedStudents()).map(async (student) => ({
+        student,
+        family: await getFamily(student.familyId),
+        hasHistory: await studentHasHistory(student.id),
+      })),
     ),
   }));
 
@@ -43,27 +95,34 @@ export function Archived(props: { onEmpty: () => void }) {
       )}
       {data && data.students.length > 0 && (
         <Group header="Students">
-          {data.students.map(({ student: s, family }) => {
+          {data.students.map(({ student: s, family, hasHistory }) => {
             // A student can only be restored under an active family (restoreStudent enforces it).
             const familyArchived = !family || family.archivedAt !== null;
             return (
-              <div class="row" key={s.id}>
-                <span class="row-label clamp2">
-                  {s.name}
-                  <span class="row-sub">
-                    {family?.name}
-                    {familyArchived && ' · Restore the family first'}
+              <Fragment key={s.id}>
+                <div class="row">
+                  <span class="row-label clamp2">
+                    {s.name}
+                    <span class="row-sub">
+                      {family?.name}
+                      {familyArchived && ' · Restore the family first'}
+                    </span>
                   </span>
-                </span>
-                <button
-                  type="button"
-                  class="text-button"
-                  disabled={familyArchived}
-                  onClick={() => restore(restoreStudent(s.id))}
-                >
-                  Restore Student
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    class="text-button"
+                    disabled={familyArchived}
+                    onClick={() => restore(restoreStudent(s.id))}
+                  >
+                    Restore Student
+                  </button>
+                </div>
+                {!hasHistory && (
+                  <Row tone="destructive" onClick={() => props.onDelete({ kind: 'student', id: s.id, name: s.name })}>
+                    Delete Student
+                  </Row>
+                )}
+              </Fragment>
             );
           })}
         </Group>

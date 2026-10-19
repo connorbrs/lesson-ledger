@@ -3,7 +3,7 @@ import type { Family, Student } from '../domain/types';
 import { isStandalone } from '../pwa/standalone';
 import { ensurePersistence } from '../pwa/storage';
 import { useAppUpdate } from '../pwa/useAppUpdate';
-import { Archived } from './Archived';
+import { Archived, ArchivedDeleteAlert, type ArchivedDeleteTarget } from './Archived';
 import { FamilySheet } from './FamilySheet';
 import { NavBar, PushLayer, Screen, TabBar, useAnimatedClose, type TabId } from './components';
 import { People } from './People';
@@ -19,12 +19,17 @@ type SheetState =
 
 function ArchivedScreen(props: { onClosed: () => void }) {
   const { closing, close, onAnimationEnd } = useAnimatedClose(props.onClosed, 310);
+  const [pendingDelete, setPendingDelete] = useState<ArchivedDeleteTarget | null>(null);
+  // The alert is a sibling of the pushed layer so it ends up a direct child of .app and makes the layer inert (WR-06).
   return (
-    <PushLayer closing={closing} onAnimationEnd={onAnimationEnd}>
-      <Screen nav={<NavBar title="Archived" back={{ label: 'People', onClick: close }} />}>
-        <Archived onEmpty={close} />
-      </Screen>
-    </PushLayer>
+    <>
+      <PushLayer closing={closing} onAnimationEnd={onAnimationEnd}>
+        <Screen nav={<NavBar title="Archived" back={{ label: 'People', onClick: close }} />}>
+          <Archived onEmpty={close} onDelete={setPendingDelete} />
+        </Screen>
+      </PushLayer>
+      {pendingDelete && <ArchivedDeleteAlert target={pendingDelete} onClose={() => setPendingDelete(null)} />}
+    </>
   );
 }
 

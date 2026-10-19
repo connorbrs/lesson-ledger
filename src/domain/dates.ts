@@ -41,6 +41,28 @@ export function formatTime12(hhmm: string): string {
   return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
 }
 
+/** "HH:MM" to minutes since midnight. The caller has already validated the string. */
+export function timeToMinutes(hhmm: string): number {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+}
+
+/** Minutes since midnight to "HH:MM"; null outside 0 to 1439, so a time past midnight is null. */
+export function minutesToTime(minutes: number): string | null {
+  if (!Number.isInteger(minutes) || minutes < 0 || minutes > 1439) return null;
+  return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
+}
+
+/** The local hour and minute as "HH:MM", seconds dropped. */
+export function currentHHMM(now: Date = new Date()): string {
+  return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+}
+
+/** Minutes as h:mm with unpadded hours: 47 gives "0:47", 105 gives "1:45". */
+export function formatDuration(minutes: number): string {
+  return `${Math.floor(minutes / 60)}:${pad(minutes % 60)}`;
+}
+
 /* ---------- Periods (Mon-Sun weeks, calendar months) ---------- */
 
 export type PeriodKind = 'week' | 'month';

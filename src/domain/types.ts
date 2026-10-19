@@ -39,11 +39,15 @@ export interface FamilyCredit {
   activity: CreditMode;
 }
 
-/** D-06: local date YYYY-MM-DD and an optional HH:MM start time; no note field. */
+/**
+ * D-06: local date YYYY-MM-DD, an optional HH:MM start time and an optional HH:MM Finish (endTime);
+ * no note field. Rows saved before endTime existed have no endTime key; readers treat that as null.
+ */
 export interface Session {
   id: string;
   date: string;
   startTime: string | null;
+  endTime: string | null;
   subject: Subject;
   attendees: Attendee[];
   credits: FamilyCredit[];

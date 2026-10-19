@@ -31,6 +31,7 @@ function swim(attendees: Attendee[], over: Partial<SessionFields> = {}): Session
   return {
     date: '2026-10-19',
     startTime: null,
+    endTime: null,
     subject: 'swim',
     attendees,
     credits: families.map(full),
@@ -74,6 +75,17 @@ describe('createSession', () => {
     expect(await db.sessions.count()).toBe(2);
   });
 
+  it('stores a Finish and listSessions returns it unchanged', async () => {
+    const created = await createSession(swim([a1], { startTime: '16:00', endTime: '16:45', lessonMinutes: 30, activityMinutes: 15 }));
+    expect(created.endTime).toBe('16:45');
+    expect(await listSessions()).toEqual([created]);
+  });
+
+  it('accepts a Finish equal to Start as a zero-minute session', async () => {
+    await createSession(swim([a1], { startTime: '16:00', endTime: '16:00', lessonMinutes: 0, activityMinutes: 0 }));
+    expect(await db.sessions.count()).toBe(1);
+  });
+
   it('accepts the minute bounds 0 and 999 and the attendee bounds 1 and 2', async () => {
     await createSession(swim([a1], { lessonMinutes: 0, activityMinutes: 999, travelMinutes: 999 }));
     await createSession(swim([a1, b1]));
@@ -98,6 +110,9 @@ describe('createSession', () => {
       ['minutes NaN', () => swim([a1], { lessonMinutes: NaN }), 'minutes-invalid'],
       ['date 2026-02-29', () => swim([a1], { date: '2026-02-29' }), 'date-invalid'],
       ['start 24:00', () => swim([a1], { startTime: '24:00' }), 'time-invalid'],
+      ['finish earlier than start', () => swim([a1], { startTime: '16:00', endTime: '15:30' }), 'time-invalid'],
+      ['finish with no start', () => swim([a1], { endTime: '16:45' }), 'time-invalid'],
+      ['finish span differs from lesson plus activity', () => swim([a1], { startTime: '16:00', endTime: '16:45', lessonMinutes: 30, activityMinutes: 10 }), 'minutes-invalid'],
       ['subject golf', () => swim([a1], { subject: 'golf' as never }), 'subject-invalid'],
       ['Half on a one-family session', () => swim([a1, a2], { credits: [{ ...full(a1.familyId), lesson: 'half' }] }), 'credits-invalid'],
       ['Half on a math session', () => ({ ...swim([a1], { credits: [{ ...full(a1.familyId), activity: 'half' }] }), subject: 'math' }), 'credits-invalid'],
@@ -178,6 +193,7 @@ describe('groupSessionsByDate and sessionRowText', () => {
     id: 'x',
     date: '2026-10-19',
     startTime: null,
+    endTime: null,
     subject: 'swim',
     attendees: [{ studentId: 's1', familyId: 'F' }],
     credits: [{ familyId: 'F', lesson: 'full', activity: 'full' }],
@@ -238,6 +254,17 @@ describe('updateSession and deleteSession', () => {
     const { updatedAt: u2, ...rest2 } = twice;
     expect(rest2).toEqual(rest1);
     expect(u2).toBeGreaterThan(u1);
+  });
+
+  it('moves Finish with the edited Duration, and an inconsistent Finish leaves the stored row unchanged', async () => {
+    const created = await createSession(swim([a1], { startTime: '16:00', endTime: '16:45', lessonMinutes: 30, activityMinutes: 15 }));
+    const next = await updateSession(created.id, swim([a1], { startTime: '16:00', endTime: '17:00', lessonMinutes: 45, activityMinutes: 15 }));
+    expect(next.endTime).toBe('17:00');
+    const stored = await getSession(created.id);
+    await expect(updateSession(created.id, swim([a1], { startTime: '16:00', endTime: '17:30', lessonMinutes: 45, activityMinutes: 15 }))).rejects.toMatchObject({
+      code: 'minutes-invalid',
+    });
+    expect(await getSession(created.id)).toEqual(stored);
   });
 
   it('rejects an invalid edit and leaves the stored row unchanged', async () => {

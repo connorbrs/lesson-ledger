@@ -1,4 +1,4 @@
-import { formatTime12, isValidTime, isValidYmd } from './dates';
+import { formatTime12, isValidTime, isValidYmd, timeToMinutes } from './dates';
 import { formatHours } from './hours';
 import { MINUTES_MAX, type Attendee, type CreditMode, type FamilyCredit, type Session, type Subject } from './types';
 
@@ -23,6 +23,7 @@ export class SessionError extends Error {
 export interface SessionFields {
   date: string;
   startTime: string | null;
+  endTime: string | null;
   subject: Subject;
   attendees: Attendee[];
   credits: FamilyCredit[];
@@ -41,6 +42,9 @@ export function validateSessionFields(input: SessionFields): SessionCheck {
   const fail = (code: SessionErrorCode): SessionCheck => ({ ok: false, code });
   if (!isValidYmd(input.date)) return fail('date-invalid');
   if (input.startTime !== null && !isValidTime(input.startTime)) return fail('time-invalid');
+  if (input.endTime !== null && (input.startTime === null || !isValidTime(input.endTime) || timeToMinutes(input.endTime) < timeToMinutes(input.startTime))) {
+    return fail('time-invalid');
+  }
   if (input.subject !== 'swim' && input.subject !== 'math') return fail('subject-invalid');
 
   const { attendees } = input;
@@ -50,6 +54,10 @@ export function validateSessionFields(input: SessionFields): SessionCheck {
   if (input.subject === 'math' ? count !== 1 : count < 1 || count > 2) return fail('students-invalid');
 
   if (!isMinutes(input.lessonMinutes) || !isMinutes(input.activityMinutes) || !isMinutes(input.travelMinutes)) return fail('minutes-invalid');
+  // Finish is a clock time, so Duration (Lesson plus Activity) must be exactly the span from Start to Finish.
+  if (input.endTime !== null && input.startTime !== null && timeToMinutes(input.endTime) - timeToMinutes(input.startTime) !== input.lessonMinutes + input.activityMinutes) {
+    return fail('minutes-invalid');
+  }
 
   const families = new Set(attendees.map((a) => a.familyId));
   const { credits } = input;

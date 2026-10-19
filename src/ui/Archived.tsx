@@ -1,6 +1,6 @@
 import { Fragment } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { deleteFamily, getFamily, listArchivedFamilies, restoreFamily } from '../data/families';
+import { deleteFamily, getFamily, hasFamilyHistory, listArchivedFamilies, restoreFamily } from '../data/families';
 import { useLive } from '../data/live';
 import { deleteStudent, listArchivedStudents, restoreStudent, studentHasHistory } from '../data/students';
 import { Alert, Group, Row } from './components';
@@ -59,7 +59,9 @@ export function Archived(props: { onEmpty: () => void; onDelete: (target: Archiv
     action.catch(() => setFailed(true));
   };
   const data = useLive(async () => ({
-    families: await listArchivedFamilies(),
+    families: await Promise.all(
+      (await listArchivedFamilies()).map(async (family) => ({ family, hasStudents: await hasFamilyHistory(family.id) })),
+    ),
     students: await Promise.all(
       (await listArchivedStudents()).map(async (student) => ({
         student,
@@ -83,13 +85,28 @@ export function Archived(props: { onEmpty: () => void; onDelete: (target: Archiv
       )}
       {data && data.families.length > 0 && (
         <Group header="Families">
-          {data.families.map((f) => (
-            <div class="row" key={f.id}>
-              <span class="row-label clamp2">{f.name}</span>
-              <button type="button" class="text-button" onClick={() => restore(restoreFamily(f.id))}>
-                Restore Family
-              </button>
-            </div>
+          {data.families.map(({ family: f, hasStudents }) => (
+            <Fragment key={f.id}>
+              <div class="row">
+                <span class="row-label clamp2">{f.name}</span>
+                <button type="button" class="text-button" onClick={() => restore(restoreFamily(f.id))}>
+                  Restore Family
+                </button>
+              </div>
+              {!hasStudents ? (
+                <Row tone="destructive" onClick={() => props.onDelete({ kind: 'family', id: f.id, name: f.name })}>
+                  Delete Family
+                </Row>
+              ) : (
+                <div class="row">
+                  <span class="row-label row-sub">
+                    {data.students.some(({ student }) => student.familyId === f.id)
+                      ? 'This family still has students. Delete its archived students first.'
+                      : 'This family still has active students. Restore it to manage them.'}
+                  </span>
+                </div>
+              )}
+            </Fragment>
           ))}
         </Group>
       )}

@@ -1,20 +1,27 @@
+import { base64DecodedLength, base64ToBytes, isBase64 } from './base64';
 import { daysBetween, localYmdFromMs } from './dates';
+import { validateExpenseText } from './expense';
+import { MAX_PHOTO_DIMENSION, MAX_STORED_PHOTO_BYTES, hasJpegMagic } from './photos';
 import { validateSessionFields } from './session';
-import type { Family, Session, Student } from './types';
+import type { Expense, ExpenseSplit, Family, Session, Student } from './types';
 import { validateFamilyInput, validateStudentInput } from './validate';
 
 /**
- * The backup file contract (D-09, one-way: backups saved to Files must restore under every later version).
- * schemaVersion 1 is one JSON document. expenses and attachments are always empty in version 1;
- * attachments is the slot reserved for Phase 3 receipt photos, which raises schemaVersion.
- * Sessions carry endTime (D-07): optional on read, since a file from before Finish existed has no endTime key
- * and restores with null; every new export writes it. schemaVersion stays 1.
+ * The backup file contract (D-06, one-way: backups saved to Files must restore under every later version).
+ * One JSON document, no zip. schemaVersion 2 adds the receipts: expenses (the stored rows) and attachments, each
+ * {id, expenseId, mime 'image/jpeg', width, height, createdAt, data} where data is the standard base64 of the JPEG bytes.
+ * schemaVersion 1 files (expenses and attachments always empty) are read forever and restore with no receipts.
+ * Sessions carry endTime (D-07 of Phase 2): optional on read, since a file from before Finish existed has no endTime key
+ * and restores with null; every new export writes it.
+ * Any change from here needs a migration reader for version 2.
  */
 export const BACKUP_FORMAT = 'lesson-ledger-backup';
-export const BACKUP_SCHEMA_VERSION = 1;
-export const MAX_BACKUP_BYTES = 50_000_000;
+export const BACKUP_SCHEMA_VERSION = 2;
+/** D-08: the cap on a backup file (150 MB). Export refuses above it and restore treats a larger file as not a backup. */
+export const MAX_BACKUP_BYTES = 150_000_000;
+export const BACKUP_TOO_LARGE_MESSAGE = `This backup is too large to save (over ${MAX_BACKUP_BYTES / 1_000_000} MB).`;
 
-export type BackupErrorCode = 'unsupported-data';
+export type BackupErrorCode = 'too-large' | 'invalid-photo';
 
 export class BackupError extends Error {
   constructor(public readonly code: BackupErrorCode) {
@@ -30,8 +37,19 @@ export interface BackupFile {
   families: Family[];
   students: Student[];
   sessions: Session[];
-  expenses: never[];
-  attachments: never[];
+  expenses: Expense[];
+  attachments: BackupAttachment[];
+}
+
+export interface BackupAttachment {
+  id: string;
+  expenseId: string;
+  mime: 'image/jpeg';
+  width: number;
+  height: number;
+  createdAt: number;
+  /** Standard base64 of the JPEG bytes. */
+  data: string;
 }
 
 export type BackupFailure = 'not-backup' | 'damaged' | 'newer-version';
@@ -110,6 +128,56 @@ function parseSession(raw: unknown): Session {
   return { id: r.id as string, ...(v as { ok: true; value: Omit<Session, 'id' | 'createdAt' | 'updatedAt'> }).value, createdAt: r.createdAt as number, updatedAt: r.updatedAt as number };
 }
 
+/** The expense row, rebuilt from whitelisted fields; its shares must be exactly the session's attendee families and sum to the amount. */
+function parseExpense(raw: unknown, sessions: Map<string, Session>): Expense {
+  const r = rowObj(raw);
+  const text = validateExpenseText(r.description);
+  const session = isId(r.sessionId) ? sessions.get(r.sessionId) : undefined;
+  need(isId(r.id) && session !== undefined && text.ok);
+  need(Number.isSafeInteger(r.amountCents) && (r.amountCents as number) > 0);
+  need(isTime(r.createdAt) && isTime(r.updatedAt));
+  const amountCents = r.amountCents as number;
+  const splits: ExpenseSplit[] = arrayOf(r.splits).map((entry) => {
+    const o = rowObj(entry);
+    need(isId(o.familyId) && Number.isSafeInteger(o.cents) && (o.cents as number) >= 0);
+    return { familyId: o.familyId as string, cents: o.cents as number };
+  });
+  const shareFamilies = new Set(splits.map((x) => x.familyId));
+  const sessionFamilies = new Set(session!.attendees.map((a) => a.familyId));
+  need(splits.length > 0 && shareFamilies.size === splits.length);
+  need(shareFamilies.size === sessionFamilies.size && [...shareFamilies].every((f) => sessionFamilies.has(f)));
+  let total = 0;
+  for (const x of splits) {
+    total += x.cents;
+    need(total <= amountCents);
+  }
+  need(total === amountCents);
+  return {
+    id: r.id as string,
+    sessionId: r.sessionId as string,
+    description: (text as { ok: true; value: string }).value,
+    amountCents,
+    splits,
+    createdAt: r.createdAt as number,
+    updatedAt: r.updatedAt as number,
+  };
+}
+
+/** Longest base64 text that could still decode within the per-photo cap; judged on length before any character scan. */
+const MAX_PHOTO_BASE64_LENGTH = Math.ceil(MAX_STORED_PHOTO_BYTES / 3) * 4;
+const isDimension = (v: unknown): v is number => Number.isSafeInteger(v) && (v as number) >= 1 && (v as number) <= MAX_PHOTO_DIMENSION;
+
+function parseAttachment(raw: unknown, expenseIds: Set<string>): BackupAttachment {
+  const r = rowObj(raw);
+  need(isId(r.id) && isId(r.expenseId) && expenseIds.has(r.expenseId) && r.mime === 'image/jpeg');
+  need(isDimension(r.width) && isDimension(r.height) && isTime(r.createdAt));
+  const data = r.data;
+  need(typeof data === 'string' && data.length <= MAX_PHOTO_BASE64_LENGTH && isBase64(data));
+  const head = base64ToBytes((data as string).slice(0, 4));
+  need(head !== null && hasJpegMagic(head) && base64DecodedLength(data as string) <= MAX_STORED_PHOTO_BYTES);
+  return { id: r.id as string, expenseId: r.expenseId as string, mime: 'image/jpeg', width: r.width as number, height: r.height as number, createdAt: r.createdAt as number, data: data as string };
+}
+
 const uniqueIds = (rows: { id: string }[]): Set<string> => {
   const ids = new Set(rows.map((r) => r.id));
   need(ids.size === rows.length);
@@ -138,13 +206,24 @@ export function parseBackup(text: string, size: number = text.length): ParsedBac
     const families = arrayOf(doc.families).map(parseFamily);
     const students = arrayOf(doc.students).map(parseStudent);
     const sessions = arrayOf(doc.sessions).map(parseSession);
-    need(arrayOf(doc.expenses).length === 0 && arrayOf(doc.attachments).length === 0);
     const familyIds = uniqueIds(families);
     const studentIds = uniqueIds(students);
     uniqueIds(sessions);
     need(students.every((s) => familyIds.has(s.familyId)));
     need(sessions.every((s) => s.attendees.every((a) => studentIds.has(a.studentId) && familyIds.has(a.familyId))));
-    return { ok: true, file: { format: BACKUP_FORMAT, schemaVersion: version, createdAt: doc.createdAt as number, families, students, sessions, expenses: [], attachments: [] } };
+    let expenses: Expense[] = [];
+    let attachments: BackupAttachment[] = [];
+    if (version === 1) {
+      // A version 1 file never carried receipts; either array holding rows means it was altered.
+      need(arrayOf(doc.expenses).length === 0 && arrayOf(doc.attachments).length === 0);
+    } else {
+      const sessionsById = new Map(sessions.map((s) => [s.id, s]));
+      expenses = arrayOf(doc.expenses).map((e) => parseExpense(e, sessionsById));
+      const expenseIds = uniqueIds(expenses);
+      attachments = arrayOf(doc.attachments).map((a) => parseAttachment(a, expenseIds));
+      uniqueIds(attachments);
+    }
+    return { ok: true, file: { format: BACKUP_FORMAT, schemaVersion: version, createdAt: doc.createdAt as number, families, students, sessions, expenses, attachments } };
   } catch (e) {
     if (e instanceof Damaged) return { ok: false, code: 'damaged' };
     throw e;
@@ -172,20 +251,37 @@ export function backupReminder(status: { sessionCount: number; lastBackupAt: num
   return { kind: 'quiet', text: `Last backup ${n === 0 ? 'today' : n === 1 ? 'yesterday' : `${n} days ago`}` };
 }
 
+/* ---------- Restore failure classification ---------- */
+
+/** The restore screen's alert for a failed restore: an undecodable photo is a damaged file; anything else is null (the generic failure line). */
+export function restoreFailureFor(error: unknown): BackupFailure | null {
+  return error instanceof BackupError && error.code === 'invalid-photo' ? 'damaged' : null;
+}
+
 /* ---------- Counts ---------- */
 
 const plural = new Intl.PluralRules('en-US');
 const noun = (n: number, one: string, other: string) => `${n} ${plural.select(n) === 'one' ? one : other}`;
 
-/** ["1 family", "2 students", "0 sessions"] */
-export const countPhrases = (c: { families: number; students: number; sessions: number }): string[] => [
+interface Counts {
+  families: number;
+  students: number;
+  sessions: number;
+  expenses?: number;
+  photos?: number;
+}
+
+/** ["1 family", "2 students", "0 sessions"], plus "N expenses" and "N receipt photos" when those counts are given. */
+export const countPhrases = (c: Counts): string[] => [
   noun(c.families, 'family', 'families'),
   noun(c.students, 'student', 'students'),
   noun(c.sessions, 'session', 'sessions'),
+  ...(c.expenses === undefined ? [] : [noun(c.expenses, 'expense', 'expenses')]),
+  ...(c.photos === undefined ? [] : [noun(c.photos, 'receipt photo', 'receipt photos')]),
 ];
 
 /** "1 family, 2 students and 3 sessions" */
-export function countsText(c: { families: number; students: number; sessions: number }): string {
-  const [f, s, n] = countPhrases(c);
-  return `${f}, ${s} and ${n}`;
+export function countsText(c: Counts): string {
+  const parts = countPhrases(c);
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
 }

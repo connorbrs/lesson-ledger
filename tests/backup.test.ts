@@ -1,22 +1,27 @@
 import 'fake-indexeddb/auto';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildBackup, markBackedUp, readBackupStatus, restoreBackup } from '../src/data/backup';
 import { db } from '../src/data/db';
 import { createFamily } from '../src/data/families';
+import type { ExpensePayload, NewPhoto } from '../src/data/expenses';
 import { createSession, listSessions } from '../src/data/sessions';
 import { createStudent } from '../src/data/students';
 import {
+  BACKUP_TOO_LARGE_MESSAGE,
   backupFileName,
   backupReminder,
   BackupError,
+  countPhrases,
   countsText,
   daysAgoText,
   formatBackupDate,
   MAX_BACKUP_BYTES,
   parseBackup,
+  restoreFailureFor,
   serializeBackup,
   type BackupFile,
 } from '../src/domain/backup';
+import { base64ToBytes, bytesToBase64 } from '../src/domain/base64';
 
 beforeEach(async () => {
   db.close();
@@ -26,17 +31,35 @@ beforeEach(async () => {
 
 const full = (familyId: string) => ({ familyId, lesson: 'full' as const, activity: 'full' as const });
 
+/** A JPEG-like Blob: starts FF D8 FF E0, then deterministic bytes that differ per seed. */
+const jpeg = (seed: number, size = 64): NewPhoto => {
+  const bytes = Uint8Array.from({ length: size }, (_, i) => (i < 4 ? [0xff, 0xd8, 0xff, 0xe0][i] : (i * 7 + seed * 13) % 256));
+  return { blob: new Blob([bytes], { type: 'image/jpeg' }), width: 40 + seed, height: 30 + seed, createdAt: 1_000 + seed };
+};
+
+const draft = (id: string, description: string, amountCents: number, photoIds: string[], createdAt: number) => ({
+  id, description, amountCents, splits: null, photoIds, createdAt,
+});
+
+const payload = (): ExpensePayload => ({
+  expenses: [draft('e-b', 'Pool entry', 1001, ['p-1', 'p-3'], 10), draft('e-a', 'Snacks', 450, ['p-2'], 11)],
+  photos: new Map([['p-1', jpeg(1)], ['p-2', jpeg(2, 200)], ['p-3', jpeg(3, 5000)]]),
+});
+
 async function seed() {
   const famA = await createFamily('Test Family A');
   const famB = await createFamily('Test Family B', 'monthly');
   const s1 = await createStudent({ familyId: famA.id, name: 'Test Student A1', notes: 'Test note' });
   const s2 = await createStudent({ familyId: famB.id, name: 'Test Student B1' });
-  await createSession({
-    date: '2026-10-19', startTime: '16:00', endTime: '17:15', subject: 'swim',
-    attendees: [{ studentId: s1.id, familyId: famA.id }, { studentId: s2.id, familyId: famB.id }],
-    credits: [{ familyId: famA.id, lesson: 'half', activity: 'full' }, full(famB.id)],
-    lessonMinutes: 45, activityMinutes: 30, travelMinutes: 10,
-  });
+  await createSession(
+    {
+      date: '2026-10-19', startTime: '16:00', endTime: '17:15', subject: 'swim',
+      attendees: [{ studentId: s1.id, familyId: famA.id }, { studentId: s2.id, familyId: famB.id }],
+      credits: [{ familyId: famA.id, lesson: 'half', activity: 'full' }, full(famB.id)],
+      lessonMinutes: 45, activityMinutes: 30, travelMinutes: 10,
+    },
+    payload(),
+  );
   await createSession({
     date: '2026-10-19', startTime: null, endTime: null, subject: 'math',
     attendees: [{ studentId: s1.id, familyId: famA.id }], credits: [full(famA.id)],
@@ -44,24 +67,33 @@ async function seed() {
   });
 }
 
+const blobBase64 = async (b: Blob) => bytesToBase64(new Uint8Array(await b.arrayBuffer()));
+
+/** Photo Blobs become type plus base64 text, so deep equality really compares contents. */
 const snapshot = async () => ({
   families: await db.families.toArray(),
   students: await db.students.toArray(),
   sessions: await db.sessions.toArray(),
   expenses: await db.expenses.toArray(),
-  attachments: await db.attachments.toArray(),
+  attachments: await Promise.all((await db.attachments.toArray()).map(async (a) => ({ ...a, blob: { type: a.blob.type, data: await blobBase64(a.blob) } }))),
   last: (await db.meta.get('lastBackupAt'))?.value,
 });
+
+const clearData = async () => {
+  for (const t of db.tables) if (t.name !== 'meta') await t.clear();
+};
 
 describe('buildBackup', () => {
   it('exports the contract, sorted by id, with every data table present', async () => {
     await seed();
     const file = await buildBackup(1_000);
-    expect(file).toMatchObject({ format: 'lesson-ledger-backup', schemaVersion: 1, createdAt: 1_000, expenses: [], attachments: [] });
+    expect(file).toMatchObject({ format: 'lesson-ledger-backup', schemaVersion: 2, createdAt: 1_000 });
     expect(file.families).toHaveLength(2);
     expect(file.students).toHaveLength(2);
     expect(file.sessions).toHaveLength(2);
-    for (const list of [file.families, file.students, file.sessions]) {
+    expect(file.expenses).toHaveLength(2);
+    expect(file.attachments).toHaveLength(3);
+    for (const list of [file.families, file.students, file.sessions, file.expenses, file.attachments]) {
       const ids = list.map((r) => r.id);
       expect(ids).toEqual([...ids].sort());
     }
@@ -69,37 +101,62 @@ describe('buildBackup', () => {
     expect(dataKeys).toEqual(db.tables.map((t) => t.name).filter((n) => n !== 'meta').sort());
   });
 
-  it('is identical across two exports except createdAt, and an empty database exports a valid file', async () => {
+  it('exports expenses as the stored rows and photos as {id, expenseId, mime, width, height, createdAt, data}', async () => {
+    await seed();
+    const file = await buildBackup(1_000);
+    expect(file.expenses).toEqual((await db.expenses.toArray()).sort((a, b) => (a.id < b.id ? -1 : 1)));
+    expect(file.expenses.map((e) => e.id)).toEqual(['e-a', 'e-b']);
+    const stored = new Map((await db.attachments.toArray()).map((a) => [a.id, a]));
+    expect(file.attachments.map((a) => a.id)).toEqual(['p-1', 'p-2', 'p-3']);
+    for (const a of file.attachments) {
+      const row = stored.get(a.id)!;
+      expect(Object.keys(a).sort()).toEqual(['createdAt', 'data', 'expenseId', 'height', 'id', 'mime', 'width']);
+      expect({ expenseId: a.expenseId, mime: a.mime, width: a.width, height: a.height, createdAt: a.createdAt }).toEqual({
+        expenseId: row.expenseId, mime: 'image/jpeg', width: row.width, height: row.height, createdAt: row.createdAt,
+      });
+      expect(a.data).toBe(await blobBase64(row.blob));
+      expect(Array.from(base64ToBytes(a.data) as Uint8Array)).toEqual(Array.from(new Uint8Array(await row.blob.arrayBuffer())));
+    }
+  });
+
+  it('is identical across two exports except createdAt, and an empty database exports five empty arrays', async () => {
     await seed();
     const a = await buildBackup(1);
     const b = await buildBackup(2);
     expect({ ...a, createdAt: 0 }).toEqual({ ...b, createdAt: 0 });
-    await db.families.clear();
-    await db.students.clear();
-    await db.sessions.clear();
+    await clearData();
     const empty = await buildBackup(3);
     expect([empty.families, empty.students, empty.sessions, empty.expenses, empty.attachments].every((x) => x.length === 0)).toBe(true);
     expect(parseBackup(serializeBackup(empty)).ok).toBe(true);
   });
 
-  it('never yields a session that references a student missing from the snapshot (racing writes)', async () => {
+  it('never yields a dangling reference, receipts included (racing writes)', async () => {
     const fam = await createFamily('Test Family A');
+    let n = 0;
     for (let round = 0; round < 5; round++) {
       let stop = false;
       const writer = (async () => {
         while (!stop) {
           const st = await createStudent({ familyId: fam.id, name: 'Test Student R' });
-          await createSession({
-            date: '2026-10-19', startTime: null, endTime: null, subject: 'math',
-            attendees: [{ studentId: st.id, familyId: fam.id }], credits: [full(fam.id)],
-            lessonMinutes: 30, activityMinutes: 0, travelMinutes: 0,
-          });
+          n += 1;
+          await createSession(
+            {
+              date: '2026-10-19', startTime: null, endTime: null, subject: 'math',
+              attendees: [{ studentId: st.id, familyId: fam.id }], credits: [full(fam.id)],
+              lessonMinutes: 30, activityMinutes: 0, travelMinutes: 0,
+            },
+            { expenses: [draft(`e${n}`, 'Race', 500, [`p${n}`], n)], photos: new Map([[`p${n}`, jpeg(n % 50)]]) },
+          );
         }
       })();
       for (let i = 0; i < 10; i++) {
         const file = await buildBackup();
-        const ids = new Set(file.students.map((s) => s.id));
-        expect(file.sessions.every((s) => s.attendees.every((a) => ids.has(a.studentId)))).toBe(true);
+        const students = new Set(file.students.map((s) => s.id));
+        const sessions = new Set(file.sessions.map((s) => s.id));
+        const expenses = new Set(file.expenses.map((e) => e.id));
+        expect(file.sessions.every((s) => s.attendees.every((a) => students.has(a.studentId)))).toBe(true);
+        expect(file.expenses.every((e) => sessions.has(e.sessionId))).toBe(true);
+        expect(file.attachments.every((a) => expenses.has(a.expenseId))).toBe(true);
         expect(parseBackup(serializeBackup(file)).ok).toBe(true);
       }
       stop = true;
@@ -107,11 +164,41 @@ describe('buildBackup', () => {
     }
   });
 
-  it.each(['expenses', 'attachments'] as const)('rejects with unsupported-data when %s holds a row', async (table) => {
+  it('refuses with too-large before encoding anything when the projected size is over the cap, and succeeds at the boundary', async () => {
     await seed();
-    await db[table].add({ id: 'x' } as never); // rows are typed since Phase 3; this fakes a non-empty table
-    await expect(buildBackup()).rejects.toMatchObject({ code: 'unsupported-data' });
-    await expect(buildBackup()).rejects.toBeInstanceOf(BackupError);
+    const total = (await db.attachments.toArray()).reduce((sum, a) => sum + a.blob.size, 0);
+    const projected = Math.ceil(total / 3) * 4;
+    const spy = vi.spyOn(Blob.prototype, 'arrayBuffer');
+    try {
+      await expect(buildBackup(1, projected - 1)).rejects.toMatchObject({ code: 'too-large' });
+      await expect(buildBackup(1, projected - 1)).rejects.toBeInstanceOf(BackupError);
+      expect(spy).not.toHaveBeenCalled();
+      const file = await buildBackup(1, projected);
+      expect(file.attachments).toHaveLength(3);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('an export of a database with receipts, serialized and parsed with its size, is accepted', async () => {
+    await seed();
+    const text = serializeBackup(await buildBackup(5));
+    expect(parseBackup(text, new Blob([text]).size).ok).toBe(true);
+  });
+
+  it('too-large message is exact', () => {
+    expect(BACKUP_TOO_LARGE_MESSAGE).toBe('This backup is too large to save (over 150 MB).');
+  });
+});
+
+describe('restoreFailureFor', () => {
+  it('maps an undecodable photo to damaged and everything else to null', () => {
+    expect(restoreFailureFor(new BackupError('invalid-photo'))).toBe('damaged');
+    expect(restoreFailureFor(new BackupError('too-large'))).toBeNull();
+    expect(restoreFailureFor(new Error('boom'))).toBeNull();
+    expect(restoreFailureFor({ name: 'BulkError', message: 'x' })).toBeNull();
+    expect(restoreFailureFor('nope')).toBeNull();
+    expect(restoreFailureFor(undefined)).toBeNull();
   });
 });
 
@@ -134,16 +221,28 @@ describe('parseBackup rejection', () => {
     expect(parseBackup(text)).toEqual({ ok: false, code: 'not-backup' });
   });
 
-  it('a file over 50 MB is not a backup, judged by size before parsing', () => {
+  it('a file over 150 MB is not a backup, judged by size before parsing', () => {
+    expect(MAX_BACKUP_BYTES).toBe(150_000_000);
     expect(parseBackup('{"format":"lesson-ledger-backup"}', MAX_BACKUP_BYTES + 1)).toEqual({ ok: false, code: 'not-backup' });
   });
 
   it('truncated JSON is damaged', () => {
-    expect(parseBackup('{"format":"lesson-ledger-backup","schemaVersion":1,')).toEqual({ ok: false, code: 'damaged' });
+    expect(parseBackup('{"format":"lesson-ledger-backup","schemaVersion":2,')).toEqual({ ok: false, code: 'damaged' });
   });
 
   it('a higher schemaVersion is newer-version, even when the rows are unusable', () => {
-    expect(parseBackup('{"format":"lesson-ledger-backup","schemaVersion":2,"families":7}')).toEqual({ ok: false, code: 'newer-version' });
+    expect(parseBackup('{"format":"lesson-ledger-backup","schemaVersion":3,"families":7}')).toEqual({ ok: false, code: 'newer-version' });
+  });
+
+  it('accepts a version 2 file with receipts, and a version 1 file with empty arrays', async () => {
+    const d = await doc();
+    const v2 = parseBackup(JSON.stringify(d));
+    expect(v2.ok && v2.file.schemaVersion === 2 && v2.file.expenses.length === 2 && v2.file.attachments.length === 3).toBe(true);
+    d.schemaVersion = 1;
+    d.expenses = [];
+    d.attachments = [];
+    const v1 = parseBackup(JSON.stringify(d));
+    expect(v1.ok && v1.file.schemaVersion === 1 && v1.file.expenses.length === 0 && v1.file.attachments.length === 0).toBe(true);
   });
 
   const damage: [string, (d: Record<string, any>) => void][] = [
@@ -169,8 +268,43 @@ describe('parseBackup rejection', () => {
     ['student whose family is absent', (d) => (d.students[0].familyId = 'nope')],
     ['session whose student is absent', (d) => (d.sessions[0].attendees[0].studentId = 'nope')],
     ['session whose family is absent', (d) => (d.sessions[0].attendees[0].familyId = 'nope')],
-    ['non-empty expenses', (d) => (d.expenses = [{ id: 'x' }])],
-    ['non-empty attachments', (d) => (d.attachments = [{ id: 'x' }])],
+    ['version 1 carrying expenses', (d) => ((d.schemaVersion = 1), (d.attachments = []))],
+    ['version 1 carrying attachments', (d) => ((d.schemaVersion = 1), (d.expenses = []))],
+    ['expenses missing', (d) => delete d.expenses],
+    ['attachments missing', (d) => delete d.attachments],
+    ['expense with unknown sessionId', (d) => (d.expenses[0].sessionId = 'nope')],
+    ['expense amount 0', (d) => (d.expenses[0].amountCents = 0)],
+    ['expense amount 1.5', (d) => (d.expenses[0].amountCents = 1.5)],
+    ['expense amount -1', (d) => (d.expenses[0].amountCents = -1)],
+    ['expense amount a string', (d) => (d.expenses[0].amountCents = '450')],
+    ['expense amount beyond the safe-integer range', (d) => (d.expenses[0].amountCents = 2 ** 53)],
+    ['expense with blank description', (d) => (d.expenses[0].description = '   ')],
+    ['expense with an 81-code-point description', (d) => (d.expenses[0].description = 'x'.repeat(81))],
+    ['expense with no shares', (d) => (d.expenses[0].splits = [])],
+    ['expense with shares that are not an array', (d) => (d.expenses[0].splits = {})],
+    ['share of -1 cents', (d) => (d.expenses[0].splits[0].cents = -1)],
+    ['share of 1.5 cents', (d) => (d.expenses[0].splits[0].cents = 1.5)],
+    ['shares not summing to the amount', (d) => (d.expenses[0].splits[0].cents += 1)],
+    ['share for a family not on the session', (d) => (d.expenses[0].splits[0].familyId = 'nope')],
+    ['shares missing one of the session families', (d) => (d.expenses[0].splits = [{ familyId: d.expenses[0].splits[0].familyId, cents: d.expenses[0].amountCents }])],
+    ['duplicate share family', (d) => (d.expenses[0].splits[1].familyId = d.expenses[0].splits[0].familyId)],
+    ['expense with bad createdAt', (d) => (d.expenses[0].createdAt = 'x')],
+    ['expense that is not an object', (d) => (d.expenses[0] = 5)],
+    ['duplicate expense ids', (d) => (d.expenses[1].id = d.expenses[0].id)],
+    ['attachment with unknown expenseId', (d) => (d.attachments[0].expenseId = 'nope')],
+    ['attachment mime not image/jpeg', (d) => (d.attachments[0].mime = 'image/png')],
+    ['attachment data not base64', (d) => (d.attachments[0].data = 'not base64!!')],
+    ['attachment data of the wrong length', (d) => (d.attachments[0].data = d.attachments[0].data.slice(1))],
+    ['attachment data empty', (d) => (d.attachments[0].data = '')],
+    ['attachment data not a string', (d) => (d.attachments[0].data = 12)],
+    ['attachment data with a PNG header', (d) => (d.attachments[0].data = bytesToBase64(Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 1, 2, 3, 4])))],
+    ['attachment data over the 10 MB decoded cap', (d) => (d.attachments[0].data = '/9j/'.padEnd(14_000_000, 'A'))],
+    ['attachment width 0', (d) => (d.attachments[0].width = 0)],
+    ['attachment width 1.5', (d) => (d.attachments[0].width = 1.5)],
+    ['attachment height above 100000', (d) => (d.attachments[0].height = 100_001)],
+    ['attachment with bad createdAt', (d) => (d.attachments[0].createdAt = 'x')],
+    ['duplicate attachment ids', (d) => (d.attachments[1].id = d.attachments[0].id)],
+    ['attachment that is not an object', (d) => (d.attachments[0] = 5)],
   ];
 
   it.each(damage)('%s is damaged and leaves the database untouched', async (_n, mutate) => {
@@ -193,28 +327,41 @@ describe('parseBackup rejection', () => {
   it('rebuilds rows from whitelisted fields: extra and __proto__ keys never reach the result', async () => {
     const d = await doc();
     d.families[0].extra = 'x';
-    const text = serializeBackup(d as BackupFile).replace('"extra":"x"', '"extra":"x","__proto__":{"polluted":true}');
+    d.expenses[0].extra = 'y';
+    d.expenses[0].splits[0].extra = 'z';
+    d.attachments[0].extra = 'w';
+    const text = serializeBackup(d as BackupFile)
+      .replace('"extra":"x"', '"extra":"x","__proto__":{"polluted":true}')
+      .replace('"extra":"y"', '"extra":"y","__proto__":{"polluted":true}')
+      .replace('"extra":"w"', '"extra":"w","__proto__":{"polluted":true}');
     const parsed = parseBackup(text);
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
     expect(Object.keys(parsed.file.families[0]).sort()).toEqual(['archivedAt', 'createdAt', 'id', 'name', 'period', 'updatedAt']);
+    expect(Object.keys(parsed.file.expenses[0]).sort()).toEqual(['amountCents', 'createdAt', 'description', 'id', 'sessionId', 'splits', 'updatedAt']);
+    expect(Object.keys(parsed.file.expenses[0].splits[0]).sort()).toEqual(['cents', 'familyId']);
+    expect(Object.keys(parsed.file.attachments[0]).sort()).toEqual(['createdAt', 'data', 'expenseId', 'height', 'id', 'mime', 'width']);
     expect(({} as Record<string, unknown>).polluted).toBeUndefined();
-    expect((parsed.file.families[0] as unknown as Record<string, unknown>).polluted).toBeUndefined();
+    for (const row of [parsed.file.families[0], parsed.file.expenses[0], parsed.file.attachments[0]]) {
+      expect((row as unknown as Record<string, unknown>).polluted).toBeUndefined();
+    }
   });
 });
 
 describe('restoreBackup', () => {
   const roundTrip = async () => parseBackup(serializeBackup(await buildBackup(7_000)));
 
-  it('round-trips every table and keeps the Sessions order', async () => {
+  it('round-trips every table, photo bytes included, and keeps the Sessions order', async () => {
     await seed();
     const before = await snapshot();
     const order = (await listSessions()).map((s) => s.id);
     const parsed = await roundTrip();
     if (!parsed.ok) throw new Error('parse failed');
-    for (const t of [db.families, db.students, db.sessions]) await t.clear();
+    await clearData();
     await restoreBackup(parsed.file);
     expect({ ...(await snapshot()), last: undefined }).toEqual({ ...before, last: undefined });
+    expect(before.attachments).toHaveLength(3);
+    expect((await db.attachments.toArray()).every((a) => a.blob.type === 'image/jpeg')).toBe(true);
     expect((await listSessions()).map((s) => s.id)).toEqual(order);
     expect((await listSessions()).find((s) => s.startTime === '16:00')?.endTime).toBe('17:15');
     expect((await readBackupStatus()).lastBackupAt).toBe(7_000);
@@ -257,6 +404,21 @@ describe('restoreBackup', () => {
     expect([s.families, s.students, s.sessions, s.expenses, s.attachments].every((x) => x.length === 0)).toBe(true);
   });
 
+  it('restoring a version 1 file over receipts leaves expenses and attachments empty', async () => {
+    await seed();
+    const d = JSON.parse(serializeBackup(await buildBackup(8_000))) as Record<string, any>;
+    d.schemaVersion = 1;
+    d.expenses = [];
+    d.attachments = [];
+    const parsed = parseBackup(JSON.stringify(d));
+    if (!parsed.ok) throw new Error('parse failed');
+    expect(await db.attachments.count()).toBe(3);
+    await restoreBackup(parsed.file);
+    expect(await db.expenses.count()).toBe(0);
+    expect(await db.attachments.count()).toBe(0);
+    expect(await db.sessions.count()).toBe(2);
+  });
+
   it('is atomic: a duplicate session id aborts and every table plus lastBackupAt is as before', async () => {
     await seed();
     await markBackedUp(123);
@@ -265,6 +427,38 @@ describe('restoreBackup', () => {
     const bad: BackupFile = { ...parsed.file, createdAt: 999, sessions: [parsed.file.sessions[0], parsed.file.sessions[0]] };
     const before = await snapshot();
     await expect(restoreBackup(bad)).rejects.toBeDefined();
+    expect(await snapshot()).toEqual(before);
+    expect(before.last).toBe(123);
+  });
+
+  it('is atomic with receipts: a duplicate expense id aborts and expenses, photo bytes and lastBackupAt are as before', async () => {
+    await seed();
+    await markBackedUp(123);
+    const parsed = await roundTrip();
+    if (!parsed.ok) throw new Error('parse failed');
+    const bad: BackupFile = { ...parsed.file, createdAt: 999, expenses: [parsed.file.expenses[0], parsed.file.expenses[0]] };
+    const before = await snapshot();
+    await expect(restoreBackup(bad)).rejects.toBeDefined();
+    expect(await snapshot()).toEqual(before);
+    expect(before.attachments).toHaveLength(3);
+    expect(before.last).toBe(123);
+  });
+
+  it('a photo that is not valid base64 rejects with invalid-photo before any write', async () => {
+    await seed();
+    await markBackedUp(123);
+    const parsed = await roundTrip();
+    if (!parsed.ok) throw new Error('parse failed');
+    const bad: BackupFile = {
+      ...parsed.file,
+      createdAt: 999,
+      families: [],
+      attachments: [{ ...parsed.file.attachments[0], data: 'not base64!!' }],
+    };
+    const before = await snapshot();
+    const error = await restoreBackup(bad).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(BackupError);
+    expect(restoreFailureFor(error)).toBe('damaged');
     expect(await snapshot()).toEqual(before);
     expect(before.last).toBe(123);
   });
@@ -305,5 +499,14 @@ describe('names, day counts and reminder text', () => {
   it('countsText uses plural rules', () => {
     expect(countsText({ families: 1, students: 1, sessions: 1 })).toBe('1 family, 1 student and 1 session');
     expect(countsText({ families: 2, students: 0, sessions: 5 })).toBe('2 families, 0 students and 5 sessions');
+    expect(countsText({ families: 1, students: 1, sessions: 1, expenses: 1, photos: 1 })).toBe(
+      '1 family, 1 student, 1 session, 1 expense and 1 receipt photo',
+    );
+    expect(countsText({ families: 2, students: 0, sessions: 5, expenses: 3, photos: 0 })).toBe(
+      '2 families, 0 students, 5 sessions, 3 expenses and 0 receipt photos',
+    );
+    expect(countPhrases({ families: 1, students: 2, sessions: 0, expenses: 2, photos: 1 }).join(', ')).toBe(
+      '1 family, 2 students, 0 sessions, 2 expenses, 1 receipt photo',
+    );
   });
 });

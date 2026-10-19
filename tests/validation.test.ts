@@ -7,7 +7,8 @@ import {
   validateStudentInput,
 } from '../src/domain/validate';
 
-const ok = (name: unknown, period: unknown = 'weekly') => validateFamilyInput({ name, period });
+const ok = (name: unknown, ...rest: [period?: unknown]) =>
+  validateFamilyInput({ name, period: rest.length === 0 ? 'weekly' : rest[0] });
 
 describe('normalizeName', () => {
   it('turns non-strings into the empty string', () => {

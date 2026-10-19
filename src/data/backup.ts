@@ -45,7 +45,8 @@ export async function restoreBackup(file: BackupFile): Promise<void> {
       const rows = (file as unknown as Record<string, { id: string }[]>)[t.name];
       if (rows.length > 0) await t.bulkAdd(rows);
     }
-    await db.meta.put({ key: LAST_BACKUP_KEY, value: file.createdAt });
+    // A backup made on a phone whose clock ran ahead must not store a future time: the reminder would stay silent.
+    await db.meta.put({ key: LAST_BACKUP_KEY, value: Math.min(file.createdAt, Date.now()) });
   });
 }
 

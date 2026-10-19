@@ -207,6 +207,16 @@ describe('restoreBackup', () => {
     expect((await readBackupStatus()).lastBackupAt).toBe(7_000);
   });
 
+  it('a backup dated in the future restores with lastBackupAt clamped to now, not to the future', async () => {
+    const parsed = parseBackup(serializeBackup(await buildBackup(Date.now() + 10 * 86_400_000)));
+    if (!parsed.ok) throw new Error('parse failed');
+    const before = Date.now();
+    await restoreBackup(parsed.file);
+    const { lastBackupAt } = await readBackupStatus();
+    expect(lastBackupAt).toBeGreaterThanOrEqual(before);
+    expect(lastBackupAt).toBeLessThanOrEqual(Date.now());
+  });
+
   it('is idempotent: restoring the same file twice leaves identical tables', async () => {
     await seed();
     const parsed = await roundTrip();

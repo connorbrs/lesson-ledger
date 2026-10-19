@@ -30,7 +30,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. If user opens the URL in a Safari tab, they see a warning that their data lives in the home-screen app; after a new version is deployed, the home-screen app tells them an update is available and one tap applies it
   4. User can create, edit and archive families (name used on summaries, reporting period weekly Mon-Sun or monthly calendar month) and students (each belonging to one family); archived records are hidden from active lists but keep their history, and only records with no history can be hard-deleted
   5. Settings shows whether persistent storage was granted and how much storage is used
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Walking skeleton: pinned toolchain, a family persisted end-to-end, installable precached build with the clock icon
+- [ ] 01-02-PLAN.md — Go live on GitHub Pages and run the early iPhone device spike
+- [ ] 01-03-PLAN.md — Roster: validation, family and student repos with delete guards, People, Family, Student and Archived UI
+- [ ] 01-04-PLAN.md — Storage status, Safari-tab banner, update prompt, Records error, harness removal, final on-device acceptance
+
 **UI hint**: yes
 **Device spike**: On a real iPhone: install from the live URL, go offline and relaunch, read `persisted()` and `estimate()` over several days, round-trip a ~2 MB JPEG Blob through IndexedDB, and deploy a marker build to test the update prompt in standalone mode.
 
@@ -86,7 +93,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Installable App & Roster | 0/TBD | Not started | - |
+| 1. Installable App & Roster | 0/4 | Not started | - |
 | 2. Session Logging & Backup | 0/TBD | Not started | - |
 | 3. Expenses & Receipts | 0/TBD | Not started | - |
 | 4. Family Summaries & Overview | 0/TBD | Not started | - |

@@ -22,6 +22,22 @@ const fail = (msg) => {
   throw new CheckError(msg);
 };
 
+// Parse PNG IHDR: width at 16, height at 20, bit depth at 24, color type at 25.
+function pngInfo(path) {
+  const b = readFileSync(path);
+  const sig = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  if (b.length < 26 || !b.subarray(0, 8).equals(sig)) fail(`${path} is not a PNG`);
+  return { w: b.readUInt32BE(16), h: b.readUInt32BE(20), depth: b[24], colorType: b[25] };
+}
+
+// Resolve a URL found in the build output against the site origin and base path.
+const resolveUnderBase = (url, from = BASE) => new URL(url, `https://example.invalid${from}`).pathname;
+
+const metaContent = (html, attr, name) => {
+  const tag = [...html.matchAll(/<meta\b[^>]*>/g)].map((m) => m[0]).find((t) => t.includes(`${attr}="${name}"`));
+  return tag?.match(/\bcontent="([^"]*)"/)?.[1];
+};
+
 const OLD_NAME = ['Lesson', 'Log'].join(' ');
 const OLD_PATH = ['lesson', 'log'].join('-');
 
@@ -67,6 +83,45 @@ const checks = [
   ['C7', 'a JS bundle contains the database name', () => {
     const found = walk(join(DIST, 'assets')).some((f) => f.endsWith('.js') && readFileSync(f, 'utf8').includes('lesson-ledger-v1'));
     if (!found) fail('lesson-ledger-v1 not found in dist/assets/*.js');
+  }],
+  ['C8', 'apple-touch-icon link resolves under the base path and the PNG is 180x180 RGB', () => {
+    const html = read('index.html');
+    const tag = [...html.matchAll(/<link\b[^>]*>/g)].map((m) => m[0]).find((t) => /rel="apple-touch-icon"/.test(t));
+    if (!tag) fail('no apple-touch-icon link');
+    const href = tag.match(/\bhref="([^"]*)"/)?.[1];
+    if (resolveUnderBase(href) !== `${BASE}apple-touch-icon.png`) fail(`apple-touch-icon href is ${href}`);
+    if (!existsSync(join(DIST, 'apple-touch-icon.png'))) fail('dist/apple-touch-icon.png missing');
+    const i = pngInfo(join(DIST, 'apple-touch-icon.png'));
+    if (i.w !== 180 || i.h !== 180 || i.depth !== 8 || i.colorType !== 2) fail(`apple-touch-icon.png is ${JSON.stringify(i)}`);
+  }],
+  ['C9', 'icon-512.png is 512x512 RGB and listed in the manifest under the base path', () => {
+    if (!existsSync(join(DIST, 'icons/icon-512.png'))) fail('dist/icons/icon-512.png missing');
+    const i = pngInfo(join(DIST, 'icons/icon-512.png'));
+    if (i.w !== 512 || i.h !== 512 || i.depth !== 8 || i.colorType !== 2) fail(`icon-512.png is ${JSON.stringify(i)}`);
+    const m = JSON.parse(read('manifest.webmanifest'));
+    const entry = (m.icons ?? []).find((ic) => resolveUnderBase(ic.src, `${BASE}manifest.webmanifest`) === `${BASE}icons/icon-512.png`);
+    if (!entry) fail('manifest icons has no entry resolving to /lesson-ledger/icons/icon-512.png');
+    if (entry.sizes !== '512x512' || entry.type !== 'image/png') fail(`manifest icon entry is ${JSON.stringify(entry)}`);
+  }],
+  ['C10', 'sw.js precaches the icons', () => {
+    const sw = read('sw.js');
+    for (const f of ['apple-touch-icon.png', 'icons/icon-512.png']) if (!sw.includes(f)) fail(`sw.js does not reference ${f}`);
+  }],
+  ['C11', 'iOS head tags present', () => {
+    const html = read('index.html');
+    const want = [
+      ['apple-mobile-web-app-capable', 'yes'],
+      ['apple-mobile-web-app-title', 'Lesson Ledger'],
+      ['apple-mobile-web-app-status-bar-style', 'default'],
+    ];
+    for (const [name, value] of want) {
+      if (metaContent(html, 'name', name) !== value) fail(`meta ${name} is not "${value}"`);
+    }
+    if (!metaContent(html, 'name', 'viewport')?.includes('viewport-fit=cover')) fail('viewport lacks viewport-fit=cover');
+    const themes = [...html.matchAll(/<meta\b[^>]*name="theme-color"[^>]*>/g)].map((m) => m[0]);
+    const has = (scheme, color) => themes.some((t) => t.includes(`(prefers-color-scheme: ${scheme})`) && t.toLowerCase().includes(`content="${color}"`));
+    if (!has('light', '#f2f2f7')) fail('missing light theme-color #F2F2F7');
+    if (!has('dark', '#000000')) fail('missing dark theme-color #000000');
   }],
 ];
 

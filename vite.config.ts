@@ -8,6 +8,7 @@ export default defineConfig({
     preact(),
     VitePWA({
       registerType: 'prompt',
+      includeAssets: ['apple-touch-icon.png', 'icons/icon-512.png'],
       manifest: {
         name: 'Lesson Ledger', // D-01
         short_name: 'Lesson Ledger',
@@ -17,6 +18,7 @@ export default defineConfig({
         orientation: 'portrait',
         background_color: '#F2F2F7',
         theme_color: '#F2F2F7',
+        icons: [{ src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],

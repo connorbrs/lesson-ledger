@@ -129,7 +129,7 @@ Plans:
   4. Before sending, user sees warnings for expenses without a receipt and sessions with zero minutes; user can mark the period as sent, and editing a session or expense in it afterwards flags the period as changed since sent
   5. User can see their own lesson, activity and travel totals per week and per month, broken down by student, family and subject, where subject totals count actual time once and family/student totals use credited time
 
-**Plans**: 3/6 plans executed
+**Plans**: 4/6 plans executed
 
 Plans:
 
@@ -143,7 +143,7 @@ Plans:
 - [x] 04-03-PLAN.md — Sent tracking (Mark as Sent, Changed since sent, pills) and the editable saved message (Save, Copy, stale banner, Rebuild, discard)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 04-04-PLAN.md — PDF engine: approved jsPDF install, Noto Sans subset fonts, Turkish PDF with tables, receipt pages and footers
+- [x] 04-04-PLAN.md — PDF engine: approved jsPDF install, Noto Sans subset fonts, Turkish PDF with tables, receipt pages and footers
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 04-05-PLAN.md — Share PDF (pre-built, share sheet with download fallback), dist check for the lazy chunk, Instructor name in Settings
@@ -164,7 +164,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Installable App & Roster | 5/5 | Complete    | 2026-10-19 |
 | 2. Session Logging & Backup | 3/3 | Complete    | 2026-10-19 |
 | 3. Expenses & Receipts | 5/5 | Complete    | 2026-10-19 |
-| 4. Family Summaries & Overview | 3/6 | In Progress | - |
+| 4. Family Summaries & Overview | 4/6 | In Progress | - |
 
 ## Backlog
 

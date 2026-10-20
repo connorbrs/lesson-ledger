@@ -4,16 +4,16 @@ current_phase: 4
 current_phase_name: Family Summaries & Overview
 current_plan: Not started
 status: executing
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-10-20T01:38:28.756Z"
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-10-20T01:47:38.491Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 3 complete, transitioned to Phase 4
-state_head: d83f202d36fffbfb1cca1359f5b776dba781fe08
+state_head: 741e64c8b130407e487ad7b4da2dff4c2fa3145d
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 19
-  completed_plans: 16
+  completed_plans: 17
   percent: 75
 ---
 
@@ -76,6 +76,7 @@ Progress: [████████░░] 75%
 | Phase 04 P01 | 12min | 3 tasks | 14 files |
 | Phase 04 P02 | 20min | 2 tasks | 14 files |
 | Phase 04 P03 | 12min | 2 tasks | 12 files |
+| Phase 04 P04 | 16min | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,7 @@ Recent decisions affecting current work:
 - [Phase 04]: PeriodRecord id is familyId_periodKey (underscore) to stay inside the backup id charset; Dexie v2 only adds periodRecords; backup schemaVersion 3 adds periodRecords and instructorName, v1/v2 restore clears them
 - [Phase 04]: Sent status compares fingerprints only; a saved message without a sent mark never produces a pill
 - [Phase 04]: Back asks to discard only when the visible message box is dirty
+- [Phase 04]: 04-04: a receipt whose bytes are not a JPEG (FF D8 FF) fails the PDF build as photo-unreadable; receipt captions are capped at 3 lines
 
 ### Pending Todos
 
@@ -145,6 +147,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-20T01:38:28.486Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-10-20T01:47:38.217Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None

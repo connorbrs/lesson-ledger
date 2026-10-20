@@ -119,10 +119,6 @@ p {
   margin: 0;
 }
 
-.tabular {
-  font-variant-numeric: tabular-nums;
-}
-
 ::selection {
   background: var(--color-selection);
 }
@@ -1718,6 +1714,8 @@ button.row:active:not(:disabled) {
 
 .metric:focus-within {
   background: var(--color-elevated);
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
 }
 
 .metric-label {
@@ -1835,4 +1833,17 @@ button.row:active:not(:disabled) {
   .stage-head::before {
     width: 10px;
   }
+}
+
+/* Small inline text buttons keep a 44pt tap area without growing their row. */
+.group-header .text-button,
+.row .text-button {
+  position: relative;
+}
+
+.group-header .text-button::after,
+.row .text-button::after {
+  content: '';
+  position: absolute;
+  inset: -12px -8px;
 }

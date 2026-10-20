@@ -52,8 +52,8 @@
 
 ### Personal Overview
 
-- [ ] **VIEW-01**: User can see their own totals per week and per month: lesson, activity and travel time
-- [ ] **VIEW-02**: Totals can be broken down per student, per family and per subject (subject totals count actual time once; family/student totals use credited time)
+- [x] **VIEW-01**: User can see their own totals per week and per month: lesson, activity and travel time
+- [x] **VIEW-02**: Totals can be broken down per student, per family and per subject (subject totals count actual time once; family/student totals use credited time)
 
 ### Data Safety
 
@@ -118,8 +118,8 @@
 | SUM-06 | Phase 4 | Complete |
 | SUM-07 | Phase 4 | Complete |
 | SUM-08 | Phase 4 | Complete |
-| VIEW-01 | Phase 4 | Pending |
-| VIEW-02 | Phase 4 | Pending |
+| VIEW-01 | Phase 4 | Complete |
+| VIEW-02 | Phase 4 | Complete |
 | DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 2 | Complete |
 | DATA-03 | Phase 2 | Complete |

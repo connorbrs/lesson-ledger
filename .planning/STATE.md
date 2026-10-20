@@ -2,18 +2,18 @@
 gsd_state_version: "1.0"
 current_phase: 4
 current_phase_name: Family Summaries & Overview
-current_plan: Not started
-status: executing
-stopped_at: Completed 04-05-PLAN.md
-last_updated: "2026-10-20T01:51:43.517Z"
+current_plan: 6
+status: ready_for_verification
+stopped_at: Completed 04-06-PLAN.md (device check deferred by user)
+last_updated: "2026-10-20T05:36:49.101Z"
 last_activity: 2026-10-19
-last_activity_desc: Phase 3 complete, transitioned to Phase 4
-state_head: 9f8bb27df9110b298840643f23a93dc6a8b903aa
+last_activity_desc: Completed 04-06; device check deferred by user
+state_head: 82c319f642c6969aa6e625b1e8d5263ddc964ee9
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 19
-  completed_plans: 18
+  completed_plans: 19
   percent: 75
 ---
 
@@ -24,15 +24,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-19)
 
 **Core value:** Logging a session right after it ends takes seconds, and the per-family weekly/monthly summary is correct and ready to send — lesson hours and activity hours separated, expenses and receipts included.
-**Current focus:** Phase 3 — Expenses & Receipts
+**Current focus:** Phase 4 — Family Summaries & Overview (device check pending)
 
 ## Current Position
 
-Phase: 4 (Family Summaries & Overview) — READY TO EXECUTE
-Current Plan: Not started
+Phase: 4 (Family Summaries & Overview) — EXECUTING
+Current Plan: 6
 Total Plans in Phase: 6
-Status: Ready to execute
-Last activity: 2026-10-19 — Phase 3 complete, transitioned to Phase 4
+Status: All 6 plans executed; device check (04-06 Task 3) deferred by user, not passed
+Last activity: 2026-10-19 — Completed 04-06 (personal totals); device check deferred
 
 Progress: [████████░░] 75%
 
@@ -78,6 +78,7 @@ Progress: [████████░░] 75%
 | Phase 04 P03 | 12min | 2 tasks | 12 files |
 | Phase 04 P04 | 16min | 3 tasks | 17 files |
 | Phase 04 P05 | 14min | 2 tasks | 14 files |
+| Phase 04 P06 | 15min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -131,6 +132,7 @@ None yet.
 
 - [Phase 2+] Still unverified on device: Web Share with files (backup zip, PDF), camera/HEIC, PDF memory. Verified in Phase 1: persist() granted, Blob round trip, offline relaunch, separate Safari storage (iOS 26.6.1, iPhone 14 Pro).
 - [Phase 3] Before writing expenses/attachments: fix WR-02 (restore clears expenses/attachments without the backup's check) and add receipt photos to the backup format (new schemaVersion; restore must keep reading v1).
+- Phase 4 device check (04-06 Task 3, 15 steps) deferred by user; iPhone share, glyph, 30+ receipt memory and tab-bar checks still unverified
 
 ### Quick Tasks Completed
 
@@ -149,6 +151,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-20T01:51:43.239Z
-Stopped at: Completed 04-05-PLAN.md
+Last session: 2026-10-20T05:36:48.202Z
+Stopped at: Completed 04-06-PLAN.md (device check deferred by user)
 Resume file: None

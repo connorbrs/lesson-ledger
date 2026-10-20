@@ -129,7 +129,7 @@ Plans:
   4. Before sending, user sees warnings for expenses without a receipt and sessions with zero minutes; user can mark the period as sent, and editing a session or expense in it afterwards flags the period as changed since sent
   5. User can see their own lesson, activity and travel totals per week and per month, broken down by student, family and subject, where subject totals count actual time once and family/student totals use credited time
 
-**Plans**: 5/6 plans executed
+**Plans**: 6/6 plans executed
 
 Plans:
 
@@ -149,7 +149,7 @@ Plans:
 - [x] 04-05-PLAN.md — Share PDF (pre-built, share sheet with download fallback), dist check for the lazy chunk, Instructor name in Settings
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 04-06-PLAN.md — Personal totals on the Sessions tab, then the device check on the iPhone
+- [x] 04-06-PLAN.md — Personal totals on the Sessions tab, then the device check on the iPhone
 
 **UI hint**: yes
 **Device spike**: On a real iPhone from the home-screen app: `navigator.share` with a PDF to Messages and Mail, a monthly PDF with 30+ receipts, and jsPDF memory on the oldest supported phone. If jsPDF fails on device, swap to pdf-lib inside the PDF module only.
@@ -164,7 +164,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Installable App & Roster | 5/5 | Complete    | 2026-10-19 |
 | 2. Session Logging & Backup | 3/3 | Complete    | 2026-10-19 |
 | 3. Expenses & Receipts | 5/5 | Complete    | 2026-10-19 |
-| 4. Family Summaries & Overview | 5/6 | In Progress | - |
+| 4. Family Summaries & Overview | 6/6 | In Progress | - |
 
 ## Backlog
 

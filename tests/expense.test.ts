@@ -206,6 +206,12 @@ describe('deleteExpenseMessage', () => {
 });
 
 describe('expenseEditorDirty', () => {
+  it('an untouched odd-cent equal split stored explicitly is not a change', () => {
+    const stored = { id: 'e1', description: 'Snacks', amountCents: 1001, splits: [{ familyId: 'f1', cents: 501 }, { familyId: 'f2', cents: 500 }], photoIds: [], createdAt: 1 };
+    expect(expenseEditorDirty(stored, '10.01', 'Snacks', null, [])).toBe(false);
+    expect(expenseEditorDirty({ ...stored, splits: [{ familyId: 'f1', cents: 700 }, { familyId: 'f2', cents: 301 }] }, '10.01', 'Snacks', null, [])).toBe(true);
+  });
+
   it('a new expense is dirty once anything is typed', () => {
     expect(expenseEditorDirty(null, '', '')).toBe(false);
     expect(expenseEditorDirty(null, '5', '')).toBe(true);

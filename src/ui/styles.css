@@ -1956,3 +1956,41 @@ button.row:active:not(:disabled) {
     bottom: 0;
   }
 }
+
+/* Short phones (SE class): the summary dock collapses to one row so the message keeps its room. */
+@media (max-height: 700px) and (max-width: 959px) {
+  .summary-footer {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-xs);
+    align-items: stretch;
+  }
+
+  .summary-footer > :not(.primary-button):not(.footer-actions) {
+    grid-column: 1 / -1;
+  }
+
+  .summary-footer .footer-actions {
+    display: contents;
+  }
+
+  .summary-footer .primary-button,
+  .summary-footer .secondary-button {
+    min-height: 44px;
+    padding: 0 var(--space-xs);
+    font-size: 15px;
+    white-space: nowrap;
+  }
+}
+
+@media (max-height: 700px) and (max-width: 359px) {
+  .summary-footer .primary-button,
+  .summary-footer .secondary-button {
+    font-size: 13px;
+  }
+}
+
+/* The one storage state that risks data loss reads as a warning. */
+.row-value.attention {
+  color: var(--color-warning);
+}

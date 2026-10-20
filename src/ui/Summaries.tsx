@@ -22,7 +22,7 @@ export function Summaries(props: { onOpen: (familyId: string) => void }) {
             <p>Add a family on the People tab to see its summary here.</p>
           </div>
         ) : (
-          <Group footer="Each family's most recent complete week or month. Families with no sessions are listed but have nothing to send.">
+          <Group footer="Each family's most recent complete week or month. The three marks are Check, Message and Sent, as on the family's summary. Families with no sessions are listed but have nothing to send.">
             {rows.map((r) => {
               const { pill, warnings } = summaryRowStatus({
                 hasSessions: r.summary.sessions.length > 0,

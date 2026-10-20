@@ -173,6 +173,14 @@ export function deleteExpenseMessage(photos: number): string | undefined {
   return photos === 0 ? undefined : `This also deletes ${plural(photos, 'receipt photo', 'receipt photos')}.`;
 }
 
+/** A stored two-family split that is just the equal default (odd cent first), which the editor shows as no override. */
+const isEqualDefault = (splits: readonly ExpenseSplit[] | null, total: number) => {
+  if (splits === null) return true;
+  if (splits.length !== 2) return false;
+  const [a, b] = equalSplit(total);
+  return splits[0].cents === a && splits[1].cents === b;
+};
+
 const sameShares = (a: readonly ExpenseSplit[] | null, b: readonly ExpenseSplit[] | null) =>
   a === null || b === null ? a === b : a.length === b.length && a.every((s, i) => s.familyId === b[i].familyId && s.cents === b[i].cents);
 
@@ -190,7 +198,7 @@ export function expenseEditorDirty(
   if (initial === null) return amountText.trim() !== '' || description.trim() !== '' || (splits ?? null) !== null || (photoIds ?? []).length > 0;
   if (parseAmountToCents(amountText) !== initial.amountCents) return true;
   if (normalizeName(description) !== initial.description) return true;
-  if (splits !== undefined && !sameShares(splits, initial.splits)) return true;
+  if (splits !== undefined && !sameShares(splits, initial.splits) && !(splits === null && isEqualDefault(initial.splits, initial.amountCents))) return true;
   if (photoIds !== undefined && (photoIds.length !== initial.photoIds.length || photoIds.some((p, i) => p !== initial.photoIds[i]))) return true;
   return false;
 }

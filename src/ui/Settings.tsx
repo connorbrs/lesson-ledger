@@ -68,7 +68,9 @@ export function Settings(props: { onEditInstructor: (name: string | null) => voi
           )
         }
       >
-        <Row value={PERSIST_LABEL[persist]}>Persistent storage</Row>
+        <Row value={PERSIST_LABEL[persist]} valueAttention={persist === 'not-granted'}>
+          Persistent storage
+        </Row>
         <Row figure value={typeof used === 'object' ? formatBytes(used.usage) : used === 'checking' ? 'Checking…' : 'Unavailable'}>
           Storage used
         </Row>

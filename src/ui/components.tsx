@@ -209,6 +209,8 @@ export function Row(props: {
   value?: string;
   /** The value is a measured amount (a time, hours, money): set it in the monospaced face. */
   figure?: boolean;
+  /** The value is a warning state (amber). */
+  valueAttention?: boolean;
   tone?: 'accent' | 'destructive' | 'secondary';
   disabled?: boolean;
   children: ComponentChildren;
@@ -217,7 +219,7 @@ export function Row(props: {
   const content = (
     <>
       <span class="row-label clamp2">{props.children}</span>
-      {props.value !== undefined && <span class={`row-value clamp2${props.figure ? ' figure' : ''}`}>{props.value}</span>}
+      {props.value !== undefined && <span class={`row-value clamp2${props.figure ? ' figure' : ''}${props.valueAttention ? ' attention' : ''}`}>{props.value}</span>}
       {props.chevron && <ChevronIcon />}
     </>
   );

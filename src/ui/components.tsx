@@ -68,6 +68,22 @@ export function SessionsIcon() {
   );
 }
 
+export function SummariesIcon() {
+  return (
+    <svg {...svgProps}>
+      <path d="M7 3.5h7.5L19 8v12.5H7z M9.5 12.5h7 M9.5 16.5h7" />
+    </svg>
+  );
+}
+
+export function WarningIcon() {
+  return (
+    <svg {...svgProps}>
+      <path d="M12 4 21 19H3Z M12 10v4 M12 16.5h.01" />
+    </svg>
+  );
+}
+
 export function GearIcon() {
   return (
     <svg {...svgProps}>
@@ -123,12 +139,13 @@ export function NavBar(props: {
   );
 }
 
-export type TabId = 'log' | 'sessions' | 'people' | 'settings';
+export type TabId = 'log' | 'sessions' | 'summaries' | 'people' | 'settings';
 
 export function TabBar(props: { tab: TabId; onSelect: (tab: TabId) => void }) {
   const tabs: { id: TabId; label: string; icon: ComponentChildren }[] = [
     { id: 'log', label: 'Log', icon: <LogIcon /> },
     { id: 'sessions', label: 'Sessions', icon: <SessionsIcon /> },
+    { id: 'summaries', label: 'Summaries', icon: <SummariesIcon /> },
     { id: 'people', label: 'People', icon: <PeopleIcon /> },
     { id: 'settings', label: 'Settings', icon: <GearIcon /> },
   ];

@@ -7,12 +7,14 @@ import { Archived, ArchivedDeleteAlert, type ArchivedDeleteTarget } from './Arch
 import { creditFamilies, needsCreditGroups, removeExpense, setAttendees, upsertExpense, type FormState } from '../domain/sessionForm';
 import { ExpenseEditor } from './ExpenseEditor';
 import { FamilySheet } from './FamilySheet';
+import { FamilySummaryScreen } from './FamilySummary';
 import { NavBar, PushLayer, Screen, TabBar, useAnimatedClose, type TabId } from './components';
 import { Log } from './Log';
 import { People } from './People';
 import type { PhotoStage } from './receiptPhotos';
 import { Sessions } from './Sessions';
 import { Settings } from './Settings';
+import { Summaries } from './Summaries';
 import { RecordsError, SafariBanner, UpdateBanner } from './Status';
 import { StudentPicker } from './StudentPicker';
 import { SessionSheet } from './SessionSheet';
@@ -50,6 +52,8 @@ function ArchivedScreen(props: { onClosed: () => void }) {
 export function App() {
   const [tab, setTab] = useState<TabId>('log');
   const [archivedOpen, setArchivedOpen] = useState(false);
+  // The family whose summary is open (a push layer over the Summaries tab), or null.
+  const [summaryFamilyId, setSummaryFamilyId] = useState<string | null>(null);
   // The Log draft lives here so an unsaved form survives switching tabs.
   const [logDraft, setLogDraft] = useState<FormState | null>(null);
   // Receipt photos staged for the Log tab's session; written with it on Log Session.
@@ -87,6 +91,8 @@ export function App() {
           <Log draft={logDraft} setDraft={setLogDraft} stage={logStage} onOpenPicker={() => setLogPickerOpen(true)} onOpenExpense={(id) => setLogExpense({ id })} />
         ) : tab === 'sessions' ? (
           <Sessions onLogSession={() => setTab('log')} onEdit={(session) => setSheet({ kind: 'session', session })} />
+        ) : tab === 'summaries' ? (
+          <Summaries onOpen={setSummaryFamilyId} />
         ) : tab === 'people' ? (
           <People
             onAddFamily={() => setSheet({ kind: 'family' })}
@@ -121,11 +127,13 @@ export function App() {
         />
       )}
       {!error && archivedOpen && <ArchivedScreen onClosed={() => setArchivedOpen(false)} />}
+      {!error && summaryFamilyId && <FamilySummaryScreen key={summaryFamilyId} familyId={summaryFamilyId} onClosed={() => setSummaryFamilyId(null)} />}
       <TabBar
         tab={tab}
         onSelect={(next) => {
           setTab(next);
           setArchivedOpen(false);
+          setSummaryFamilyId(null);
           setLogPickerOpen(false);
           setLogExpense(null);
         }}

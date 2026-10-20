@@ -72,7 +72,8 @@ export const formatBackupDate = (ms: number): string =>
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const isTime = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 const isArchivedAt = (v: unknown): v is number | null => v === null || isTime(v);
-const isId = (v: unknown): v is string => typeof v === 'string' && v !== '';
+/** Row ids are UUIDs in practice; the narrow charset and length keep hostile keys such as __proto__ out of the data. */
+const isId = (v: unknown): v is string => typeof v === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(v) && v !== '__proto__';
 
 class Damaged extends Error {}
 const need = (ok: boolean): void => {

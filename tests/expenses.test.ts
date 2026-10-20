@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../src/data/db';
 import { createFamily } from '../src/data/families';
 import { createStudent } from '../src/data/students';
-import { createSession, deleteSession, updateSession } from '../src/data/sessions';
+import { createSession, deleteSession, loadNameMaps, updateSession } from '../src/data/sessions';
 import { EMPTY_PAYLOAD, expenseTotalsBySession, getAttachmentBlob, loadExpenseDrafts, type ExpensePayload, type NewPhoto } from '../src/data/expenses';
 import type { ExpenseDraft } from '../src/domain/expense';
 import { parseAmountToCents } from '../src/domain/money';
@@ -248,6 +248,20 @@ describe('loadExpenseDrafts and totals', () => {
     expect(drafts[2].photoIds).toEqual(['p2', 'p1', 'p3']);
     expect(drafts[2].splits).toBeNull();
     expect(await expenseTotalsBySession([s.id])).toEqual({ [s.id]: 600 });
+  });
+
+  it('totals and name maps keep hostile row ids such as __proto__ as plain data', async () => {
+    const row = (id: string, sessionId: string, amountCents: number) =>
+      ({ id, sessionId, description: 'x', amountCents, splits: [{ familyId: 'f', cents: amountCents }], createdAt: 1, updatedAt: 1 });
+    await db.expenses.bulkAdd([row('e1', '__proto__', 300), row('e2', '__proto__', 200), row('e3', 'constructor', 50)]);
+    const totals = await expenseTotalsBySession(['__proto__', 'constructor', 'toString']);
+    expect(totals['__proto__']).toBe(500);
+    expect(totals['constructor']).toBe(50);
+    expect(totals['toString']).toBeUndefined();
+    await db.families.add({ id: '__proto__', name: 'Odd', billingPeriod: 'weekly', archivedAt: null, createdAt: 1, updatedAt: 1 } as never);
+    const names = await loadNameMaps();
+    expect(names.families['__proto__']).toBe('Odd');
+    expect(names.families['constructor']).toBeUndefined();
   });
 
   it('totals omit sessions without expenses', async () => {

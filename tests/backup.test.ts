@@ -319,6 +319,16 @@ describe('parseBackup rejection', () => {
     expect(await snapshot()).toEqual(before);
   });
 
+  it('rejects hostile or malformed row ids, and accepts the same backup under an ordinary id', async () => {
+    const text = JSON.stringify(await doc());
+    const sessionId = (JSON.parse(text).sessions[0] as { id: string }).id;
+    const swap = (id: string) => text.split(JSON.stringify(sessionId)).join(JSON.stringify(id));
+    expect(parseBackup(swap('renamed-id_1')).ok).toBe(true);
+    for (const bad of ['__proto__', 'has space', 'x'.repeat(65), '']) {
+      expect(parseBackup(swap(bad)), bad).toEqual({ ok: false, code: 'damaged' });
+    }
+  });
+
   it('a backup whose sessions have no endTime key parses ok, and every session reads endTime null', async () => {
     const d = await doc();
     for (const s of d.sessions) delete s.endTime;

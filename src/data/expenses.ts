@@ -101,9 +101,16 @@ export async function deleteSessionExpenses(sessionId: string): Promise<void> {
 /** Total cents per session; sessions without expenses are absent. */
 export async function expenseTotalsBySession(sessionIds: readonly string[]): Promise<Record<string, number>> {
   const rows: Expense[] = await db.expenses.where('sessionId').anyOf(sessionIds).toArray();
-  const bySession: Record<string, number[]> = {};
-  for (const r of rows) (bySession[r.sessionId] ??= []).push(r.amountCents);
-  return Object.fromEntries(Object.entries(bySession).map(([id, list]) => [id, sumCents(list)]));
+  // A Map and a prototype-less result: a row id such as "__proto__" or "constructor" must stay plain data.
+  const bySession = new Map<string, number[]>();
+  for (const r of rows) {
+    const list = bySession.get(r.sessionId);
+    if (list) list.push(r.amountCents);
+    else bySession.set(r.sessionId, [r.amountCents]);
+  }
+  const totals: Record<string, number> = Object.create(null);
+  for (const [id, list] of bySession) totals[id] = sumCents(list);
+  return totals;
 }
 
 /**

@@ -101,8 +101,8 @@ export async function getLastSession(): Promise<Session | undefined> {
 
 /** Names for every student and family, archived included, so history still reads correctly. */
 export async function loadNameMaps(): Promise<{ students: Record<string, string>; families: Record<string, string> }> {
-  const students: Record<string, string> = {};
-  const families: Record<string, string> = {};
+  const students: Record<string, string> = Object.create(null);
+  const families: Record<string, string> = Object.create(null);
   for (const s of await db.students.toArray()) students[s.id] = s.name;
   for (const f of await db.families.toArray()) families[f.id] = f.name;
   return { students, families };

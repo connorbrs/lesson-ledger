@@ -147,6 +147,9 @@ export function ExpenseEditor(props: {
     if (confirming.current || !initial) return;
     confirming.current = true;
     setDeleteOpen(false);
+    // The expense is going away: free every staged photo it held, current or removed in this editor (unstaged ids are ignored).
+    for (const id of photoIds) props.stage.delete(id);
+    for (const id of removedEarlier.current) props.stage.delete(id);
     props.onDelete?.(initial.id);
     close();
   }

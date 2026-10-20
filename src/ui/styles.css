@@ -12,9 +12,9 @@
   --color-accent: #0969da;
   --color-on-accent: #ffffff;
   --color-success: #1a7f37;
-  --color-warning: #9a6700;
+  --color-warning: #8a5700;
   --color-destructive: #cf222e;
-  --color-swim: #0a7d8c;
+  --color-swim: #07707e;
   --color-math: #8250df;
   --color-text: #1f2328;
   --color-text-secondary: #59636e;
@@ -32,6 +32,8 @@
 
   --radius-group: 8px;
   --radius-segment: 6px;
+  --column: 560px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   --nav-height: 44px;
   --tab-height: 48px;
@@ -147,8 +149,18 @@ textarea {
 .app {
   position: fixed;
   inset: 0;
+  margin: 0 auto;
+  max-width: var(--column);
   overflow: hidden;
+  /* Fixed footers and the tab bar position against this column, not the window, on wide screens. */
+  contain: layout;
   background: var(--color-bg-grouped);
+}
+
+@media (min-width: 600px) {
+  .app {
+    border-inline: var(--hairline) solid var(--color-separator);
+  }
 }
 
 .screen {
@@ -326,8 +338,22 @@ textarea {
   line-height: 1.3;
 }
 
+.tab {
+  position: relative;
+}
+
 .tab[aria-current='page'] {
   color: var(--color-accent);
+}
+
+.tab[aria-current='page']::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 25%;
+  right: 25%;
+  height: 2px;
+  background: var(--color-accent);
 }
 
 .icon {
@@ -345,6 +371,7 @@ textarea {
 /* ---------- Grouped list ---------- */
 
 .section + .section,
+.expand + .section,
 .empty + .section {
   margin-top: var(--space-xl);
 }
@@ -416,7 +443,7 @@ textarea {
 .row:not(:last-child)::after {
   content: '';
   position: absolute;
-  left: var(--space-md);
+  left: 0;
   right: 0;
   bottom: 0;
   height: var(--hairline);
@@ -452,7 +479,42 @@ button.row:active:not(:disabled) {
 }
 
 .row.tone-destructive {
+  /* Destructive actions are outline buttons with 24px of empty space around them, never a list row. */
+  justify-content: center;
+  width: calc(100% - 2 * var(--space-md));
+  margin: var(--space-lg) var(--space-md);
+  border: var(--hairline) solid var(--color-destructive);
+  border-radius: var(--radius-segment);
   color: var(--color-destructive);
+  font-weight: 600;
+}
+
+.row.tone-destructive::after {
+  display: none;
+}
+
+.row.tone-destructive + .row {
+  border-top: var(--hairline) solid var(--color-separator);
+}
+
+.row.tone-destructive:disabled {
+  border-color: var(--color-separator);
+}
+
+/* A destructive action of its own: no panel, 48px clear of what comes before. */
+.section.danger {
+  margin-top: var(--space-2xl);
+}
+
+.section.danger .group {
+  background: none;
+  border: 0;
+  overflow: visible;
+}
+
+.section.danger .row.tone-destructive {
+  width: 100%;
+  margin: 0;
 }
 
 .row.tone-secondary {
@@ -555,17 +617,53 @@ button.row:active:not(:disabled) {
 /* ---------- Empty state ---------- */
 
 .empty {
-  padding: var(--space-2xl) var(--space-md) var(--space-lg);
-  text-align: center;
+  margin: var(--space-md) var(--space-md) 0;
+  padding: var(--space-lg) var(--space-md);
+  border: var(--hairline) dashed var(--color-separator);
+  border-radius: var(--radius-group);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-sm);
 }
 
 .empty p {
   color: var(--color-text-secondary);
-  max-width: 320px;
+  max-width: 36ch;
+}
+
+.empty .primary-button {
+  margin-top: var(--space-sm);
+}
+
+/* Loading: a quiet panel of placeholder rows. */
+.skeleton {
+  padding: var(--space-xs) 0;
+}
+
+.skeleton-bar {
+  height: 12px;
+  margin: 16px var(--space-md);
+  border-radius: 2px;
+  background: var(--color-elevated);
+  animation: skeleton-pulse 1.4s ease-in-out infinite alternate;
+}
+
+.skeleton-bar:nth-child(2) {
+  width: 60%;
+}
+
+.skeleton-bar:nth-child(3) {
+  width: 78%;
+}
+
+@keyframes skeleton-pulse {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .primary-button {
@@ -605,6 +703,7 @@ button.row:active:not(:disabled) {
   background: var(--color-bg-grouped);
   border-radius: var(--radius-group) var(--radius-group) 0 0;
   overflow: hidden;
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.28);
 }
 
 .sheet-error {
@@ -657,11 +756,13 @@ button.row:active:not(:disabled) {
 }
 
 .alert {
-  width: 272px;
-  background: var(--color-surface);
+  width: min(300px, calc(100% - 2 * var(--space-lg)));
+  background: var(--color-elevated);
+  border: var(--hairline) solid var(--color-separator);
   border-radius: var(--radius-group);
   overflow: hidden;
-  text-align: center;
+  text-align: left;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
 .alert-text {
@@ -678,6 +779,8 @@ button.row:active:not(:disabled) {
 .alert-message {
   margin-top: var(--space-xs);
   overflow-wrap: anywhere;
+  font-size: 15px;
+  color: var(--color-text-secondary);
 }
 
 .alert-button {
@@ -687,6 +790,7 @@ button.row:active:not(:disabled) {
   padding: 0 var(--space-md);
   border-top: var(--hairline) solid var(--color-separator);
   font-size: 17px;
+  text-align: center;
   color: var(--color-accent);
 }
 
@@ -800,20 +904,33 @@ button.row:active:not(:disabled) {
   }
 }
 
-/* ---------- Status banners and Records error ---------- */
+/* ---------- Status panels (Safari banner, update, records error, backup reminder) ---------- */
 
-.safari-banner {
-  padding: var(--space-md);
+.status-panel {
+  margin: 0 var(--space-md) var(--space-md);
+  padding: 12px var(--space-md);
   background: var(--color-surface);
-  border-bottom: var(--hairline) solid var(--color-separator);
-  margin-bottom: var(--space-md);
+  border: var(--hairline) solid var(--color-separator);
+  border-radius: var(--radius-group);
 }
 
-.safari-banner p {
+.status-panel .heading {
+  font-size: 15px;
+}
+
+.status-panel p {
   margin-top: var(--space-xs);
+  font-size: 13px;
+  color: var(--color-text-secondary);
 }
 
-.banner-action {
+.status-panel .banner-error,
+.status-panel .sheet-error {
+  padding: var(--space-sm) 0 0;
+  color: var(--color-destructive);
+}
+
+.status-panel .text-button {
   min-height: 44px;
   padding: 0;
   justify-content: flex-start;
@@ -823,29 +940,19 @@ button.row:active:not(:disabled) {
   margin: var(--space-sm) 0 0;
   padding: 0;
   list-style: none;
+  font-size: 13px;
+  color: var(--color-text-secondary);
 }
 
-.update-card {
-  margin: var(--space-md);
-  padding: var(--space-md);
-  background: var(--color-surface);
-  border-radius: var(--radius-group);
-}
-
-.update-card p {
+.install-steps li + li {
   margin-top: var(--space-xs);
-}
-
-.banner-error {
-  color: var(--color-destructive);
 }
 
 .update-actions {
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  height: 44px;
-  margin-top: var(--space-md);
+  margin-top: var(--space-sm);
 }
 
 .update-actions .primary-button {
@@ -854,16 +961,23 @@ button.row:active:not(:disabled) {
 }
 
 .update-actions .text-button {
-  min-height: 44px;
   flex: none;
+  padding: 0 var(--space-sm);
 }
 
 .primary-button:disabled {
   opacity: 0.5;
 }
 
+.primary-button.full {
+  width: 100%;
+}
+
 .records-error {
-  padding: var(--space-2xl) var(--space-md) var(--space-lg);
+  margin: var(--space-md);
+  padding: var(--space-lg) var(--space-md);
+  border: var(--hairline) solid var(--color-destructive);
+  border-radius: var(--radius-group);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
@@ -873,31 +987,9 @@ button.row:active:not(:disabled) {
   color: var(--color-text-secondary);
 }
 
-.primary-button.full {
-  width: 100%;
-}
+/* ---------- Docked footers ---------- */
 
-.log-footer {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: calc(var(--tab-height) + var(--safe-bottom));
-  z-index: 2;
-  padding: var(--space-sm) var(--space-md);
-  background: var(--color-bg-grouped);
-  border-top: var(--hairline) solid var(--color-separator);
-}
-
-.log-footer .sheet-error {
-  padding: 0 0 var(--space-sm);
-}
-
-.log-footer .primary-button {
-  display: block;
-  width: 100%;
-  margin-top: 0;
-}
-
+.log-footer,
 .summary-footer {
   position: fixed;
   left: 0;
@@ -909,6 +1001,7 @@ button.row:active:not(:disabled) {
   border-top: var(--hairline) solid var(--color-separator);
 }
 
+.log-footer .sheet-error,
 .summary-footer .sheet-error,
 .summary-footer .footer-secondary {
   padding: 0 0 var(--space-sm);
@@ -920,10 +1013,20 @@ button.row:active:not(:disabled) {
   color: var(--color-text-secondary);
 }
 
+.log-footer .primary-button,
 .summary-footer .primary-button {
   display: block;
   width: 100%;
   margin-top: 0;
+}
+
+.primary-button .icon,
+.secondary-button .icon,
+.save-label .icon {
+  width: 18px;
+  height: 18px;
+  vertical-align: -3px;
+  margin-right: var(--space-xs);
 }
 
 .footer-actions {
@@ -937,8 +1040,9 @@ button.row:active:not(:disabled) {
   min-width: 0;
   min-height: 44px;
   padding: 0 var(--space-md);
-  border-radius: var(--radius-group);
-  background: var(--color-surface);
+  border-radius: var(--radius-segment);
+  background: var(--color-elevated);
+  border: var(--hairline) solid var(--color-separator);
   color: var(--color-accent);
   font-weight: 600;
 }
@@ -969,61 +1073,35 @@ button.row:active:not(:disabled) {
   font-size: 17px;
 }
 
-.row-value.tone-primary {
-  color: var(--color-text);
-}
+/* ---------- Measured values and subject tags ---------- */
 
-.row .clear-start {
-  position: relative;
-  z-index: 1;
-  min-height: 44px;
-  margin: -12px 0;
-}
-
-.row.minutes-block {
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-sm);
-}
-
-.minutes-line {
-  display: flex;
+.tag {
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-sm);
-}
-
-.duration-input {
-  margin-left: auto;
-}
-
-.minutes-input {
-  width: 64px;
-  min-height: 44px;
-  margin: -12px 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  font-size: 17px;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
   line-height: 1.3;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-text);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.minutes-input:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: -2px;
+.tag::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: currentColor;
 }
 
-.minutes-suffix {
-  color: var(--color-text-secondary);
+.tag.swim {
+  color: var(--color-swim);
 }
 
-.minutes-error {
-  color: var(--color-destructive);
+.tag.math {
+  color: var(--color-math);
 }
 
-/* ---------- Expenses (Phase 3) ---------- */
+/* ---------- Expenses ---------- */
 
 .row-fixed-label.wide {
   width: 96px;
@@ -1042,9 +1120,17 @@ button.row:active:not(:disabled) {
 }
 
 .expense-amount {
-  flex: 0 0 5.5rem;
+  flex: 0 0 auto;
   text-align: right;
-  font-variant-numeric: tabular-nums;
+}
+
+.amount-row {
+  flex-wrap: wrap;
+  row-gap: var(--space-xs);
+}
+
+.amount-row .row-label {
+  flex: 1 1 0;
 }
 
 .amount-prefix {
@@ -1053,9 +1139,28 @@ button.row:active:not(:disabled) {
 
 .amount-input {
   width: 96px;
+  min-height: 44px;
+  margin: -12px 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  text-align: right;
+  color: var(--color-text);
 }
 
-/* ---------- Sessions period view (Phase 2) ---------- */
+.amount-input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+.field-error {
+  flex-basis: 100%;
+  font-size: 13px;
+  color: var(--color-destructive);
+}
+
+/* ---------- Sessions period view ---------- */
 
 .period-controls {
   display: flex;
@@ -1093,6 +1198,11 @@ button.row:active:not(:disabled) {
   color: var(--color-accent);
 }
 
+.period-step:disabled .icon-chevron {
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+}
+
 .period-step.prev .icon-chevron {
   transform: rotate(180deg);
 }
@@ -1117,18 +1227,31 @@ button.row:active:not(:disabled) {
   gap: 2px;
 }
 
+.session-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
 .session-amounts {
-  flex: 0 0 10.5rem;
+  flex: 0 1 auto;
+  max-width: 60%;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  font-size: 13px;
-  line-height: 1.3;
-  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  line-height: 1.4;
   text-align: right;
+  overflow-wrap: anywhere;
 }
 
-.session-amounts .tone-secondary {
+.amount-line .amount-label {
+  color: var(--color-text-secondary);
+}
+
+.amount-line.secondary {
   color: var(--color-text-secondary);
 }
 
@@ -1142,40 +1265,15 @@ button.row:active:not(:disabled) {
   color: var(--color-text-secondary);
 }
 
-.backup-card {
-  margin: var(--space-lg) var(--space-md) 0;
-  padding: var(--space-md);
-  background: var(--color-surface);
-  border-radius: var(--radius-group);
-}
-
-.backup-card-title {
-  font-size: 17px;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.backup-card-body {
-  font-size: 13px;
-  line-height: 1.3;
-  color: var(--color-text-secondary);
-}
-
-.backup-card .sheet-error {
-  padding: var(--space-sm) 0 0;
-}
-
-.backup-card-action {
-  margin-top: var(--space-sm);
-  padding: 0;
-  justify-content: flex-start;
+.status-panel.backup {
+  margin-top: var(--space-lg);
 }
 
 .row:disabled {
   color: var(--color-text-secondary);
 }
 
-/* ---------- Receipts (Phase 3) ---------- */
+/* ---------- Receipts ---------- */
 
 .receipt-grid {
   display: grid;
@@ -1194,7 +1292,8 @@ button.row:active:not(:disabled) {
 }
 
 .receipt-thumb {
-  background: var(--color-pressed);
+  background: var(--color-elevated);
+  border: var(--hairline) solid var(--color-separator);
 }
 
 .receipt-thumb img {
@@ -1209,7 +1308,7 @@ button.row:active:not(:disabled) {
   align-items: center;
   justify-content: center;
   padding: var(--space-xs);
-  background: var(--color-pressed);
+  background: var(--color-elevated);
   color: var(--color-text-secondary);
   text-align: center;
 }
@@ -1220,12 +1319,13 @@ button.row:active:not(:disabled) {
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
-  border: var(--hairline) dashed var(--color-separator);
-  background: var(--color-surface);
+  border: var(--hairline) dashed var(--color-accent);
+  background: transparent;
   color: var(--color-accent);
 }
 
 .receipt-add:disabled {
+  border-color: var(--color-separator);
   color: var(--color-text-secondary);
 }
 
@@ -1239,7 +1339,7 @@ button.row:active:not(:disabled) {
   color: var(--color-destructive);
 }
 
-/* ---------- Receipt viewer (Phase 3) ---------- */
+/* ---------- Receipt viewer ---------- */
 
 .receipt-viewer {
   position: absolute;
@@ -1278,34 +1378,178 @@ button.row:active:not(:disabled) {
 
 .receipt-viewer-footer {
   flex: none;
-  display: flex;
-  justify-content: center;
-  padding: 0 var(--space-md);
+  padding: var(--space-lg) var(--space-md);
   background: var(--color-surface);
+  border-top: var(--hairline) solid var(--color-separator);
 }
 
 .receipt-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  border: var(--hairline) solid var(--color-destructive);
+  border-radius: var(--radius-segment);
   color: var(--color-destructive);
+  font-weight: 600;
 }
 
-/* ---------- Summaries (Phase 4) ---------- */
+/* ---------- Summaries ---------- */
 
 .summary-row {
-  align-items: flex-start;
+  align-items: center;
 }
 
-/* The disclosure chevron stays centred on rows that grow to two status pills. */
-.summary-row > :last-child {
-  align-self: center;
+.summary-status {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-xs);
+  max-width: 48%;
+  text-align: right;
+}
+
+.summary-status-text {
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--color-text-secondary);
+}
+
+.summary-status-text.done {
+  color: var(--color-success);
+}
+
+.summary-status-text.attention {
+  color: var(--color-warning);
+}
+
+/* ---------- Send checklist: Checked, Message, Sent ---------- */
+
+.glyph {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+.glyph.done {
+  color: var(--color-success);
+}
+
+.glyph.attention {
+  color: var(--color-warning);
+}
+
+.glyph.idle {
+  color: var(--color-text-secondary);
+}
+
+.checklist {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 var(--space-md);
+  padding: 0;
+  list-style: none;
+  background: var(--color-surface);
+  border: var(--hairline) solid var(--color-separator);
+  border-radius: var(--radius-group);
+  overflow: hidden;
+}
+
+.stage {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 12px 14px;
+  border-left: var(--hairline) solid var(--color-separator);
+}
+
+.stage:first-child {
+  border-left: 0;
+}
+
+/* The glyphs sit on one line that runs through the seams from stage to stage. */
+.stage-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.stage-head::before,
+.stage-head::after {
+  content: '';
+  height: var(--hairline);
+  background: var(--color-separator);
+}
+
+.stage-head::before {
+  position: absolute;
+  right: 100%;
+  width: 12px;
+  top: 50%;
+}
+
+.stage:first-child .stage-head::before {
+  display: none;
+}
+
+.stage-head::after {
+  flex: 1;
+  margin-right: -12px;
+}
+
+.stage:last-child .stage-head::after {
+  display: none;
+}
+
+.stage-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.stage-detail {
+  margin-top: var(--space-xs);
+  font-size: 15px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.stage.attention .stage-detail {
+  color: var(--color-warning);
+}
+
+.stage.done .stage-detail {
+  color: var(--color-text);
+}
+
+.stage.idle .stage-detail {
+  color: var(--color-text-secondary);
+}
+
+.mini-checklist {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mini-checklist .glyph {
+  width: 16px;
+  height: 16px;
 }
 
 .warning-row {
   gap: var(--space-sm);
 }
 
-.warning-row .icon {
-  width: 24px;
-  height: 24px;
+.warning-row .glyph {
+  color: var(--color-warning);
 }
 
 .message-box {
@@ -1324,20 +1568,25 @@ button.row:active:not(:disabled) {
   overflow: hidden;
 }
 
-.row-value.primary {
-  color: var(--color-text);
+.message-box:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
 }
 
-.status-pill {
-  flex: none;
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-segment);
-  background: var(--color-pressed);
-  color: var(--color-text-secondary);
+.row-value.attention {
+  color: var(--color-warning);
 }
 
-.status-pill.changed {
-  color: var(--color-text);
+.row-value.done {
+  color: var(--color-success);
+}
+
+.banner-row {
+  background: var(--color-elevated);
+}
+
+.banner-row .row-label {
+  color: var(--color-warning);
 }
 
 .banner-row .text-button {
@@ -1365,22 +1614,74 @@ button.row:active:not(:disabled) {
   opacity: 0.6;
 }
 
-.row-status {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--space-xs);
-}
-
-/* ---------- Personal totals (Phase 4, Sessions tab) ---------- */
+/* ---------- Personal totals (Sessions tab) ---------- */
 
 .totals-control {
-  padding: 0 var(--space-md) var(--space-sm);
+  padding: var(--space-md) var(--space-md) var(--space-sm);
 }
 
 .totals-control .segmented {
   width: 100%;
+}
+
+/* A panel that opens along one axis (height) only. */
+.expand {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 200ms var(--ease-out);
+}
+
+.expand.open {
+  grid-template-rows: 1fr;
+}
+
+.expand-inner {
+  min-height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  transition: visibility 0s linear 200ms;
+}
+
+.expand.open > .expand-inner {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.disclosure {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  color: var(--color-accent);
+  border-top: var(--hairline) solid var(--color-separator);
+}
+
+.disclosure .icon-chevron {
+  color: var(--color-accent);
+  transition: transform 200ms var(--ease-out);
+}
+
+.disclosure[aria-expanded='true'] .icon-chevron {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expand,
+  .expand-inner,
+  .disclosure .icon-chevron {
+    transition: none;
+  }
+
+  .skeleton-bar {
+    animation: none;
+  }
+
+  .period-fade {
+    animation: none;
+  }
 }
 
 /* ---------- Metric strip (Graphite): three measured values side by side, divided by seams ---------- */
@@ -1403,7 +1704,7 @@ button.row:active:not(:disabled) {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: var(--space-xs);
   min-width: 0;
   min-height: 72px;
@@ -1446,6 +1747,15 @@ button.row:active:not(:disabled) {
   font-family: var(--font);
   font-size: 15px;
   color: var(--color-text-secondary);
+}
+
+.metric-sub {
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .metric.derived .metric-value {
@@ -1501,4 +1811,28 @@ button.row:active:not(:disabled) {
 
 .metric .row-overlay-input {
   z-index: 1;
+}
+
+/* At 320px a third of the strip is about 95px: smaller figures keep long values whole. */
+@media (max-width: 359px) {
+  .metric {
+    padding-inline: 10px;
+  }
+
+  .metric-value,
+  .metric-input {
+    font-size: 17px;
+  }
+
+  .stage {
+    padding-inline: 10px;
+  }
+
+  .stage-head::after {
+    margin-right: -10px;
+  }
+
+  .stage-head::before {
+    width: 10px;
+  }
 }

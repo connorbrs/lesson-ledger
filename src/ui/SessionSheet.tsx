@@ -145,7 +145,7 @@ function SessionSheetBody(props: { session: Session; drafts: ExpenseDraft[]; onC
             onOpenExpense={(id) => setExpenseOpen({ id })}
           />
         )}
-        <Group>
+        <Group danger>
           <Row tone="destructive" onClick={() => setDel({ busy: false, failed: false })}>
             Delete Session
           </Row>

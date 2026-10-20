@@ -3,7 +3,7 @@ import { useLive } from '../data/live';
 import { getStudent, listActiveStudents } from '../data/students';
 import { togglePick } from '../domain/sessionForm';
 import type { Attendee, DefaultSubject, Subject } from '../domain/types';
-import { CheckIcon, Group, NavBar, PushLayer, Screen, useAnimatedClose } from './components';
+import { CheckIcon, Group, NavBar, PushLayer, Screen, Skeleton, useAnimatedClose } from './components';
 
 /** Pushed picker for a session's students. Taps apply at once; Back returns to the parent. */
 export function StudentPicker(props: {
@@ -38,6 +38,7 @@ export function StudentPicker(props: {
     <PushLayer closing={closing} onAnimationEnd={onAnimationEnd}>
       <Screen inSheet={props.inSheet} nav={<NavBar inSheet={props.inSheet} title="Students" back={{ label: props.backLabel, onClick: close }} />}>
         {props.inSheet && <div class="sheet-body-top" />}
+        {!data && <Skeleton />}
         {data && data.students.length === 0 && (
           <div class="empty">
             <h2 class="heading">No active students</h2>

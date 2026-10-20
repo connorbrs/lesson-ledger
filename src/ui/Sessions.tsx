@@ -2,10 +2,10 @@ import { useState } from 'preact/hooks';
 import { useLive } from '../data/live';
 import { expenseTotalsBySession } from '../data/expenses';
 import { listSessionsInRange, loadNameMaps } from '../data/sessions';
-import { containsDate, formatDayHeader, periodRange, rangeLabel, shiftPeriod, todayLocal, type PeriodKind } from '../domain/dates';
+import { containsDate, formatDayHeader, formatTime12, periodRange, rangeLabel, shiftPeriod, todayLocal, type PeriodKind } from '../domain/dates';
 import { groupSessionsByDate, sessionRowText } from '../domain/session';
 import type { Session } from '../domain/types';
-import { ChevronIcon, Group, SegmentedControl } from './components';
+import { AmountLine, ChevronIcon, Group, SegmentedControl, Skeleton, SubjectTag } from './components';
 import { PersonalTotals } from './PersonalTotals';
 
 const KIND_OPTIONS: { value: PeriodKind; label: string }[] = [
@@ -49,6 +49,7 @@ export function Sessions(props: { onLogSession: () => void; onEdit?: (session: S
           </button>
         )}
       </div>
+      {!data && <Skeleton />}
       {data && (
         <div key={`${kind}-${range.start}`} class="period-fade">
           {data.sessions.length === 0 ? (
@@ -67,15 +68,24 @@ export function Sessions(props: { onLogSession: () => void; onEdit?: (session: S
                 {day.sessions.map((s) => {
                   const text = sessionRowText(s, data.names.students, data.expenseTotals[s.id]);
                   return (
-                    <button key={s.id} type="button" class="row session-row" onClick={() => props.onEdit?.(s)}>
+                    <button
+                      key={s.id}
+                      type="button"
+                      class="row session-row"
+                      aria-label={[text.names, text.meta, text.lesson, text.activity, text.expenses].filter(Boolean).join(', ')}
+                      onClick={() => props.onEdit?.(s)}
+                    >
                       <span class="session-names">
                         <span class="row-label clamp2">{text.names}</span>
-                        <span class="row-sub">{text.meta}</span>
+                        <span class="session-meta">
+                          <SubjectTag subject={s.subject} />
+                          {s.startTime && <span class="figure">{formatTime12(s.startTime)}</span>}
+                        </span>
                       </span>
                       <span class="session-amounts">
-                        <span>{text.lesson}</span>
-                        <span class="tone-secondary">{text.activity}</span>
-                        {text.expenses && <span class="tone-secondary">{text.expenses}</span>}
+                        <AmountLine text={text.lesson} />
+                        <AmountLine text={text.activity} secondary />
+                        {text.expenses && <AmountLine text={text.expenses} secondary />}
                       </span>
                     </button>
                   );

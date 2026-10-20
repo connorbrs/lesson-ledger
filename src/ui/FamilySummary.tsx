@@ -5,11 +5,12 @@ import { loadFamilyView } from '../data/summary';
 import { rangeLabel, todayLocal } from '../domain/dates';
 import { recordId } from '../domain/periodRecord';
 import { canGoNext, isDefaultPeriod, periodKey, periodReturnLabel, renderMessageTr, screenParts, shiftSummaryPeriod, warningText } from '../domain/summary';
-import { DISCARD_TITLE, messageView, REBUILD_MESSAGE, REBUILD_TITLE, sentAction, sentStatus, type MessageDraft } from '../domain/summaryState';
+import { DISCARD_TITLE, messageView, REBUILD_MESSAGE, REBUILD_TITLE, sendChecklist, sentAction, sentStatus, type MessageDraft } from '../domain/summaryState';
 import { MessageGroup } from './MessageGroup';
+import { SendChecklist, StatusGlyph } from './SendChecklist';
 import { SentGroup, useMarkSent } from './SentGroup';
 import { ShareFooter } from './ShareFooter';
-import { Alert, ChevronIcon, Group, NavBar, PushLayer, Screen, useAnimatedClose, WarningIcon } from './components';
+import { Alert, ChevronIcon, Group, NavBar, PushLayer, Screen, Skeleton, useAnimatedClose } from './components';
 
 /**
  * A family's summary for one period. Unsaved message text is held by the app (drafts, keyed by record id) so it survives
@@ -42,7 +43,19 @@ export function FamilySummaryScreen(props: {
     if (live === null) close();
   }, [live]);
 
-  if (!view) return null;
+  if (live === null) return null;
+  if (!view) {
+    // First load: the pushed screen is already in place, so the push animation plays once and content follows.
+    return (
+      <>
+        <PushLayer closing={closing} onAnimationEnd={onAnimationEnd}>
+          <Screen nav={<NavBar title="Summary" back={{ label: 'Summaries', onClick: close }} />}>
+            <Skeleton />
+          </Screen>
+        </PushLayer>
+      </>
+    );
+  }
   const { summary, defaultPeriod, record } = view;
   const { period } = summary;
   const parts = screenParts(summary);
@@ -87,12 +100,13 @@ export function FamilySummaryScreen(props: {
             </div>
           ) : (
             <>
+              <SendChecklist stages={sendChecklist({ warningCount: summary.warnings.length, record, fingerprint: summary.fingerprint, draft })} />
               {parts.showSent && <SentGroup summary={summary} record={record} failed={markSent.failed} onRun={(a) => void markSent.run(summary, a)} />}
               {parts.showWarnings && (
                 <Group header="Check before sending" footer="Warnings never block Copy or Share.">
                   {summary.warnings.map((w) => (
                     <div key={`${w.kind}-${w.id}`} class="row warning-row">
-                      <WarningIcon />
+                      <StatusGlyph tone="attention" />
                       <span class="row-label">{warningText(w)}</span>
                     </div>
                   ))}

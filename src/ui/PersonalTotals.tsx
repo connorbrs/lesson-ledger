@@ -3,13 +3,26 @@ import { loadViewTotals } from '../data/viewTotals';
 import { useLive } from '../data/live';
 import type { PeriodRange } from '../domain/dates';
 import { breakdownFooter, rowLines, showPersonalTotals, TOTALS_FOOTER, viewAmount, type BreakdownKind } from '../domain/viewTotals';
-import { Group, Row, SegmentedControl } from './components';
+import { AmountLine, ChevronIcon, Group, SegmentedControl, SubjectTag } from './components';
 
 const OPTIONS: { value: BreakdownKind; label: string }[] = [
   { value: 'student', label: 'Student' },
   { value: 'family', label: 'Family' },
   { value: 'subject', label: 'Subject' },
 ];
+
+/** One cell of the totals strip: the hours large, the h:mm form beneath so the cell holds at 320px. */
+function TotalCell(props: { label: string; minutes: number }) {
+  const text = viewAmount(props.minutes);
+  const split = /^(.+?) (\(.+\))$/.exec(text);
+  return (
+    <div class="metric">
+      <span class="metric-label">{props.label}</span>
+      <span class="metric-value figure">{split ? split[1] : text}</span>
+      {split && <span class="metric-sub figure">{split[2]}</span>}
+    </div>
+  );
+}
 
 /** The instructor's own totals for the period the Sessions tab shows, with a Student, Family or Subject breakdown. */
 export function PersonalTotals(props: { range: PeriodRange }) {
@@ -23,38 +36,41 @@ export function PersonalTotals(props: { range: PeriodRange }) {
   return (
     <>
       <Group header="Totals" footer={TOTALS_FOOTER}>
-        <Row value={viewAmount(totals.lesson)}>Lesson</Row>
-        <Row value={viewAmount(totals.activity)}>Activity</Row>
-        <Row value={viewAmount(totals.travel)}>Travel</Row>
-        <button type="button" class="row tone-accent" aria-expanded={open} onClick={() => setOpen(!open)}>
-          <span class="row-label">{open ? 'Hide Breakdown' : 'Show Breakdown'}</span>
+        <div class="metric-strip">
+          <TotalCell label="Lesson" minutes={totals.lesson} />
+          <TotalCell label="Activity" minutes={totals.activity} />
+          <TotalCell label="Travel" minutes={totals.travel} />
+        </div>
+        <button type="button" class="disclosure" aria-expanded={open} aria-controls="totals-breakdown" onClick={() => setOpen(!open)}>
+          <span>{open ? 'Hide Breakdown' : 'Show Breakdown'}</span>
+          <ChevronIcon />
         </button>
       </Group>
-      {open && (
-        <>
-        <div class="totals-control">
-          <SegmentedControl<BreakdownKind> label="Breakdown" options={OPTIONS} value={kind} onChange={setKind} />
+      <div id="totals-breakdown" class={`expand${open ? ' open' : ''}`}>
+        <div class="expand-inner">
+          <div class="totals-control">
+            <SegmentedControl<BreakdownKind> label="Breakdown" options={OPTIONS} value={kind} onChange={setKind} />
+          </div>
+          <Group footer={breakdownFooter(kind)}>
+            {rows.map((r) => {
+              const [lesson, activity, travel] = rowLines(r);
+              return (
+                <div key={r.id} class="row session-row">
+                  <span class="session-names">
+                    {kind === 'subject' && (r.id === 'swim' || r.id === 'math') ? <SubjectTag subject={r.id} /> : <span class="row-label clamp2">{r.name}</span>}
+                    {r.archived && <span class="row-sub">Archived</span>}
+                  </span>
+                  <span class="session-amounts">
+                    <AmountLine text={lesson} />
+                    <AmountLine text={activity} secondary />
+                    <AmountLine text={travel} secondary />
+                  </span>
+                </div>
+              );
+            })}
+          </Group>
         </div>
-        <Group footer={breakdownFooter(kind)}>
-          {rows.map((r) => {
-            const [lesson, activity, travel] = rowLines(r);
-            return (
-              <div key={r.id} class="row session-row">
-                <span class="session-names">
-                  <span class="row-label clamp2">{r.name}</span>
-                  {r.archived && <span class="row-sub">Archived</span>}
-                </span>
-                <span class="session-amounts">
-                  <span>{lesson}</span>
-                  <span class="tone-secondary">{activity}</span>
-                  <span class="tone-secondary">{travel}</span>
-                </span>
-              </div>
-            );
-          })}
-        </Group>
-        </>
-      )}
+      </div>
     </>
   );
 }

@@ -42,7 +42,7 @@ export function SentGroup(props: { summary: FamilySummary; record: PeriodRecord 
     <Group footer={sentFooterText(props.failed)} footerError={props.failed}>
       <div class="row">
         <span class="row-label clamp2">Status</span>
-        <span class={`row-value clamp2${status === 'changed' ? ' primary' : ''}`}>{statusValueText(status, record?.sentAt ?? null)}</span>
+        <span class={`row-value clamp2${status === 'changed' ? ' attention' : status === 'sent' ? ' done figure' : ''}`}>{statusValueText(status, record?.sentAt ?? null)}</span>
       </div>
       {action.kind === 'unmark' && <Row onClick={() => props.onRun(action)}>{action.label}</Row>}
     </Group>

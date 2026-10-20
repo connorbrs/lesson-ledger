@@ -15,13 +15,13 @@ export function BackupReminder() {
   if (reminder.kind === 'hidden') return null;
   if (reminder.kind === 'quiet') return <p class="backup-line">{reminder.text}</p>;
   return (
-    <section class="backup-card" aria-label="Back up your data">
-      <h2 class="backup-card-title">Back up your data</h2>
-      <p class="backup-card-body">{reminder.body}</p>
+    <section class="status-panel backup" aria-label="Back up your data">
+      <h2 class="heading">Back up your data</h2>
+      <p>{reminder.body}</p>
       {outcome === 'failed' && <p class="sheet-error" role="alert">Couldn't create the backup. Nothing was changed. Try Back Up Now again.</p>}
       <button
         type="button"
-        class="text-button backup-card-action"
+        class="text-button"
         disabled={busy}
         onClick={() => void run().then(setOutcome)}
       >

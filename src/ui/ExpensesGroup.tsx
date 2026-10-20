@@ -21,7 +21,7 @@ export function ExpensesGroup(props: {
               <span class="row-sub">{receiptsLabel(e.photoIds.length)}</span>
               {split && <span class="row-sub clamp2">{split}</span>}
             </span>
-            <span class="expense-amount">{formatCents(e.amountCents)}</span>
+            <span class="expense-amount figure">{formatCents(e.amountCents)}</span>
           </button>
         );
       })}

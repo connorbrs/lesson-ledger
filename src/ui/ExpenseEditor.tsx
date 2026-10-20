@@ -248,7 +248,7 @@ export function ExpenseEditor(props: {
             />
           )}
           {initial && props.onDelete && (
-            <Group>
+            <Group danger>
               <Row tone="destructive" onClick={() => setDeleteOpen(true)}>
                 Delete Expense
               </Row>

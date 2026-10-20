@@ -3,6 +3,7 @@ import { copyText } from '../pwa/clipboard';
 import { shareFile } from '../pwa/share';
 import type { FamilySummary } from '../domain/summary';
 import { COPY_FAILED, footerCaption, type SentAction, type ShareOutcome, shareAction, shareButtonState } from '../domain/summaryState';
+import { CheckIcon } from './components';
 import { useSummaryPdf } from './useSummaryPdf';
 
 const FLASH_MS = 1500;
@@ -94,7 +95,14 @@ export function ShareFooter(props: {
         </button>
         <div class="footer-actions">
           <button type="button" class="secondary-button" onClick={copy}>
-            {copied ? 'Copied ✓' : 'Copy Message'}
+            {copied ? (
+              <>
+                <CheckIcon />
+                Copied
+              </>
+            ) : (
+              'Copy Message'
+            )}
           </button>
           {props.markAction && (
             <button type="button" class="secondary-button" onClick={props.onMark}>

@@ -3,7 +3,7 @@ import { useLive } from '../data/live';
 import { listActiveStudents, listArchivedStudents } from '../data/students';
 import { periodLabel, studentCountLabel } from '../domain/roster';
 import type { Family, Student } from '../domain/types';
-import { Group, Row } from './components';
+import { Group, Row, Skeleton } from './components';
 
 export function People(props: {
   onAddFamily: () => void;
@@ -21,7 +21,8 @@ export function People(props: {
   return (
     <>
       <h1 class="large-title">People</h1>
-      {/* Nothing renders until the first query resolves: no spinner (UI-SPEC loading). */}
+      {/* Until the first query resolves, a quiet skeleton panel stands in. */}
+      {!data && <Skeleton />}
       {data && data.families.length === 0 && (
         <div class="empty">
           <h2 class="heading">No families yet</h2>

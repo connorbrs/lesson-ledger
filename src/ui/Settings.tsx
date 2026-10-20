@@ -69,13 +69,13 @@ export function Settings(props: { onEditInstructor: (name: string | null) => voi
         }
       >
         <Row value={PERSIST_LABEL[persist]}>Persistent storage</Row>
-        <Row value={typeof used === 'object' ? formatBytes(used.usage) : used === 'checking' ? 'Checking…' : 'Unavailable'}>
+        <Row figure value={typeof used === 'object' ? formatBytes(used.usage) : used === 'checking' ? 'Checking…' : 'Unavailable'}>
           Storage used
         </Row>
       </Group>
       <BackupGroup />
       <Group header="About">
-        <Row value={__BUILD_ID__}>Build</Row>
+        <Row figure value={__BUILD_ID__}>Build</Row>
       </Group>
     </>
   );

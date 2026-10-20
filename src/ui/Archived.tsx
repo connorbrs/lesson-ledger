@@ -4,7 +4,7 @@ import { deleteFamily, familyHasSessions, getFamily, hasFamilyHistory, listArchi
 import { useLive } from '../data/live';
 import { deleteStudent, listArchivedStudents, restoreStudent, studentHasHistory } from '../data/students';
 import { blockedFamilyNote } from '../domain/roster';
-import { Alert, Group, Row } from './components';
+import { Alert, Group, Row, Skeleton } from './components';
 
 export interface ArchivedDeleteTarget {
   kind: 'family' | 'student';
@@ -88,6 +88,7 @@ export function Archived(props: { onEmpty: () => void; onDelete: (target: Archiv
           Couldn't restore. Nothing was changed. Try again.
         </p>
       )}
+      {!data && <Skeleton />}
       {data && data.families.length > 0 && (
         <Group header="Families">
           {data.families.map(({ family: f, hasStudents, hasSessions }) => (

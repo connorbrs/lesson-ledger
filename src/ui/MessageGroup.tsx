@@ -4,7 +4,7 @@ import { MESSAGE_MAX, recordId } from '../domain/periodRecord';
 import { periodKey, renderMessageTr, type FamilySummary } from '../domain/summary';
 import { draftBasis, messageView, MESSAGE_FOOTER, SAVE_FAILED, STALE_BANNER, type MessageDraft } from '../domain/summaryState';
 import type { PeriodRecord } from '../domain/types';
-import { Group } from './components';
+import { CheckIcon, Group } from './components';
 
 const FLASH_MS = 1500;
 
@@ -79,7 +79,16 @@ export function MessageGroup(props: {
       />
       {saveFailed && <p class="label caption-error">{SAVE_FAILED}</p>}
       <button type="button" class="row save-row" disabled={!view.canSave} onClick={save}>
-        <span class="row-label save-label">{saved ? 'Saved ✓' : 'Save Message'}</span>
+        <span class="row-label save-label">
+          {saved ? (
+            <>
+              <CheckIcon />
+              Saved
+            </>
+          ) : (
+            'Save Message'
+          )}
+        </span>
       </button>
     </Group>
   );

@@ -3,7 +3,7 @@ import { useState } from 'preact/hooks';
 export function SafariBanner() {
   const [open, setOpen] = useState(false);
   return (
-    <aside class="safari-banner">
+    <aside class="status-panel">
       <h2 class="heading">You're in Safari</h2>
       <p>
         Your records are saved by the Lesson Ledger app on your Home Screen. This Safari tab keeps separate data, so
@@ -16,7 +16,7 @@ export function SafariBanner() {
           <li>3. Open Lesson Ledger from your Home Screen and use it from there.</li>
         </ol>
       ) : (
-        <button type="button" class="text-button banner-action" onClick={() => setOpen(true)}>
+        <button type="button" class="text-button" onClick={() => setOpen(true)}>
           Show Install Steps
         </button>
       )}
@@ -26,7 +26,7 @@ export function SafariBanner() {
 
 export function UpdateBanner(props: { applying: boolean; failed: boolean; onUpdate: () => void; onNotNow: () => void }) {
   return (
-    <section class="update-card" aria-label="Update available">
+    <section class="status-panel" aria-label="Update available">
       <h2 class="heading">Update available</h2>
       <p>A new version of Lesson Ledger is ready. Your records stay on this phone. Save any open form first.</p>
       {props.failed && (

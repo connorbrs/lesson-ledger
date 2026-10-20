@@ -117,7 +117,7 @@ export function FamilySheet(props: { family?: Family; onClosed: () => void }) {
           </Group>
         )}
         {family && hasStudents === false && (
-          <Group>
+          <Group danger>
             <Row tone="destructive" onClick={() => setDel({ busy: false, failed: false })}>
               Delete Family
             </Row>

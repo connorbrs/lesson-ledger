@@ -5,7 +5,7 @@ import { listSessionEligibleStudents } from '../data/students';
 import { todayLocal } from '../domain/dates';
 import { blankForm, formToInput, prefillFromSession, setAttendees, type FormState } from '../domain/sessionForm';
 import { BackupReminder } from './BackupReminder';
-import { sessionSaveErrorMessage } from './components';
+import { CheckIcon, sessionSaveErrorMessage, Skeleton } from './components';
 import type { PhotoStage } from './receiptPhotos';
 import { SessionFields } from './SessionFields';
 
@@ -48,7 +48,14 @@ export function Log(props: { draft: FormState | null; setDraft: (f: FormState) =
     return () => observer.disconnect();
   }, [ready]);
 
-  if (!draft || !data) return <h1 class="large-title">Log</h1>;
+  if (!draft || !data) {
+    return (
+      <>
+        <h1 class="large-title">Log</h1>
+        <Skeleton />
+      </>
+    );
+  }
 
   const check = formToInput(draft, todayLocal());
 
@@ -91,7 +98,14 @@ export function Log(props: { draft: FormState | null; setDraft: (f: FormState) =
       <div ref={footer} class="log-footer">
         {saveError && <p class="sheet-error" role="alert">{saveError}</p>}
         <button type="button" class="primary-button" disabled={logged || !check.ok} onClick={() => void save()}>
-          {logged ? 'Logged ✓' : 'Log Session'}
+          {logged ? (
+            <>
+              <CheckIcon />
+              Logged
+            </>
+          ) : (
+            'Log Session'
+          )}
         </button>
         <span class="visually-hidden" role="status">{logged ? 'Session logged' : ''}</span>
       </div>

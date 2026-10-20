@@ -2,8 +2,9 @@ import { useLive } from '../data/live';
 import { loadSummaryList } from '../data/summary';
 import { todayLocal } from '../domain/dates';
 import { summaryRowSecondLine } from '../domain/summary';
-import { sentStatus, summaryRowStatus } from '../domain/summaryState';
-import { ChevronIcon, Group } from './components';
+import { sendChecklist, sentStatus, summaryRowStatus } from '../domain/summaryState';
+import { ChevronIcon, Group, Skeleton } from './components';
+import { MiniChecklist } from './SendChecklist';
 
 /** One row per active family at its most recent complete period (SUM-01). Reads local data only. */
 export function Summaries(props: { onOpen: (familyId: string) => void }) {
@@ -13,6 +14,7 @@ export function Summaries(props: { onOpen: (familyId: string) => void }) {
   return (
     <>
       <h1 class="large-title">Summaries</h1>
+      {!rows && <Skeleton />}
       {rows &&
         (rows.length === 0 ? (
           <div class="empty">
@@ -27,6 +29,8 @@ export function Summaries(props: { onOpen: (familyId: string) => void }) {
                 status: sentStatus(r.record, r.summary.fingerprint),
                 warningCount: r.summary.warnings.length,
               });
+              const stages = sendChecklist({ warningCount: r.summary.warnings.length, record: r.record, fingerprint: r.summary.fingerprint });
+              const tone = pill === 'Sent' ? 'done' : pill === 'Changed since sent' || warnings ? 'attention' : '';
               return (
                 <button key={r.familyId} type="button" class="row summary-row" onClick={() => props.onOpen(r.familyId)}>
                   <span class="session-names">
@@ -34,9 +38,11 @@ export function Summaries(props: { onOpen: (familyId: string) => void }) {
                     <span class="row-sub">{summaryRowSecondLine(r.kind, r.period, r.summary.sessions.length > 0, today)}</span>
                   </span>
                   {(pill || warnings) && (
-                    <span class="row-status">
-                      {pill && <span class={`status-pill label${pill === 'Changed since sent' ? ' changed' : ''}`}>{pill}</span>}
-                      {warnings && <span class="status-pill label changed">{warnings}</span>}
+                    <span class="summary-status">
+                      <MiniChecklist stages={stages} />
+                      <span class={`summary-status-text ${tone}`}>
+                        {[pill, warnings].filter(Boolean).join(' · ')}
+                      </span>
                     </span>
                   )}
                   <ChevronIcon />

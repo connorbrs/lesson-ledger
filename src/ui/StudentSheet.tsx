@@ -260,7 +260,7 @@ export function StudentSheet(props: { student?: Student; presetFamilyId?: string
           </Group>
         )}
         {student && hasHistory === false && (
-          <Group>
+          <Group danger>
             <Row tone="destructive" onClick={() => setDel({ busy: false, failed: false })}>
               Delete Student
             </Row>

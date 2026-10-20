@@ -76,14 +76,6 @@ export function SummariesIcon() {
   );
 }
 
-export function WarningIcon() {
-  return (
-    <svg {...svgProps}>
-      <path d="M12 4 21 19H3Z M12 10v4 M12 16.5h.01" />
-    </svg>
-  );
-}
-
 export function GearIcon() {
   return (
     <svg {...svgProps}>
@@ -187,10 +179,12 @@ export function Group(props: {
   headerAction?: { label: string; onClick: () => void };
   footer?: ComponentChildren;
   footerError?: boolean;
+  /** A destructive action on its own: no panel, set well apart from the groups before it. */
+  danger?: boolean;
   children: ComponentChildren;
 }) {
   return (
-    <section class="section">
+    <section class={`section${props.danger ? ' danger' : ''}`}>
       {props.header !== undefined && (
         <div class="group-header">
           <h2 class="group-title clamp2">{props.header}</h2>
@@ -211,6 +205,8 @@ export function Row(props: {
   onClick?: () => void;
   chevron?: boolean;
   value?: string;
+  /** The value is a measured amount (a time, hours, money): set it in the monospaced face. */
+  figure?: boolean;
   tone?: 'accent' | 'destructive' | 'secondary';
   disabled?: boolean;
   children: ComponentChildren;
@@ -219,7 +215,7 @@ export function Row(props: {
   const content = (
     <>
       <span class="row-label clamp2">{props.children}</span>
-      {props.value !== undefined && <span class="row-value clamp2">{props.value}</span>}
+      {props.value !== undefined && <span class={`row-value clamp2${props.figure ? ' figure' : ''}`}>{props.value}</span>}
       {props.chevron && <ChevronIcon />}
     </>
   );
@@ -289,28 +285,26 @@ export function AmountField(props: {
     if (props.autoFocus) ref.current?.focus({ preventScroll: true });
   }, []);
   return (
-    <div class="row minutes-block">
-      <div class="minutes-line">
-        <span class="row-label clamp2">{props.label}</span>
-        <span class="amount-prefix">$</span>
-        <input
-          ref={ref}
-          class="minutes-input amount-input"
-          type="text"
-          inputmode="decimal"
-          placeholder={props.hint}
-          value={props.value}
-          aria-label={props.label}
-          aria-invalid={props.invalid ? true : undefined}
-          autocorrect="off"
-          onInput={(e) => props.onInput(e.currentTarget.value)}
-          onBlur={props.onBlur}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') e.currentTarget.blur();
-          }}
-        />
-      </div>
-      {props.caption && <p class="label minutes-error">{props.caption}</p>}
+    <div class="row amount-row">
+      <span class="row-label clamp2">{props.label}</span>
+      <span class="amount-prefix figure">$</span>
+      <input
+        ref={ref}
+        class="amount-input figure"
+        type="text"
+        inputmode="decimal"
+        placeholder={props.hint}
+        value={props.value}
+        aria-label={props.label}
+        aria-invalid={props.invalid ? true : undefined}
+        autocorrect="off"
+        onInput={(e) => props.onInput(e.currentTarget.value)}
+        onBlur={props.onBlur}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur();
+        }}
+      />
+      {props.caption && <p class="field-error">{props.caption}</p>}
     </div>
   );
 }
@@ -336,6 +330,44 @@ export function SegmentedControl<T extends string>(props: {
         </button>
       ))}
     </div>
+  );
+}
+
+/* ---------- Subject tag, amount lines, loading ---------- */
+
+/** Swim or Math as a small tag with a square marker in the subject colour. */
+export function SubjectTag(props: { subject: 'swim' | 'math' }) {
+  return <span class={`tag ${props.subject}`}>{props.subject === 'swim' ? 'Swim' : 'Math'}</span>;
+}
+
+/** "Lesson 1 h (1:00)": the label in the sans, the measured value in the monospaced face. */
+export function AmountLine(props: { text: string; secondary?: boolean }) {
+  const space = props.text.indexOf(' ');
+  return (
+    <span class={`amount-line${props.secondary ? ' secondary' : ''}`}>
+      {space < 0 ? (
+        <span class="figure">{props.text}</span>
+      ) : (
+        <>
+          <span class="amount-label">{props.text.slice(0, space)} </span>
+          <span class="figure">{props.text.slice(space + 1)}</span>
+        </>
+      )}
+    </span>
+  );
+}
+
+/** A quiet panel of placeholder rows while the first query resolves. */
+export function Skeleton() {
+  return (
+    <section class="section" role="status" aria-label="Loading">
+      <div class="group skeleton" aria-hidden="true">
+        <div class="skeleton-bar" />
+        <div class="skeleton-bar" />
+        <div class="skeleton-bar" />
+      </div>
+      <span class="visually-hidden">Loading</span>
+    </section>
   );
 }
 

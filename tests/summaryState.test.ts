@@ -16,6 +16,8 @@ import {
   pdfFailureCaption,
   REBUILD_MESSAGE,
   REBUILD_TITLE,
+  sendChecklist,
+  sendChecklistLabel,
   SAVE_FAILED,
   SHARE_FAILED,
   shareAction,
@@ -276,5 +278,50 @@ describe('PDF and share captions', () => {
     expect(footerCaption({ status: { kind: 'ready' }, share: 'shared', fileName: 'a.pdf' })).toBeNull();
     expect(footerCaption({ status: { kind: 'ready' }, share: 'cancelled', fileName: 'a.pdf' })).toBeNull();
     expect(footerCaption({ status: { kind: 'ready' }, share: null, fileName: 'a.pdf' })).toBeNull();
+  });
+});
+
+describe('sendChecklist', () => {
+  const stages = (args: Parameters<typeof sendChecklist>[0]) => sendChecklist(args).map((s) => [s.title, s.tone, s.detail]);
+
+  it('starts with nothing saved or sent: checked, generated, not sent', () => {
+    expect(stages({ warningCount: 0, record: undefined, fingerprint: F1 })).toEqual([
+      ['Checked', 'done', 'No warnings'],
+      ['Message', 'idle', 'Generated'],
+      ['Sent', 'idle', 'Not sent'],
+    ]);
+  });
+
+  it('counts warnings in amber with the singular and plural forms', () => {
+    expect(sendChecklist({ warningCount: 1, record: undefined, fingerprint: F1 })[0]).toMatchObject({ tone: 'attention', detail: '1 warning' });
+    expect(sendChecklist({ warningCount: 3, record: undefined, fingerprint: F1 })[0]).toMatchObject({ tone: 'attention', detail: '3 warnings' });
+  });
+
+  it('shows a saved message as Saved while its fingerprint is current, Out of date once the hours changed', () => {
+    const saved = record({ message: 'Merhaba', messageFingerprint: F1 });
+    expect(sendChecklist({ warningCount: 0, record: saved, fingerprint: F1 })[1]).toMatchObject({ tone: 'done', detail: 'Saved' });
+    expect(sendChecklist({ warningCount: 0, record: saved, fingerprint: F2 })[1]).toMatchObject({ tone: 'attention', detail: 'Out of date' });
+  });
+
+  it('judges an unsaved edit by the fingerprint it was written against', () => {
+    const draft = { text: 'x', rebuilt: false, basedOn: F1 };
+    expect(sendChecklist({ warningCount: 0, record: undefined, fingerprint: F1, draft })[1].detail).toBe('Generated');
+    expect(sendChecklist({ warningCount: 0, record: undefined, fingerprint: F2, draft })[1].detail).toBe('Out of date');
+    const saved = record({ message: 'Merhaba', messageFingerprint: F2 });
+    expect(sendChecklist({ warningCount: 0, record: saved, fingerprint: F2, draft })[1].detail).toBe('Out of date');
+  });
+
+  it('shows the sent date, Changed since sent, and a message-only record as Not sent', () => {
+    const sent = record({ sentAt: at(14, 40), sentFingerprint: F1 });
+    expect(sendChecklist({ warningCount: 0, record: sent, fingerprint: F1 })[2]).toMatchObject({ tone: 'done', detail: 'Sent Oct 19' });
+    expect(sendChecklist({ warningCount: 0, record: sent, fingerprint: F2 })[2]).toMatchObject({ tone: 'attention', detail: 'Changed since sent' });
+    const messageOnly = record({ message: 'Merhaba', messageFingerprint: F1 });
+    expect(sendChecklist({ warningCount: 0, record: messageOnly, fingerprint: F1 })[2]).toMatchObject({ tone: 'idle', detail: 'Not sent' });
+  });
+
+  it('reads as one sentence for screen readers', () => {
+    expect(sendChecklistLabel(sendChecklist({ warningCount: 2, record: undefined, fingerprint: F1 }))).toBe(
+      'Checked: 2 warnings. Message: Generated. Sent: Not sent.',
+    );
   });
 });

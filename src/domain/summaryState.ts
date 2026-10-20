@@ -104,6 +104,12 @@ export interface MessageView {
   dirty: boolean;
 }
 
+/** The text shown (an edit in progress, else the saved message) was written against other hours than the current summary. */
+export function isMessageStale(record: PeriodRecord | undefined, fingerprint: string, draft: MessageDraft | null): boolean {
+  if (draft !== null) return draft.basedOn !== fingerprint;
+  return record?.message != null && record.messageFingerprint !== fingerprint;
+}
+
 /**
  * What the message box shows and which actions are on. The stored message is never replaced here: it changes only
  * through Save Message. There is deliberately no warnings input (D-16): warnings never block Copy or Share.
@@ -116,7 +122,7 @@ export function messageView(args: { generated: string; record: PeriodRecord | un
   const text = draft ? draft.text : baseline;
   return {
     text,
-    stale: draft !== null ? draft.basedOn !== fingerprint : saved !== null && record!.messageFingerprint !== fingerprint,
+    stale: isMessageStale(record, fingerprint, draft),
     canSave: changed && text.trim() !== '',
     dirty: changed,
   };
@@ -130,6 +136,55 @@ export function draftBasis(args: { record: PeriodRecord | undefined; fingerprint
   const { record, fingerprint, draft } = args;
   if (draft) return draft.basedOn;
   return record?.message != null && record.messageFingerprint !== null ? record.messageFingerprint : fingerprint;
+}
+
+/* ---------- Send checklist: Checked, Message, Sent ---------- */
+
+/** done = green check, attention = amber warning, idle = neutral dot. */
+export type StageTone = 'done' | 'attention' | 'idle';
+
+export interface SendStage {
+  id: 'checked' | 'message' | 'sent';
+  title: 'Checked' | 'Message' | 'Sent';
+  tone: StageTone;
+  /** The state in words: "No warnings", "2 warnings", "Generated", "Saved", "Out of date", "Sent Oct 19", "Changed since sent", "Not sent". */
+  detail: string;
+}
+
+/**
+ * The three stages of sending one family's period, derived only from stored state: the summary's warnings, the saved
+ * message (or an unsaved edit's basis) against the current fingerprint, and the sent mark. It never claims the PDF was shared.
+ */
+export function sendChecklist(args: {
+  warningCount: number;
+  record: PeriodRecord | undefined;
+  fingerprint: string;
+  draft?: MessageDraft | null;
+}): [SendStage, SendStage, SendStage] {
+  const { warningCount, record, fingerprint } = args;
+  const checked: SendStage =
+    warningCount > 0
+      ? { id: 'checked', title: 'Checked', tone: 'attention', detail: `${warningCount} ${warningCount === 1 ? 'warning' : 'warnings'}` }
+      : { id: 'checked', title: 'Checked', tone: 'done', detail: 'No warnings' };
+  const stale = isMessageStale(record, fingerprint, args.draft ?? null);
+  const message: SendStage = stale
+    ? { id: 'message', title: 'Message', tone: 'attention', detail: 'Out of date' }
+    : record?.message != null
+      ? { id: 'message', title: 'Message', tone: 'done', detail: 'Saved' }
+      : { id: 'message', title: 'Message', tone: 'idle', detail: 'Generated' };
+  const status = sentStatus(record, fingerprint);
+  const sent: SendStage =
+    status === 'changed'
+      ? { id: 'sent', title: 'Sent', tone: 'attention', detail: 'Changed since sent' }
+      : status === 'sent' && record?.sentAt != null
+        ? { id: 'sent', title: 'Sent', tone: 'done', detail: `Sent ${formatMonthDay(localYmdFromMs(record.sentAt))}` }
+        : { id: 'sent', title: 'Sent', tone: 'idle', detail: 'Not sent' };
+  return [checked, message, sent];
+}
+
+/** One sentence for screen readers: "Checked: No warnings. Message: Saved. Sent: Not sent." */
+export function sendChecklistLabel(stages: readonly SendStage[]): string {
+  return stages.map((s) => `${s.title}: ${s.detail}.`).join(' ');
 }
 
 /* ---------- Share PDF (D-13, D-16, D-18) ---------- */

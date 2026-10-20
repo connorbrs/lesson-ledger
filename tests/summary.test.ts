@@ -85,6 +85,8 @@ describe('buildFamilySummary and renderMessageTr', () => {
     expect(summary.sessions.map((s) => s.id)).toEqual(['s1', 's2']);
     expect(renderMessageTr(summary)).toBe(
       [
+        'Merhaba,',
+        '',
         'Smith ailesi — 12–18 Ekim 2026',
         '',
         'Pzt 12 Eki · Yüzme · ders 0,75 saat (0:45), aktivite 0,25 saat (0:15)',
@@ -93,6 +95,8 @@ describe('buildFamilySummary and renderMessageTr', () => {
         'Toplam ders 1,75 saat (1:45)',
         'Toplam aktivite 0,25 saat (0:15)',
         "Masraflar $18.75 (fişler PDF'te)",
+        '',
+        'İyi günler,',
       ].join('\n'),
     );
   });
@@ -100,7 +104,7 @@ describe('buildFamilySummary and renderMessageTr', () => {
   it('omits the list and the Masraflar line when there is nothing', () => {
     const summary = buildFamilySummary({ ...tracerInput(), sessions: [], expenses: [] });
     expect(renderMessageTr(summary)).toBe(
-      ['Smith ailesi — 12–18 Ekim 2026', '', 'Toplam ders 0 saat (0:00)', 'Toplam aktivite 0 saat (0:00)'].join('\n'),
+      ['Merhaba,', '', 'Smith ailesi — 12–18 Ekim 2026', '', 'Toplam ders 0 saat (0:00)', 'Toplam aktivite 0 saat (0:00)', '', 'İyi günler,'].join('\n'),
     );
   });
 });
@@ -336,15 +340,31 @@ describe('warnings (D-16, SUM-07)', () => {
   });
 });
 
+describe('greeting and closing', () => {
+  it('adds the instructor name on its own line only when set', () => {
+    const summary = buildFamilySummary(tracerInput());
+    const base = renderMessageTr(summary);
+    expect(base.split('\n')[0]).toBe('Merhaba,');
+    expect(base.endsWith('\n\nİyi günler,')).toBe(true);
+    expect(renderMessageTr(summary, null)).toBe(base);
+    expect(renderMessageTr(summary, '  ')).toBe(base);
+    expect(renderMessageTr(summary, ' Connor B. ')).toBe(`${base}\nConnor B.`);
+  });
+
+  it('does not change the fingerprint', () => {
+    expect(buildFamilySummary(tracerInput()).fingerprint).toBe(buildFamilySummary(tracerInput()).fingerprint);
+  });
+});
+
 describe('Masraflar line', () => {
   it('is absent without expenses, plain without photos, parenthetical with any photo', () => {
     const input = tracerInput();
     const none = renderMessageTr(buildFamilySummary({ ...input, expenses: [] }));
     expect(none).not.toContain('Masraflar');
     const plain = expense({ id: 'p', sessionId: 's1', amountCents: 501, splits: [{ familyId: 'smith', cents: 501 }] });
-    expect(renderMessageTr(buildFamilySummary({ ...input, expenses: [plain], photoIdsByExpense: new Map() })).split('\n').pop()).toBe('Masraflar $5.01');
+    expect(renderMessageTr(buildFamilySummary({ ...input, expenses: [plain], photoIdsByExpense: new Map() })).split('\n').at(-3)).toBe('Masraflar $5.01');
     const withPhoto = renderMessageTr(buildFamilySummary({ ...input, expenses: [plain], photoIdsByExpense: new Map([['p', ['x']]]) }));
-    expect(withPhoto.split('\n').pop()).toBe("Masraflar $5.01 (fişler PDF'te)");
+    expect(withPhoto.split('\n').at(-3)).toBe("Masraflar $5.01 (fişler PDF'te)");
   });
 
   it('counts the photos of a shared expense for both families but not expenses of sessions not attended', () => {

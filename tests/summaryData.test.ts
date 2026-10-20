@@ -62,6 +62,8 @@ describe('summary loaders', () => {
     expect(view!.summary.sessions).toHaveLength(2);
     expect(renderMessageTr(view!.summary)).toBe(
       [
+        'Merhaba,',
+        '',
         'Smith ailesi — 12–18 Ekim 2026',
         '',
         'Pzt 12 Eki · Yüzme · ders 0,75 saat (0:45), aktivite 0,25 saat (0:15)',
@@ -70,6 +72,8 @@ describe('summary loaders', () => {
         'Toplam ders 1,75 saat (1:45)',
         'Toplam aktivite 0,25 saat (0:15)',
         "Masraflar $18.75 (fişler PDF'te)",
+        '',
+        'İyi günler,',
       ].join('\n'),
     );
   });

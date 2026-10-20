@@ -294,9 +294,9 @@ export function pdfFileName(familyName: string, period: SummaryPeriod): string {
   return period.kind === 'week' ? `${slug}-${period.start}-${period.end}.pdf` : `${slug}-${period.start.slice(0, 7)}.pdf`;
 }
 
-/** The Turkish parent message (D-05 to D-07, D-18). Credited time only; never travel, names or another family's data. */
-export function renderMessageTr(summary: FamilySummary): string {
-  const lines = [`${summary.familyName} ailesi — ${formatPeriodLabelTr(summary.period.kind, summary.period)}`, ''];
+/** The Turkish parent message (D-05 to D-07, D-18), greeted and closed with the instructor's name when set. Credited time only; never travel, names or another family's data. */
+export function renderMessageTr(summary: FamilySummary, instructorName?: string | null): string {
+  const lines = ['Merhaba,', '', `${summary.familyName} ailesi — ${formatPeriodLabelTr(summary.period.kind, summary.period)}`, ''];
   if (summary.sessions.length > 0) {
     for (const s of summary.sessions) {
       lines.push(
@@ -309,5 +309,8 @@ export function renderMessageTr(summary: FamilySummary): string {
   if (summary.expenses.length > 0) {
     lines.push(`Masraflar ${formatCents(summary.expenseCents)}${summary.hasReceipts ? " (fişler PDF'te)" : ''}`);
   }
+  lines.push('', 'İyi günler,');
+  const name = (instructorName ?? '').trim();
+  if (name) lines.push(name);
   return lines.join('\n');
 }

@@ -4,16 +4,16 @@ current_phase: 4
 current_phase_name: Family Summaries & Overview
 current_plan: Not started
 status: executing
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-10-20T01:47:38.491Z"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-10-20T01:51:43.517Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 3 complete, transitioned to Phase 4
-state_head: 741e64c8b130407e487ad7b4da2dff4c2fa3145d
+state_head: 9f8bb27df9110b298840643f23a93dc6a8b903aa
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 19
-  completed_plans: 17
+  completed_plans: 18
   percent: 75
 ---
 
@@ -77,6 +77,7 @@ Progress: [████████░░] 75%
 | Phase 04 P02 | 20min | 2 tasks | 14 files |
 | Phase 04 P03 | 12min | 2 tasks | 12 files |
 | Phase 04 P04 | 16min | 3 tasks | 17 files |
+| Phase 04 P05 | 14min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,7 @@ Recent decisions affecting current work:
 - [Phase 04]: Sent status compares fingerprints only; a saved message without a sent mark never produces a pill
 - [Phase 04]: Back asks to discard only when the visible message box is dirty
 - [Phase 04]: 04-04: a receipt whose bytes are not a JPEG (FF D8 FF) fails the PDF build as photo-unreadable; receipt captions are capped at 3 lines
+- [Phase 04]: 04-05: PDF build result is stored with its build key so a stale PDF is never reported ready; jsPDF imported statically inside the lazy summaryPdf module so engine and fonts are one precached chunk
 
 ### Pending Todos
 
@@ -147,6 +149,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-20T01:47:38.217Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-10-20T01:51:43.239Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None

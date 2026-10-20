@@ -3,10 +3,12 @@ import Dexie from 'dexie';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { buildBackup, restoreBackup } from '../src/data/backup';
 import { DB_NAME, db } from '../src/data/db';
-import { createFamily } from '../src/data/families';
+import { createFamily, deleteFamily } from '../src/data/families';
+import { createStudent } from '../src/data/students';
 import { getInstructorName, setInstructorName } from '../src/data/instructor';
 import { getPeriodRecord, markSent, saveMessage, unmarkSent } from '../src/data/periodRecords';
 import { parseBackup, serializeBackup } from '../src/domain/backup';
+import { MESSAGE_MAX, PeriodRecordError } from '../src/domain/periodRecord';
 import { RosterError } from '../src/domain/validate';
 
 const FP = 'a1b2c3d4e5f60a';
@@ -121,5 +123,74 @@ describe('tracer: message, sent mark and instructor name survive a schemaVersion
     await restoreBackup(parsed.file);
     expect(await db.periodRecords.toArray()).toEqual(stored);
     expect(await getInstructorName()).toBe('Connor B.');
+  });
+});
+
+describe('message cap and writer guards', () => {
+  it('saves 10,000 code points (an emoji counts as one) and the text survives a backup round trip untouched', async () => {
+    expect(MESSAGE_MAX).toBe(10_000);
+    const fam = await createFamily('Test Family A');
+    const exact = '😀'.repeat(10_000);
+    const saved = await saveMessage(fam.id, KEY, exact, FP);
+    expect(saved.message).toBe(exact);
+    const parsed = parseBackup(serializeBackup(await buildBackup(1)));
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) expect(parsed.file.periodRecords[0].message).toBe(exact);
+  });
+
+  it('stores the text exactly as typed: no trim, no normalization', async () => {
+    const fam = await createFamily('Test Family A');
+    const typed = '  Merhaba\u0065\u0301  \n';
+    expect((await saveMessage(fam.id, KEY, typed, FP)).message).toBe(typed);
+  });
+
+  it.each([
+    ['blank', ''],
+    ['whitespace only', ' \n\t '],
+    ['10,001 code points', 'x'.repeat(10_001)],
+    ['10,001 emoji', '😀'.repeat(10_001)],
+    ['over 20,000 UTF-16 units', 'x'.repeat(20_001)],
+  ])('saveMessage rejects a %s text and changes nothing', async (_n, text) => {
+    const fam = await createFamily('Test Family A');
+    await expect(saveMessage(fam.id, KEY, text, FP)).rejects.toBeInstanceOf(PeriodRecordError);
+    expect(await db.periodRecords.count()).toBe(0);
+  });
+
+  it('every writer rejects a bad period key, a bad fingerprint and a missing family, writing nothing', async () => {
+    const fam = await createFamily('Test Family A');
+    const calls: [string, () => Promise<unknown>, string][] = [
+      ['saveMessage key', () => saveMessage(fam.id, 'W2026-10-13', 'x', FP), 'period-invalid'],
+      ['markSent key', () => markSent(fam.id, 'M2026-13', FP), 'period-invalid'],
+      ['unmarkSent key', () => unmarkSent(fam.id, 'nope'), 'period-invalid'],
+      ['saveMessage fingerprint', () => saveMessage(fam.id, KEY, 'x', 'A1B2C3D4E5F60A'), 'fingerprint-invalid'],
+      ['markSent fingerprint', () => markSent(fam.id, KEY, 'abc'), 'fingerprint-invalid'],
+      ['saveMessage family', () => saveMessage('missing', KEY, 'x', FP), 'family-missing'],
+      ['markSent family', () => markSent('missing', KEY, FP), 'family-missing'],
+      ['unmarkSent family', () => unmarkSent('missing', KEY), 'family-missing'],
+    ];
+    for (const [name, call, code] of calls) await expect(call(), name).rejects.toMatchObject({ code });
+    expect(await db.periodRecords.count()).toBe(0);
+  });
+});
+
+describe('deleteFamily cascade', () => {
+  it('removes the family\'s period records only, and a later export still parses', async () => {
+    const gone = await createFamily('Test Family Gone');
+    const kept = await createFamily('Test Family Kept');
+    await saveMessage(gone.id, KEY, 'x', FP);
+    await markSent(gone.id, 'M2026-10', FP, 1);
+    await saveMessage(kept.id, KEY, 'y', FP);
+    expect(await deleteFamily(gone.id)).toEqual({ ok: true });
+    expect((await db.periodRecords.toArray()).map((r) => r.familyId)).toEqual([kept.id]);
+    const parsed = parseBackup(serializeBackup(await buildBackup(1)));
+    expect(parsed.ok).toBe(true);
+  });
+
+  it('a family with students is refused and keeps its records', async () => {
+    const fam = await createFamily('Test Family A');
+    await createStudent({ familyId: fam.id, name: 'Test Student A1' });
+    await saveMessage(fam.id, KEY, 'x', FP);
+    expect(await deleteFamily(fam.id)).toEqual({ ok: false, reason: 'has-students' });
+    expect(await db.periodRecords.count()).toBe(1);
   });
 });

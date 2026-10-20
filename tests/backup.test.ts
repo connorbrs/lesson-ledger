@@ -274,6 +274,14 @@ describe('parseBackup rejection', () => {
     expect(v1.ok && v1.file.schemaVersion === 1 && v1.file.expenses.length === 0 && v1.file.attachments.length === 0).toBe(true);
   });
 
+  /** Changes a record's family or period and rebuilds its id, so only that one rule is broken. */
+  const relink = (r: Record<string, any>, change: { familyId?: string; periodKey?: string }) => {
+    Object.assign(r, change);
+    r.id = `${r.familyId}_${r.periodKey}`;
+  };
+  const withMessage = (d: Record<string, any>) => d.periodRecords.find((r: any) => r.message !== null);
+  const sentOnly = (d: Record<string, any>) => d.periodRecords.find((r: any) => r.message === null);
+
   const damage: [string, (d: Record<string, any>) => void][] = [
     ['missing array', (d) => delete d.students],
     ['array is not an array', (d) => (d.sessions = {})],
@@ -297,8 +305,8 @@ describe('parseBackup rejection', () => {
     ['student whose family is absent', (d) => (d.students[0].familyId = 'nope')],
     ['session whose student is absent', (d) => (d.sessions[0].attendees[0].studentId = 'nope')],
     ['session whose family is absent', (d) => (d.sessions[0].attendees[0].familyId = 'nope')],
-    ['version 1 carrying expenses', (d) => ((d.schemaVersion = 1), (d.attachments = []))],
-    ['version 1 carrying attachments', (d) => ((d.schemaVersion = 1), (d.expenses = []))],
+    ['version 1 carrying expenses', (d) => ((d.schemaVersion = 1), (d.attachments = []), (d.periodRecords = []), delete d.instructorName)],
+    ['version 1 carrying attachments', (d) => ((d.schemaVersion = 1), (d.expenses = []), (d.periodRecords = []), delete d.instructorName)],
     ['expenses missing', (d) => delete d.expenses],
     ['attachments missing', (d) => delete d.attachments],
     ['expense with unknown sessionId', (d) => (d.expenses[0].sessionId = 'nope')],
@@ -334,6 +342,43 @@ describe('parseBackup rejection', () => {
     ['attachment with bad createdAt', (d) => (d.attachments[0].createdAt = 'x')],
     ['duplicate attachment ids', (d) => (d.attachments[1].id = d.attachments[0].id)],
     ['attachment that is not an object', (d) => (d.attachments[0] = 5)],
+    ['record whose family is not in the file', (d) => relink(d.periodRecords[0], { familyId: 'nope' })],
+    ['record id different from familyId_periodKey', (d) => (d.periodRecords[0].id = 'other-id')],
+    ["record id containing ':'", (d) => (d.periodRecords[0].id = `${d.periodRecords[0].familyId}:${d.periodRecords[0].periodKey}`)],
+    ["record id containing '|'", (d) => (d.periodRecords[0].id = `${d.periodRecords[0].familyId}|${d.periodRecords[0].periodKey}`)],
+    ['record week that is not a Monday', (d) => relink(d.periodRecords[0], { periodKey: 'W2026-10-13' })],
+    ['record month 13', (d) => relink(d.periodRecords[0], { periodKey: 'M2026-13' })],
+    ['record week on a day that does not exist', (d) => relink(d.periodRecords[0], { periodKey: 'W2026-02-30' })],
+    ['duplicate record ids', (d) => d.periodRecords.push({ ...d.periodRecords[0] })],
+    ['empty message', (d) => (withMessage(d).message = '')],
+    ['blank message', (d) => (withMessage(d).message = '   ')],
+    ['message of 10,001 code points', (d) => (withMessage(d).message = 'x'.repeat(10_001))],
+    ['message of 10,001 emoji', (d) => (withMessage(d).message = '😀'.repeat(10_001))],
+    ['message that is not a string', (d) => (withMessage(d).message = 5)],
+    ['message without a messageFingerprint', (d) => (withMessage(d).messageFingerprint = null)],
+    ['message without a messageSavedAt', (d) => (withMessage(d).messageSavedAt = null)],
+    ['messageFingerprint without a message', (d) => (sentOnly(d).messageFingerprint = 'a1b2c3d4e5f60a')],
+    ['messageSavedAt without a message', (d) => (sentOnly(d).messageSavedAt = 5)],
+    ['sentAt without a sentFingerprint', (d) => (sentOnly(d).sentFingerprint = null)],
+    ['sentFingerprint without a sentAt', (d) => (sentOnly(d).sentAt = null)],
+    ['13-character fingerprint', (d) => (withMessage(d).messageFingerprint = 'a1b2c3d4e5f60')],
+    ['uppercase fingerprint', (d) => (withMessage(d).messageFingerprint = 'A1B2C3D4E5F60A')],
+    ['non-hex fingerprint', (d) => (sentOnly(d).sentFingerprint = 'g1b2c3d4e5f60a')],
+    ['negative messageSavedAt', (d) => (withMessage(d).messageSavedAt = -1)],
+    ['non-finite sentAt', (d) => (sentOnly(d).sentAt = 'x')],
+    ['negative updatedAt', (d) => (d.periodRecords[0].updatedAt = -1)],
+    ['record with neither message nor sent mark', (d) => Object.assign(sentOnly(d), { sentAt: null, sentFingerprint: null })],
+    ['record that is not an object', (d) => (d.periodRecords[0] = 5)],
+    ['periodRecords that is not an array', (d) => (d.periodRecords = {})],
+    ['version 3 without periodRecords', (d) => delete d.periodRecords],
+    ['version 3 without an instructorName key', (d) => delete d.instructorName],
+    ['instructorName that is a number', (d) => (d.instructorName = 5)],
+    ['instructorName that is blank', (d) => (d.instructorName = '   ')],
+    ['instructorName of 61 code points', (d) => (d.instructorName = 'x'.repeat(61))],
+    ['version 2 carrying a period record', (d) => ((d.schemaVersion = 2), (d.instructorName = null))],
+    ['version 2 carrying an instructorName', (d) => ((d.schemaVersion = 2), (d.periodRecords = []))],
+    ['version 1 carrying a period record', (d) => ((d.schemaVersion = 1), (d.expenses = []), (d.attachments = []), (d.instructorName = null))],
+    ['version 1 carrying an instructorName', (d) => ((d.schemaVersion = 1), (d.expenses = []), (d.attachments = []), (d.periodRecords = []))],
   ];
 
   it.each(damage)('%s is damaged and leaves the database untouched', async (_n, mutate) => {
@@ -342,6 +387,20 @@ describe('parseBackup rejection', () => {
     mutate(d);
     expect(parseBackup(JSON.stringify(d))).toEqual({ ok: false, code: 'damaged' });
     expect(await snapshot()).toEqual(before);
+  });
+
+  it('accepts a 10,000 code point message (an emoji counts as one) and drops hostile record keys', async () => {
+    const d = await doc();
+    withMessage(d).message = '😀'.repeat(10_000);
+    withMessage(d).extra = 'x';
+    const text = JSON.stringify(d).replace('"extra":"x"', '"extra":"x","__proto__":{"polluted":true}');
+    const parsed = parseBackup(text);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    const rec = parsed.file.periodRecords.find((r) => r.message !== null)!;
+    expect([...rec.message!]).toHaveLength(10_000);
+    expect(Object.keys(rec).sort()).toEqual(['familyId', 'id', 'message', 'messageFingerprint', 'messageSavedAt', 'periodKey', 'sentAt', 'sentFingerprint', 'updatedAt']);
+    expect((rec as unknown as Record<string, unknown>).polluted).toBeUndefined();
   });
 
   it('rejects hostile or malformed row ids, and accepts the same backup under an ordinary id', async () => {
@@ -384,6 +443,45 @@ describe('parseBackup rejection', () => {
     for (const row of [parsed.file.families[0], parsed.file.expenses[0], parsed.file.attachments[0]]) {
       expect((row as unknown as Record<string, unknown>).polluted).toBeUndefined();
     }
+  });
+});
+
+/** Hand-written literal old files: no periodRecords and no instructorName keys. */
+const LITERAL_FAMILY = '{"id":"fam-1","name":"Test Family A","period":"weekly","archivedAt":null,"createdAt":1,"updatedAt":1}';
+const LITERAL_V1 = `{"format":"lesson-ledger-backup","schemaVersion":1,"createdAt":5,"families":[${LITERAL_FAMILY}],"students":[],"sessions":[],"expenses":[],"attachments":[]}`;
+const LITERAL_V2 = `{"format":"lesson-ledger-backup","schemaVersion":2,"createdAt":5,"families":[${LITERAL_FAMILY}],"students":[],"sessions":[],"expenses":[],"attachments":[]}`;
+
+describe('old backup files (schemaVersion 1 and 2) are read forever', () => {
+  it.each([
+    ['1', LITERAL_V1],
+    ['2', LITERAL_V2],
+  ])('a literal schemaVersion %s file parses with no period records and no instructor name', (v, text) => {
+    const parsed = parseBackup(text);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.file.schemaVersion).toBe(Number(v));
+    expect(parsed.file.periodRecords).toEqual([]);
+    expect(parsed.file.instructorName).toBeNull();
+    expect(parsed.file.families).toHaveLength(1);
+  });
+
+  it.each([
+    ['1', LITERAL_V1],
+    ['2', LITERAL_V2],
+  ])('restoring a literal schemaVersion %s file clears stored period records and the instructor name (D-18)', async (_v, text) => {
+    await seed();
+    expect(await db.periodRecords.count()).toBe(2);
+    expect(await getInstructorName()).toBe('Connor B.');
+    const parsed = parseBackup(text);
+    if (!parsed.ok) throw new Error('parse failed');
+    await restoreBackup(parsed.file);
+    expect(await db.periodRecords.count()).toBe(0);
+    expect(await getInstructorName()).toBeNull();
+    expect((await db.families.toArray()).map((f) => f.id)).toEqual(['fam-1']);
+  });
+
+  it('a file at schemaVersion 4 is newer-version even when its rows are unusable', () => {
+    expect(parseBackup('{"format":"lesson-ledger-backup","schemaVersion":4,"periodRecords":"junk"}')).toEqual({ ok: false, code: 'newer-version' });
   });
 });
 
@@ -470,6 +568,31 @@ describe('restoreBackup', () => {
     const before = await snapshot();
     await expect(restoreBackup(bad)).rejects.toBeDefined();
     expect(await snapshot()).toEqual(before);
+    expect(before.last).toBe(123);
+  });
+
+  it('restoring a version 3 file restores period records and the instructor name over different ones', async () => {
+    await seed();
+    const before = await snapshot();
+    const parsed = await roundTrip();
+    if (!parsed.ok) throw new Error('parse failed');
+    await clearData();
+    await setInstructorName('Someone Else');
+    await restoreBackup(parsed.file);
+    expect(await db.periodRecords.toArray()).toEqual(before.periodRecords);
+    expect(await getInstructorName()).toBe('Connor B.');
+  });
+
+  it('is atomic with records: a duplicate record id aborts and every table, the name and lastBackupAt are as before', async () => {
+    await seed();
+    await markBackedUp(123);
+    const parsed = await roundTrip();
+    if (!parsed.ok) throw new Error('parse failed');
+    const bad: BackupFile = { ...parsed.file, createdAt: 999, instructorName: 'Changed', periodRecords: [parsed.file.periodRecords[0], parsed.file.periodRecords[0]] };
+    const before = await snapshot();
+    await expect(restoreBackup(bad)).rejects.toBeDefined();
+    expect(await snapshot()).toEqual(before);
+    expect(before.instructorName).toBe('Connor B.');
     expect(before.last).toBe(123);
   });
 

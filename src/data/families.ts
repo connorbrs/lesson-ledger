@@ -50,13 +50,15 @@ export const restoreFamily = (id: string) => setArchived(id, false);
 /**
  * Hard delete, allowed only when no student (active or archived) belongs to the family and no session
  * references it. Sessions snapshot familyId on each attendee and credit, so a student moved away after a
- * lesson still leaves history that the backup must be able to restore.
+ * lesson still leaves history that the backup must be able to restore. The family's period records are deleted with it.
  */
 export async function deleteFamily(id: string): Promise<DeleteResult> {
-  return db.transaction('rw', db.families, db.students, db.sessions, async () => {
+  return db.transaction('rw', db.families, db.students, db.sessions, db.periodRecords, async () => {
     if (!(await db.families.get(id))) return { ok: false, reason: 'not-found' } as const;
     if ((await db.students.where('familyId').equals(id).count()) > 0) return { ok: false, reason: 'has-students' } as const;
     if (await familyHasSessions(id)) return { ok: false, reason: 'has-history' } as const;
+    // Saved messages and sent marks go with the family, so an export can never name a deleted family.
+    await db.periodRecords.where('familyId').equals(id).delete();
     await db.families.delete(id);
     return { ok: true } as const;
   });

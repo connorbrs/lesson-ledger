@@ -17,7 +17,7 @@ import { BackupTooLargeAlert } from './BackupTooLargeAlert';
 import { Alert, Group, Row } from './components';
 import { useBackup } from './useBackup';
 
-const DEFAULT_FOOTER = 'Backup saves every family, student, session and receipt photo as one file. Restoring replaces everything on this phone.';
+const DEFAULT_FOOTER = 'Backup saves everything on this phone as one file, including receipt photos and summary edits. Restoring replaces everything on this phone.';
 const BACKUP_FAILED = "Couldn't create the backup. Nothing was changed. Try Back Up Now again.";
 const RESTORE_FAILED = "Couldn't restore this backup. Nothing was changed. Try again.";
 

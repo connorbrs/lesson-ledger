@@ -1,19 +1,27 @@
 /* Lesson Ledger design tokens and component styles. Values come from 01-UI-SPEC.md. */
 
+/* Graphite Console world: a graphite ground, panels one step up divided by 1px seams, colour only for state. */
 :root {
   color-scheme: light dark;
 
-  --color-bg-grouped: #f2f2f7;
+  /* Light: the same system on cool paper. */
+  --color-bg-grouped: #f6f8fa;
   --color-surface: #ffffff;
-  --color-surface-translucent: rgba(255, 255, 255, 0.92);
-  --color-accent: #00707a;
+  --color-elevated: #eef1f4;
+  --color-surface-translucent: rgba(246, 248, 250, 0.92);
+  --color-accent: #0969da;
   --color-on-accent: #ffffff;
-  --color-destructive: #c2001f;
-  --color-text: #000000;
-  --color-text-secondary: #6c6c70;
-  --color-separator: #c6c6c8;
-  --color-pressed: #d8d8dc;
-  --color-scrim: rgba(0, 0, 0, 0.4);
+  --color-success: #1a7f37;
+  --color-warning: #9a6700;
+  --color-destructive: #cf222e;
+  --color-swim: #0a7d8c;
+  --color-math: #8250df;
+  --color-text: #1f2328;
+  --color-text-secondary: #59636e;
+  --color-separator: #d0d7de;
+  --color-pressed: #eaeef2;
+  --color-scrim: rgba(13, 17, 23, 0.45);
+  --color-selection: rgba(9, 105, 218, 0.22);
 
   --space-xs: 4px;
   --space-sm: 8px;
@@ -22,8 +30,8 @@
   --space-xl: 32px;
   --space-2xl: 48px;
 
-  --radius-group: 12px;
-  --radius-segment: 8px;
+  --radius-group: 8px;
+  --radius-segment: 6px;
 
   --nav-height: 44px;
   --tab-height: 48px;
@@ -33,21 +41,29 @@
   --hairline: 1px;
 
   --font: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
 }
 
+/* Dark: the evening default, graphite. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg-grouped: #000000;
-    --color-surface: #1c1c1e;
-    --color-surface-translucent: rgba(28, 28, 30, 0.92);
-    --color-accent: #5fd3de;
-    --color-on-accent: #001f22;
-    --color-destructive: #ff6b63;
-    --color-text: #ffffff;
-    --color-text-secondary: #a1a1a8;
-    --color-separator: #38383a;
-    --color-pressed: #2c2c2e;
-    --color-scrim: rgba(0, 0, 0, 0.6);
+    --color-bg-grouped: #0d1117;
+    --color-surface: #151a22;
+    --color-elevated: #1c222b;
+    --color-surface-translucent: rgba(13, 17, 23, 0.9);
+    --color-accent: #79c0ff;
+    --color-on-accent: #0d1117;
+    --color-success: #56d364;
+    --color-warning: #e3b341;
+    --color-destructive: #ff7b72;
+    --color-swim: #56d4dd;
+    --color-math: #d2a8ff;
+    --color-text: #e6edf3;
+    --color-text-secondary: #9198a1;
+    --color-separator: #262c36;
+    --color-pressed: #1f2630;
+    --color-scrim: rgba(1, 4, 9, 0.7);
+    --color-selection: rgba(121, 192, 255, 0.3);
   }
 }
 
@@ -105,6 +121,27 @@ p {
   font-variant-numeric: tabular-nums;
 }
 
+::selection {
+  background: var(--color-selection);
+}
+
+input,
+textarea {
+  caret-color: var(--color-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Measured values (times, minutes, hours) are data, so they set in the monospaced face. */
+.figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
 /* ---------- Layout shell ---------- */
 
 .app {
@@ -138,9 +175,10 @@ p {
 
 .large-title {
   font-size: 34px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.2;
-  padding: 0 var(--space-md) var(--space-sm);
+  padding: 0 var(--space-md) var(--space-md);
 }
 
 .heading {
@@ -265,7 +303,7 @@ p {
   padding-bottom: var(--safe-bottom);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  background: var(--color-surface);
+  background: var(--color-bg-grouped);
   border-top: var(--hairline) solid var(--color-separator);
 }
 
@@ -329,14 +367,18 @@ p {
 .group-title {
   flex: 1;
   min-width: 0;
-  font-size: 17px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
 }
 
 .group {
   margin: 0 var(--space-md);
   background: var(--color-surface);
+  border: var(--hairline) solid var(--color-separator);
   border-radius: var(--radius-group);
   overflow: hidden;
 }
@@ -504,8 +546,9 @@ button.row:active:not(:disabled) {
 }
 
 .segment[aria-checked='true'] {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  background: var(--color-elevated);
+  color: var(--color-accent);
+  box-shadow: inset 0 0 0 var(--hairline) var(--color-accent);
   font-weight: 600;
 }
 
@@ -529,7 +572,7 @@ button.row:active:not(:disabled) {
   margin-top: var(--space-md);
   min-height: 44px;
   padding: 0 var(--space-lg);
-  border-radius: var(--radius-group);
+  border-radius: var(--radius-segment);
   background: var(--color-accent);
   color: var(--color-on-accent);
   font-weight: 600;
@@ -1338,4 +1381,124 @@ button.row:active:not(:disabled) {
 
 .totals-control .segmented {
   width: 100%;
+}
+
+/* ---------- Metric strip (Graphite): three measured values side by side, divided by seams ---------- */
+
+.metric-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: var(--hairline) solid var(--color-separator);
+}
+
+.metric-strip:last-child {
+  border-bottom: 0;
+}
+
+.row + .metric-strip {
+  border-top: var(--hairline) solid var(--color-separator);
+}
+
+.metric {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  min-width: 0;
+  min-height: 72px;
+  padding: 10px 12px 12px;
+  border-left: var(--hairline) solid var(--color-separator);
+}
+
+.metric:first-child {
+  border-left: 0;
+}
+
+.metric:focus-within {
+  background: var(--color-elevated);
+}
+
+.metric-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.metric-value,
+.metric-input {
+  font-size: 20px;
+  line-height: 1.2;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metric-value.unset {
+  font-family: var(--font);
+  font-size: 15px;
+  color: var(--color-text-secondary);
+}
+
+.metric.derived .metric-value {
+  color: var(--color-text-secondary);
+}
+
+.metric-entry {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.metric-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+
+.metric-entry .metric-input {
+  flex: none;
+}
+
+.metric-unit {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.metric.invalid .metric-input,
+.metric.invalid .metric-label {
+  color: var(--color-destructive);
+}
+
+/* "Clear" keeps a 44pt tap target without growing the cell. */
+.metric-action {
+  position: relative;
+  z-index: 2;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--color-accent);
+}
+
+.metric-action::after {
+  content: '';
+  position: absolute;
+  inset: -14px -10px;
+}
+
+.metric .row-overlay-input {
+  z-index: 1;
 }

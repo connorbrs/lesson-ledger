@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<title>Graphite Console — Log</title>
+<style>
+  :root{--g0:#16181c;--g1:#1e2126;--seam:#2a2e35;--txt:#e6e8eb;--mute:#8b929c;--blue:#7cc4ff;--red:#ff6b6b}
+  *{box-sizing:border-box;margin:0}
+  html,body{width:390px;height:844px;overflow:hidden;background:var(--g0);color:var(--txt);font:16px/1.3 -apple-system,system-ui,sans-serif}
+  .bar{height:47px}
+  header{display:flex;justify-content:space-between;align-items:baseline;padding:8px 16px 12px;border-bottom:1px solid var(--seam)}
+  h1{font:600 22px/1 system-ui}
+  .cap{font:600 11px/1 system-ui;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+  .panel{border-bottom:1px solid var(--seam);background:var(--g1)}
+  .ph{padding:10px 16px 6px}
+  .row{display:flex;justify-content:space-between;align-items:center;height:44px;padding:0 16px;border-top:1px solid var(--seam)}
+  .mono{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:15px}
+  .seg{display:flex;border:1px solid var(--seam);border-radius:6px}.seg span{padding:5px 12px}.seg .on{background:var(--blue);color:var(--g0)}
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr}
+  .grid div{padding:10px 16px;border-left:1px solid var(--seam)}.grid div:first-child{border-left:0}
+  .grid .mono{font-size:20px;display:block;margin-top:4px}
+  .cta{position:absolute;left:16px;right:16px;bottom:96px;height:48px;border-radius:8px;background:var(--blue);color:var(--g0);display:flex;align-items:center;justify-content:center;font-weight:700}
+  .tabs{position:absolute;left:0;right:0;bottom:0;height:83px;background:var(--g1);border-top:1px solid var(--seam);display:grid;grid-template-columns:repeat(5,1fr);padding-top:8px;text-align:center;font-size:11px;color:var(--mute)}
+  .tabs i{display:block;width:22px;height:22px;margin:0 auto 4px;border:1.5px solid currentColor;border-radius:4px}.tabs .on{color:var(--blue)}
+</style></head><body>
+<div class="bar"></div>
+<header><h1>Log</h1><span class="cap mono">Mon 19 Oct</span></header>
+<section class="panel"><p class="ph cap">Session</p>
+  <div class="row"><span>Start</span><span class="mono">16:00</span></div>
+  <div class="row"><span>Finish</span><span class="mono">16:45</span></div>
+  <div class="row"><span>Subject</span><span class="seg"><span class="on">Swim</span><span>Math</span></span></div>
+  <div class="row"><span>Students</span><span class="mono" style="color:var(--mute)">Ada · Test Smith</span></div>
+</section>
+<section class="panel"><p class="ph cap">Minutes</p>
+  <div class="grid"><div><span class="cap">Lesson</span><span class="mono">0:45</span></div><div><span class="cap">Activity</span><span class="mono">0:15</span></div><div><span class="cap">Travel</span><span class="mono">0:10</span></div></div>
+</section>
+<div class="cta">Log Session</div>
+<nav class="tabs"><span class="on"><i></i>Log</span><span><i></i>Sessions</span><span><i></i>Summaries</span><span><i></i>People</span><span><i></i>Settings</span></nav>
+</body></html>

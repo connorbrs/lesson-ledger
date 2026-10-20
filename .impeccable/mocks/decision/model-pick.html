@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<title>Lane Lines — Log</title>
+<style>
+  :root{--tile:#e9f6f8;--white:#fff;--navy:#0b3a5c;--aqua:#2ab3c6;--rope:#d7263d;--mute:#5d7a8c;--grout:#cfe6ea}
+  *{box-sizing:border-box;margin:0}
+  html,body{width:390px;height:844px;overflow:hidden;background:var(--tile);color:var(--navy);font:17px/1.3 -apple-system,system-ui,sans-serif;
+    background-image:linear-gradient(var(--grout) 1px,transparent 1px),linear-gradient(90deg,var(--grout) 1px,transparent 1px);background-size:26px 26px}
+  .bar{height:47px}
+  h1{font:800 34px/1.1 -apple-system,system-ui;padding:8px 20px 12px}
+  .card{margin:0 16px 14px;background:var(--white);border-radius:12px;box-shadow:0 1px 0 var(--grout)}
+  .row{display:flex;justify-content:space-between;align-items:center;min-height:48px;padding:0 16px;border-top:1px solid var(--grout)}
+  .row:first-child{border-top:0}
+  .lab{color:var(--mute);font-size:15px}.val{font-weight:700;font-variant-numeric:tabular-nums}
+  .lane{margin:0 16px;height:10px;border-radius:5px;display:flex;overflow:hidden}
+  .lane b{background:var(--navy)}.lane i{background:var(--aqua)}
+  .t-line{position:relative;margin:6px 16px 14px;height:14px}
+  .t-line:before{content:"";position:absolute;left:0;right:0;top:6px;height:2px;background:var(--navy)}
+  .t-line:after{content:"";position:absolute;right:0;top:0;width:2px;height:14px;background:var(--navy)}
+  .seg{display:flex;background:var(--tile);border-radius:9px;padding:2px}.seg span{padding:6px 16px;border-radius:7px}.seg .on{background:var(--navy);color:#fff}
+  .cta{position:absolute;left:16px;right:16px;bottom:96px;height:52px;border-radius:26px;background:var(--rope);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+  .tabs{position:absolute;left:0;right:0;bottom:0;height:83px;background:var(--white);border-top:2px solid var(--navy);display:grid;grid-template-columns:repeat(5,1fr);padding-top:8px;text-align:center;font-size:11px;color:var(--mute)}
+  .tabs i{display:block;width:24px;height:24px;margin:0 auto 4px;border:2px solid currentColor;border-radius:50%}.tabs .on{color:var(--navy);font-weight:700}
+</style></head><body>
+<div class="bar"></div><h1>Log</h1>
+<div class="card">
+  <div class="row"><span class="lab">Date</span><span class="val">Today</span></div>
+  <div class="row"><span class="lab">Start</span><span class="val">4:00 PM</span></div>
+  <div class="row"><span class="lab">Finish</span><span class="val">4:45 PM</span></div>
+  <div class="row"><span class="lab">Subject</span><span class="seg"><span class="on">Swim</span><span>Math</span></span></div>
+  <div class="row"><span>Ada</span><span class="lab">Test Smith ›</span></div>
+</div>
+<div class="lane"><b style="flex:45"></b><i style="flex:15"></i></div>
+<div class="t-line"></div>
+<div class="card">
+  <div class="row"><span class="lab">Lesson</span><span class="val">0:45</span></div>
+  <div class="row"><span class="lab">Activity</span><span class="val">0:15</span></div>
+  <div class="row"><span class="lab">Travel</span><span class="val">0:10</span></div>
+</div>
+<div class="cta">Log Session</div>
+<nav class="tabs"><span class="on"><i></i>Log</span><span><i></i>Sessions</span><span><i></i>Summaries</span><span><i></i>People</span><span><i></i>Settings</span></nav>
+</body></html>

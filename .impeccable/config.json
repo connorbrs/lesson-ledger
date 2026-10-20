@@ -1,0 +1,80 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-20T06:45:12.660Z",
+        "reason": "Claude: throwaway decision-round sketch, never shipped; the real build is checked separately"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-20T06:45:12.681Z",
+        "reason": "Claude: throwaway decision-round sketch, never shipped; the real build is checked separately"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-20T06:45:12.701Z",
+        "reason": "Claude: throwaway decision-round sketch, never shipped; the real build is checked separately"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-20T06:45:12.723Z",
+        "reason": "Claude: throwaway decision-round sketch, never shipped; the real build is checked separately"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/challenger-console.html"
+        ],
+        "createdAt": "2026-10-20T06:45:12.744Z",
+        "reason": "Claude: throwaway decision-round sketch, never shipped; the real build is checked separately"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/challenger-console.html"
+        ],
+        "createdAt": "2026-10-20T06:45:12.765Z",
+        "reason": "Claude: throwaway decision-round sketch, never shipped; the real build is checked separately"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-10-20T06:45:12.786Z",
+        "reason": "Claude: throwaway decision-round sketch, never shipped; the real build is checked separately"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-10-20T06:45:12.806Z",
+        "reason": "Claude: throwaway decision-round sketch, never shipped; the real build is checked separately"
+      }
+    ]
+  }
+}

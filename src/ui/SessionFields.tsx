@@ -25,32 +25,42 @@ const CREDIT_OPTIONS: { value: CreditMode; label: string }[] = [
   { value: 'half', label: 'Half' },
 ];
 
-/** Activity and Travel: whole minutes typed as text. The caption is the invalid-text message, else the row's time caption. */
-function MinutesBlock(props: { label: string; value: string; caption: string | null; onChange: (value: string) => void }) {
-  const [touched, setTouched] = useState(false);
-  const trimmed = props.value.trim();
-  const invalid = parseMinutes(props.value) === null && (trimmed !== '' || touched);
+/** Activity and Travel: whole minutes typed as text, one cell of the Minutes strip. Its error shows under the strip. */
+function MinutesCell(props: { label: string; value: string; invalid: boolean; onChange: (value: string) => void; onBlur: () => void }) {
   return (
-    <div class="row minutes-block">
-      <div class="minutes-line">
-        <span class="row-label">{props.label}</span>
+    <label class={`metric${props.invalid ? ' invalid' : ''}`}>
+      <span class="metric-label">{props.label}</span>
+      <span class="metric-entry">
         <input
-          class="minutes-input"
+          class="metric-input figure"
+          style={{ width: `${Math.max(1, props.value.length) + 0.5}ch` }}
           type="text"
           inputmode="numeric"
           maxlength={3}
           value={props.value}
           aria-label={`${props.label} minutes`}
-          aria-invalid={invalid ? true : undefined}
+          aria-invalid={props.invalid ? true : undefined}
           onInput={(e) => props.onChange(e.currentTarget.value)}
-          onBlur={() => setTouched(true)}
+          onBlur={props.onBlur}
         />
-        <span class="minutes-suffix">min</span>
-      </div>
-      {invalid ? <p class="label minutes-error">Use whole minutes, 0 to 999.</p> : props.caption && <p class="label minutes-error">{props.caption}</p>}
-    </div>
+        <span class="metric-unit">min</span>
+      </span>
+    </label>
   );
 }
+
+/** "4:00 PM" as a large figure with a small meridiem, so a 12-hour time fits a third of the phone. */
+function ClockTime(props: { value: string }) {
+  const [time, meridiem] = formatTime12(props.value).split(' ');
+  return (
+    <>
+      {time}
+      {meridiem && <span class="metric-unit"> {meridiem}</span>}
+    </>
+  );
+}
+
+const invalidMinutes = (text: string, touched: boolean) => parseMinutes(text) === null && (text.trim() !== '' || touched);
 
 /** The form body shared by the Log tab and the Edit Session sheet. */
 export function SessionFields(props: {
@@ -65,6 +75,7 @@ export function SessionFields(props: {
   const { form, names } = props;
   // Duration text while the field is focused (plain minutes); null shows the h:mm display.
   const [durationText, setDurationText] = useState<string | null>(null);
+  const [touched, setTouched] = useState({ activity: false, travel: false });
   // A form left open past midnight must show the new "Today": re-render when the app is shown again.
   const [, setClock] = useState(0);
   useEffect(() => {
@@ -87,6 +98,11 @@ export function SessionFields(props: {
   const caption = timeCaption(form);
   const finishCaption = caption?.row === 'finish' ? caption.text : null;
   const activityCaption = caption?.row === 'activity' ? caption.text : null;
+  const activityInvalid = invalidMinutes(form.activity, touched.activity);
+  const travelInvalid = invalidMinutes(form.travel, touched.travel);
+  const minutesError =
+    activityInvalid || travelInvalid ? `${activityInvalid ? 'Activity' : 'Travel'}: use whole minutes, 0 to 999.` : activityCaption;
+  const minutesFooter = minutesError ?? 'Lesson is Duration minus Activity. Travel is for your records only. It never appears on family summaries.';
 
   const creditOf = (familyId: string): FormCredit => form.credits[familyId] ?? { lesson: 'full', activity: 'full' };
   const setCredit = (familyId: string, field: keyof FormCredit, mode: CreditMode) =>
@@ -106,65 +122,69 @@ export function SessionFields(props: {
             onInput={(e) => e.currentTarget.value && set({ date: e.currentTarget.value === today ? null : e.currentTarget.value })}
           />
         </div>
-        <div class="row">
-          <span class="row-label">Start</span>
-          <span class={`row-value${form.startTime ? ' tone-primary' : ''}`}>{form.startTime ? formatTime12(form.startTime) : 'Not set'}</span>
-          {form.startTime && (
-            <button type="button" class="text-button clear-start" onClick={() => props.onChange(setStartTime(form, null))}>
-              Clear Start Time
-            </button>
-          )}
-          <input
-            class="row-overlay-input"
-            type="time"
-            aria-label="Start time"
-            value={form.startTime ?? ''}
-            onInput={(e) => e.currentTarget.value && props.onChange(setStartTime(form, e.currentTarget.value))}
-          />
-        </div>
-        <div class="row">
-          <span class="row-label">Finish</span>
-          {form.startTime ? (
-            <>
-              <span class={`row-value${form.endTime ? ' tone-primary' : ''}`}>{form.endTime ? formatTime12(form.endTime) : 'Not set'}</span>
-              <input
-                class="row-overlay-input"
-                type="time"
-                aria-label="Finish time"
-                value={form.endTime ?? ''}
-                onInput={(e) => e.currentTarget.value && props.onChange(setFinishTime(form, e.currentTarget.value))}
-              />
-            </>
-          ) : (
-            <span class="row-value">Set Start first</span>
-          )}
-        </div>
-        <div class="row">
-          <span class="row-label">Duration</span>
-          <input
-            class="minutes-input duration-input"
-            type="text"
-            inputmode="numeric"
-            value={durationText ?? formatDuration(form.duration)}
-            aria-label="Duration in minutes"
-            onFocus={(e) => {
-              // While editing, the field shows plain minutes; on blur it shows h:mm again.
-              setDurationText(String(form.duration));
-              const input = e.currentTarget;
-              requestAnimationFrame(() => input.select());
-            }}
-            onBlur={() => setDurationText(null)}
-            onInput={(e) => {
-              const minutes = parseTypedDuration(e.currentTarget.value);
-              if (minutes === null) {
-                // Over 999 minutes or not digits: refuse the keystroke and keep the previous value.
-                e.currentTarget.value = durationText ?? String(form.duration);
-                return;
-              }
-              setDurationText(e.currentTarget.value.trim());
-              props.onChange(setDuration(form, minutes));
-            }}
-          />
+        <div class="metric-strip">
+          <div class="metric">
+            <span class="metric-label">
+              Start
+              {form.startTime && (
+                <button type="button" class="metric-action" onClick={() => props.onChange(setStartTime(form, null))}>
+                  Clear
+                </button>
+              )}
+            </span>
+            <span class={`metric-value figure${form.startTime ? '' : ' unset'}`}>{form.startTime ? <ClockTime value={form.startTime} /> : 'Not set'}</span>
+            <input
+              class="row-overlay-input"
+              type="time"
+              aria-label="Start time"
+              value={form.startTime ?? ''}
+              onInput={(e) => e.currentTarget.value && props.onChange(setStartTime(form, e.currentTarget.value))}
+            />
+          </div>
+          <div class="metric">
+            <span class="metric-label">Finish</span>
+            {form.startTime ? (
+              <>
+                <span class={`metric-value figure${form.endTime ? '' : ' unset'}`}>{form.endTime ? <ClockTime value={form.endTime} /> : 'Not set'}</span>
+                <input
+                  class="row-overlay-input"
+                  type="time"
+                  aria-label="Finish time"
+                  value={form.endTime ?? ''}
+                  onInput={(e) => e.currentTarget.value && props.onChange(setFinishTime(form, e.currentTarget.value))}
+                />
+              </>
+            ) : (
+              <span class="metric-value unset">Set Start first</span>
+            )}
+          </div>
+          <label class="metric">
+            <span class="metric-label">Duration</span>
+            <input
+              class="metric-input figure"
+              type="text"
+              inputmode="numeric"
+              value={durationText ?? formatDuration(form.duration)}
+              aria-label="Duration in minutes"
+              onFocus={(e) => {
+                // While editing, the field shows plain minutes; on blur it shows h:mm again.
+                setDurationText(String(form.duration));
+                const input = e.currentTarget;
+                requestAnimationFrame(() => input.select());
+              }}
+              onBlur={() => setDurationText(null)}
+              onInput={(e) => {
+                const minutes = parseTypedDuration(e.currentTarget.value);
+                if (minutes === null) {
+                  // Over 999 minutes or not digits: refuse the keystroke and keep the previous value.
+                  e.currentTarget.value = durationText ?? String(form.duration);
+                  return;
+                }
+                setDurationText(e.currentTarget.value.trim());
+                props.onChange(setDuration(form, minutes));
+              }}
+            />
+          </label>
         </div>
         <div class="row">
           <span class="row-label">Subject</span>
@@ -187,13 +207,27 @@ export function SessionFields(props: {
           Students
         </Row>
       </Group>
-      <Group header="Minutes" footer="Lesson is Duration minus Activity. Travel is for your records only. It never appears on family summaries.">
-        <div class="row">
-          <span class="row-label">Lesson</span>
-          <span class="row-value">{lesson === null ? 'Not set' : formatDuration(lesson)}</span>
+      <Group header="Minutes" footer={minutesFooter} footerError={minutesError !== null}>
+        <div class="metric-strip">
+          <div class="metric derived">
+            <span class="metric-label">Lesson</span>
+            <span class={`metric-value figure${lesson === null ? ' unset' : ''}`}>{lesson === null ? 'Not set' : formatDuration(lesson)}</span>
+          </div>
+          <MinutesCell
+            label="Activity"
+            value={form.activity}
+            invalid={activityInvalid || activityCaption !== null}
+            onChange={(activity) => set({ activity })}
+            onBlur={() => setTouched((t) => ({ ...t, activity: true }))}
+          />
+          <MinutesCell
+            label="Travel"
+            value={form.travel}
+            invalid={travelInvalid}
+            onChange={(travel) => set({ travel })}
+            onBlur={() => setTouched((t) => ({ ...t, travel: true }))}
+          />
         </div>
-        <MinutesBlock label="Activity" value={form.activity} caption={activityCaption} onChange={(activity) => set({ activity })} />
-        <MinutesBlock label="Travel" value={form.travel} caption={null} onChange={(travel) => set({ travel })} />
       </Group>
       {grouped &&
         creditFamilies(form.attendees).map((familyId) => {

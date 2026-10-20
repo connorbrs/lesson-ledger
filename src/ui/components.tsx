@@ -17,6 +17,9 @@ export function sessionSaveErrorMessage(e: unknown): string {
   if (e instanceof SessionError) {
     if (e.code === 'student-missing') return "Couldn't save. A chosen student or family was archived or deleted. Choose the students again. Nothing was changed.";
     if (e.code === 'not-found') return "Couldn't save. This session no longer exists. Nothing was changed.";
+    if (e.code === 'expenses-invalid' || e.code === 'photo-missing') {
+      return "Couldn't save. An expense or receipt photo is no longer valid. Open the expense and check it. Nothing was changed.";
+    }
   }
   return "Couldn't save. Your phone may be low on storage. Nothing was changed. Try again.";
 }

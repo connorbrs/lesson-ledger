@@ -74,6 +74,15 @@
         ],
         "createdAt": "2026-10-20T06:45:12.806Z",
         "reason": "Claude: throwaway decision-round sketch, never shipped; the real build is checked separately"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-20T07:10:44.615Z",
+        "reason": "Claude: unchosen throwaway decision-round sketch, never shipped"
       }
     ]
   }

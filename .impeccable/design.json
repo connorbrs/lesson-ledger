@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-20T00:00:00.000Z",
+  "title": "Design System: Lesson Ledger",
+  "extensions": {
+    "colorMeta": {
+      "bg-grouped": { "role": "neutral", "displayName": "Graphite Ground", "canonical": "#f6f8fa", "dark": "#0d1117", "tonalRamp": [] },
+      "surface": { "role": "neutral", "displayName": "Panel Surface", "canonical": "#ffffff", "dark": "#151a22", "tonalRamp": [] },
+      "elevated": { "role": "neutral", "displayName": "Raised Panel", "canonical": "#eef1f4", "dark": "#1c222b", "tonalRamp": [] },
+      "surface-translucent": { "role": "neutral", "displayName": "Translucent Ground", "canonical": "rgba(246, 248, 250, 0.92)", "dark": "rgba(13, 17, 23, 0.9)", "tonalRamp": [] },
+      "accent": { "role": "primary", "displayName": "Actionable Blue", "canonical": "#0969da", "dark": "#79c0ff", "tonalRamp": [] },
+      "on-accent": { "role": "neutral", "displayName": "On Accent", "canonical": "#ffffff", "dark": "#0d1117", "tonalRamp": [] },
+      "success": { "role": "secondary", "displayName": "Sent Green", "canonical": "#1a7f37", "dark": "#56d364", "tonalRamp": [] },
+      "warning": { "role": "secondary", "displayName": "Changed Amber", "canonical": "#8a5700", "dark": "#e3b341", "tonalRamp": [] },
+      "destructive": { "role": "secondary", "displayName": "Destructive Red", "canonical": "#cf222e", "dark": "#ff7b72", "tonalRamp": [] },
+      "swim": { "role": "tertiary", "displayName": "Swim Cyan", "canonical": "#07707e", "dark": "#56d4dd", "tonalRamp": [] },
+      "math": { "role": "tertiary", "displayName": "Math Violet", "canonical": "#8250df", "dark": "#d2a8ff", "tonalRamp": [] },
+      "text": { "role": "neutral", "displayName": "Ink", "canonical": "#1f2328", "dark": "#e6edf3", "tonalRamp": [] },
+      "text-secondary": { "role": "neutral", "displayName": "Muted Ink", "canonical": "#59636e", "dark": "#9198a1", "tonalRamp": [] },
+      "separator": { "role": "neutral", "displayName": "Seam", "canonical": "#d0d7de", "dark": "#262c36", "tonalRamp": [] },
+      "pressed": { "role": "neutral", "displayName": "Pressed", "canonical": "#eaeef2", "dark": "#1f2630", "tonalRamp": [] },
+      "scrim": { "role": "neutral", "displayName": "Scrim", "canonical": "rgba(13, 17, 23, 0.45)", "dark": "rgba(1, 4, 9, 0.7)", "tonalRamp": [] },
+      "selection": { "role": "neutral", "displayName": "Selection", "canonical": "rgba(9, 105, 218, 0.22)", "dark": "rgba(121, 192, 255, 0.3)", "tonalRamp": [] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display (mono title)", "purpose": "Tab root titles only: Log, Sessions, Summaries, People, Settings." },
+      "heading": { "displayName": "Heading", "purpose": "Panel titles, nav titles, sheet and alert titles, empty-state headings, family name headers." },
+      "body": { "displayName": "Body", "purpose": "Row labels, segment labels, inputs, message box, default text at 17px." },
+      "label": { "displayName": "Label", "purpose": "Footers, captions, row sub-lines, status text, tab labels at 13px." },
+      "group-label": { "displayName": "Group Label", "purpose": "Tracked uppercase label above a panel or inside a metric cell, muted ink." },
+      "metric": { "displayName": "Metric", "purpose": "Measured value in a metric strip cell, monospaced and tabular." }
+    },
+    "shadows": [
+      { "name": "sheet-lift", "value": "0 -8px 28px rgba(0, 0, 0, 0.28)", "purpose": "Observed on the sheet only. Drift from the no-shadow world; recorded, not canonized." },
+      { "name": "alert-lift", "value": "0 12px 32px rgba(0, 0, 0, 0.35)", "purpose": "Observed on the alert only. Drift from the no-shadow world; recorded, not canonized." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Default easing for panel expansion and disclosure chevrons (200ms)." },
+      { "name": "sheet-up", "value": "350ms ease-out", "purpose": "Sheet rise and scrim fade; 150ms linear fade under reduced motion." },
+      { "name": "push-in", "value": "300ms ease-in-out", "purpose": "Pushed screen slide from the right; 150ms fade under reduced motion." },
+      { "name": "expand", "value": "200ms var(--ease-out) grid-template-rows", "purpose": "Panel opens along one axis (height) only; no transform." },
+      { "name": "skeleton-pulse", "value": "1.4s ease-in-out infinite alternate", "purpose": "Loading bars pulse between 0.5 and 1 opacity; off under reduced motion." }
+    ],
+    "breakpoints": [
+      { "name": "narrow", "value": "max-width 359px", "purpose": "Metric figures 17px, tab labels 12px, tighter cell padding." },
+      { "name": "wide", "value": "min-width 600px", "purpose": "Column carries a 1px seam on each side." },
+      { "name": "desktop", "value": "min-width 960px", "purpose": "Column 800px; tab bar becomes a 200px left rail." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one main action on a screen, docked above the tab bar or inline.",
+      "html": "<button class=\"ds-btn-primary\">Log Session</button>",
+      "css": ".ds-btn-primary { min-height: 44px; padding: 0 24px; border-radius: 6px; background: #0969da; color: #ffffff; font: 600 17px/1.3 -apple-system, BlinkMacSystemFont, system-ui, sans-serif; border: 0; } .ds-btn-primary:active { opacity: 0.5; } .ds-btn-primary:focus-visible { outline: 2px solid #0969da; outline-offset: 2px; } .ds-btn-primary:disabled { opacity: 0.5; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A second action beside a primary button in a footer.",
+      "html": "<button class=\"ds-btn-secondary\">Copy</button>",
+      "css": ".ds-btn-secondary { min-height: 44px; padding: 0 16px; border-radius: 6px; background: #eef1f4; border: 1px solid #d0d7de; color: #0969da; font: 600 17px/1.3 -apple-system, BlinkMacSystemFont, system-ui, sans-serif; } .ds-btn-secondary:active { opacity: 0.5; } .ds-btn-secondary:focus-visible { outline: 2px solid #0969da; outline-offset: 2px; }"
+    },
+    {
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "A destructive action on its own: outlined, full width, 24px clear of what comes before.",
+      "html": "<button class=\"ds-btn-destructive\">Delete Family</button>",
+      "css": ".ds-btn-destructive { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 44px; border: 1px solid #cf222e; border-radius: 6px; background: transparent; color: #cf222e; font: 600 17px/1.3 -apple-system, BlinkMacSystemFont, system-ui, sans-serif; } .ds-btn-destructive:focus-visible { outline: 2px solid #cf222e; outline-offset: 2px; }"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "chip",
+      "refersTo": "segmented-control",
+      "description": "Two or three mutually exclusive options (Swim/Math, Full/Half, Student/Family/Subject).",
+      "html": "<div class=\"ds-seg\" role=\"radiogroup\"><button class=\"ds-seg-item\" role=\"radio\" aria-checked=\"true\">Swim</button><button class=\"ds-seg-item\" role=\"radio\" aria-checked=\"false\">Math</button></div>",
+      "css": ".ds-seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; height: 32px; border-radius: 6px; background: #ffffff; box-shadow: inset 0 0 0 1px #d0d7de; } .ds-seg-item { padding: 0 12px; font: 17px/1.3 -apple-system, BlinkMacSystemFont, system-ui, sans-serif; color: #1f2328; background: transparent; } .ds-seg-item[aria-checked='true'] { background: #eef1f4; color: #0969da; font-weight: 600; box-shadow: inset 0 0 0 1px #0969da; } .ds-seg-item:first-child { border-radius: 6px 0 0 6px; } .ds-seg-item:last-child { border-radius: 0 6px 6px 0; }"
+    },
+    {
+      "name": "Metric Strip",
+      "kind": "card",
+      "refersTo": "metric-cell",
+      "description": "Three measured values side by side, divided by 1px seams; figures in the monospaced face.",
+      "html": "<div class=\"ds-metrics\"><div class=\"ds-metric\"><span class=\"ds-metric-label\">Lesson</span><span class=\"ds-metric-value\">1:00</span></div><div class=\"ds-metric\"><span class=\"ds-metric-label\">Activity</span><span class=\"ds-metric-value\">0:30</span></div><div class=\"ds-metric\"><span class=\"ds-metric-label\">Travel</span><span class=\"ds-metric-value\">0:15</span></div></div>",
+      "css": ".ds-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #ffffff; border-radius: 8px; } .ds-metric { display: flex; flex-direction: column; gap: 4px; min-height: 72px; padding: 10px 12px 12px; border-left: 1px solid #d0d7de; } .ds-metric:first-child { border-left: 0; } .ds-metric-label { font: 600 12px/1.3 -apple-system, BlinkMacSystemFont, system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: #59636e; } .ds-metric-value { font: 400 20px/1.2 ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; color: #1f2328; }"
+    },
+    {
+      "name": "Grouped Row",
+      "kind": "card",
+      "refersTo": "row",
+      "description": "A row inside a panel: label left, muted value right, 1px seam between rows.",
+      "html": "<div class=\"ds-group\"><button class=\"ds-row\"><span class=\"ds-row-label\">Students</span><span class=\"ds-row-value\">Ada, Lee</span></button></div>",
+      "css": ".ds-group { background: #ffffff; border: 1px solid #d0d7de; border-radius: 8px; overflow: hidden; } .ds-row { display: flex; align-items: center; gap: 16px; width: 100%; min-height: 44px; padding: 12px 16px; background: transparent; border: 0; text-align: left; font: 400 17px/1.3 -apple-system, BlinkMacSystemFont, system-ui, sans-serif; color: #1f2328; } .ds-row:active { background: #eaeef2; } .ds-row-label { flex: 1; min-width: 0; } .ds-row-value { max-width: 60%; text-align: right; color: #59636e; }"
+    },
+    {
+      "name": "Send Checklist",
+      "kind": "custom",
+      "refersTo": "status-stage",
+      "description": "Signature strip: Check, Message, Sent, each stage a drawn glyph with a detail line, derived from stored state.",
+      "html": "<ol class=\"ds-checklist\"><li class=\"ds-stage done\"><span class=\"ds-stage-title\">Check</span><span class=\"ds-stage-detail\">All sessions checked</span></li><li class=\"ds-stage attention\"><span class=\"ds-stage-title\">Message</span><span class=\"ds-stage-detail\">Changed since sent</span></li><li class=\"ds-stage idle\"><span class=\"ds-stage-title\">Sent</span><span class=\"ds-stage-detail\">Not sent</span></li></ol>",
+      "css": ".ds-checklist { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; background: #ffffff; border: 1px solid #d0d7de; border-radius: 8px; overflow: hidden; } .ds-stage { display: flex; flex-direction: column; gap: 2px; padding: 12px 12px 14px; border-left: 1px solid #d0d7de; min-width: 0; } .ds-stage:first-child { border-left: 0; } .ds-stage-title { font: 600 12px/1.3 -apple-system, BlinkMacSystemFont, system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; color: #59636e; } .ds-stage-detail { margin-top: 4px; font: 400 15px/1.25 -apple-system, BlinkMacSystemFont, system-ui, sans-serif; color: #1f2328; } .ds-stage.attention .ds-stage-detail { color: #8a5700; } .ds-stage.idle .ds-stage-detail { color: #59636e; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Graphite Console",
+    "overview": "Lesson Ledger is a working ledger for one instructor's hours. It sits on a graphite ground, and every panel is one step lighter than the ground and divided from its neighbours by a 1px seam. There are no shadows at rest. Colour is only ever state: blue is actionable, green is sent or done, amber is something to check or changed since sent, red is destructive and always outlined and isolated by space. Two subject tags (Swim cyan, Math violet) are the only other colour. Measured values set in a monospaced tabular face. The signature is the send checklist: Check, Message, Sent, drawn from stored state.",
+    "keyCharacteristics": [
+      "Graphite ground, panels one elevation step up, separated by 1px seams.",
+      "Colour appears only for state, plus the two subject tags.",
+      "Measured values in the monospaced face; labels in tracked small caps in muted grey.",
+      "Flat at rest; depth by tonal step and seam.",
+      "Standard iOS controls with a graphite skin.",
+      "Light theme is the same system on cool paper; dark graphite is the evening default."
+    ],
+    "rules": [
+      { "name": "The State Is The Colour Rule", "body": "Colour names a state (actionable, sent, changed, destructive) or a subject. A decorative accent does not exist in this system.", "section": "colors" },
+      { "name": "The One Seam Rule", "body": "Panels are separated by a 1px seam at the hairline width (0.5px on 2x screens), never by a shadow or a second colour.", "section": "colors" },
+      { "name": "The Figures Are Mono Rule", "body": "Any value measured in time, minutes, hours or money sets in the monospaced face with tabular numerals. Labels and words never do.", "section": "typography" },
+      { "name": "The Tracked Label Rule", "body": "Uppercase tracking is used only on the label of a panel or a metric cell, in muted ink, and nowhere else.", "section": "typography" },
+      { "name": "The Flat-At-Rest Rule", "body": "A panel, row, cell or control gets no shadow. Its depth is the tonal step and the seam.", "section": "elevation" },
+      { "name": "The Seam Not Shadow Rule", "body": "A divider is a 1px line in Seam colour, not a drop shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Actionable Blue only for something the instructor can press, and Sent Green, Changed Amber, Destructive Red only for their state.",
+      "Do set every measured value (a time, minute, hour, or amount) in the mono face with tabular figures.",
+      "Do separate panels with a 1px Seam and a tonal step, not a shadow or a second colour.",
+      "Do keep destructive actions as an outlined button set 24px clear of other controls, never inside a panel.",
+      "Do keep the send checklist derived from stored state, and use the same three stages on the family summary and on the Summaries row.",
+      "Do limit motion to panels expanding along one axis and to sheets and pushed screens sliding in; respect reduced motion."
+    ],
+    "donts": [
+      "Don't add a shadow to a panel, row, chip, or control. The only permitted lift is the existing overlay on a sheet or alert (see the drift note).",
+      "Don't use colour decoratively. Colour names a state or a subject; no accent exists for ornament.",
+      "Don't add a decorative icon, kicker, or eyebrow above a heading. The tab icons and the send checklist glyphs are the only drawn icons, and each names a function or a state.",
+      "Don't use the system display face for titles; titles use the monospace, as the Log, Sessions, Summaries, People and Settings tabs do.",
+      "Don't add a new spacing step, radius, or type size to match a one-off; use the scale and the observed sizes (34, 20, 17, 15, 13, 12px).",
+      "Don't set a monospace face on labels or words; it is for figures and the display title only."
+    ]
+  }
+}

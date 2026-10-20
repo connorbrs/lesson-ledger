@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Expense, Family, Session, Student } from '../domain/types';
+import type { Expense, Family, PeriodRecord, Session, Student } from '../domain/types';
 
 export const DB_NAME = 'lesson-ledger-v1'; // D-04
 
@@ -24,9 +24,10 @@ export const db = new Dexie(DB_NAME) as Dexie & {
   expenses: EntityTable<Expense, 'id'>;
   attachments: EntityTable<AttachmentRow, 'id'>;
   meta: EntityTable<{ key: string; value: unknown }, 'key'>;
+  periodRecords: EntityTable<PeriodRecord, 'id'>;
 };
 
-// Never edit version(1) after a real save; add version(2) instead.
+// Never edit version(1) after a real save; version(2) below only ADDS a table (D-14). An installed phone cannot go back to 1.
 // archivedAt and defaultSubject are deliberately not indexed (null/boolean are not valid keys).
 db.version(1).stores({
   families: 'id, name',
@@ -35,6 +36,11 @@ db.version(1).stores({
   expenses: 'id, sessionId',
   attachments: 'id, expenseId',
   meta: 'key',
+});
+
+// Version 2 (Phase 4): adds the saved message and sent mark per family and period. Dexie keeps version 1's tables.
+db.version(2).stores({
+  periodRecords: 'id, familyId',
 });
 
 db.on('populate', (tx) => {

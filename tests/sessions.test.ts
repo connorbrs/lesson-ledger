@@ -93,9 +93,9 @@ describe('createSession', () => {
     expect(await db.sessions.count()).toBe(3);
   });
 
-  it('keeps Dexie at version 1 with the six tables', () => {
-    expect(db.verno).toBe(1);
-    expect(db.tables.map((t) => t.name).sort()).toEqual(['attachments', 'expenses', 'families', 'meta', 'sessions', 'students']);
+  it('is at Dexie version 2 with the seven tables (version 2 only added periodRecords)', () => {
+    expect(db.verno).toBe(2);
+    expect(db.tables.map((t) => t.name).sort()).toEqual(['attachments', 'expenses', 'families', 'meta', 'periodRecords', 'sessions', 'students']);
   });
 
   describe('rejections store nothing', () => {

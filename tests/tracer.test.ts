@@ -10,13 +10,15 @@ beforeEach(async () => {
 });
 
 describe('tracer: family create and list', () => {
-  it('opens lesson-ledger-v1 with all six tables and meta schemaVersion 1', async () => {
+  it('opens lesson-ledger-v1 at version 2 with all seven tables and meta schemaVersion 1', async () => {
     expect(db.name).toBe('lesson-ledger-v1');
+    expect(db.verno).toBe(2);
     expect(db.tables.map((t) => t.name).sort()).toEqual([
       'attachments',
       'expenses',
       'families',
       'meta',
+      'periodRecords',
       'sessions',
       'students',
     ]);

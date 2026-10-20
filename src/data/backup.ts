@@ -10,6 +10,7 @@ import {
 import { base64ToBytes, bytesToBase64 } from '../domain/base64';
 import { hasJpegMagic } from '../domain/photos';
 import { db, type AttachmentRow } from './db';
+import { INSTRUCTOR_KEY } from './instructor';
 
 const LAST_BACKUP_KEY = 'lastBackupAt';
 
@@ -24,10 +25,12 @@ const dataTables = (): Table<{ id: string }, string>[] => db.tables.filter((t) =
  */
 export async function buildBackup(now: number = Date.now(), maxBytes: number = MAX_BACKUP_BYTES): Promise<BackupFile> {
   const tables = dataTables();
-  const rows = await db.transaction('r', tables, async () => {
+  // The instructor name is in meta; reading it in the same transaction keeps it consistent with the rows.
+  const { rows, name } = await db.transaction('r', [...tables, db.meta], async () => {
     const out: Record<string, unknown[]> = {};
     for (const t of tables) out[t.name] = await t.toArray();
-    return out;
+    const stored = (await db.meta.get(INSTRUCTOR_KEY))?.value;
+    return { rows: out, name: typeof stored === 'string' && stored !== '' ? stored : null };
   });
   const byId = <T extends { id: string }>(list: T[]): T[] => [...list].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const photos = byId(rows.attachments as AttachmentRow[]);
@@ -47,6 +50,8 @@ export async function buildBackup(now: number = Date.now(), maxBytes: number = M
     sessions: byId(rows.sessions as BackupFile['sessions']),
     expenses: byId(rows.expenses as BackupFile['expenses']),
     attachments,
+    periodRecords: byId(rows.periodRecords as BackupFile['periodRecords']),
+    instructorName: name,
   };
 }
 
@@ -69,6 +74,7 @@ export async function restoreBackup(file: BackupFile): Promise<void> {
     sessions: file.sessions,
     expenses: file.expenses,
     attachments: photos,
+    periodRecords: file.periodRecords,
   };
   // A table added later with no source here must fail before anything is cleared.
   for (const t of tables) if (!sources[t.name]) throw new Error(`No backup source for table ${t.name}`);
@@ -78,6 +84,9 @@ export async function restoreBackup(file: BackupFile): Promise<void> {
       const rows = sources[t.name];
       if (rows.length > 0) await t.bulkAdd(rows);
     }
+    // The instructor name replaces the stored one; a file without a name clears it.
+    if (file.instructorName === null) await db.meta.delete(INSTRUCTOR_KEY);
+    else await db.meta.put({ key: INSTRUCTOR_KEY, value: file.instructorName });
     // A backup made on a phone whose clock ran ahead must not store a future time: the reminder would stay silent.
     await db.meta.put({ key: LAST_BACKUP_KEY, value: Math.min(file.createdAt, Date.now()) });
   });

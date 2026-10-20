@@ -78,3 +78,20 @@ export interface Expense {
   createdAt: number;
   updatedAt: number;
 }
+
+/**
+ * D-08, D-14: the saved message and the sent mark for one family and one period. One row per family and period;
+ * id is `${familyId}_${periodKey}`. The three message fields are all set or all null, the two sent fields are both
+ * set or both null, and a row with neither is never stored. Fingerprints come from the summary model.
+ */
+export interface PeriodRecord {
+  id: string;
+  familyId: string;
+  periodKey: string;
+  message: string | null;
+  messageFingerprint: string | null;
+  messageSavedAt: number | null;
+  sentAt: number | null;
+  sentFingerprint: string | null;
+  updatedAt: number;
+}

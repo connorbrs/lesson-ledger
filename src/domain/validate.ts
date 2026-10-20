@@ -60,3 +60,11 @@ export function validateStudentInput(input: {
   const notes = typeof input.notes === 'string' ? input.notes : '';
   return { ok: true, value: { familyId: input.familyId, name: n.name, defaultSubject: input.defaultSubject, notes } };
 }
+
+/** D-10: the instructor name. Trimmed, NFC, at most NAME_MAX code points; a blank value is allowed and means "no name". */
+export function validateInstructorName(raw: unknown): Validated<string | null> {
+  const name = normalizeName(raw);
+  if (name === '') return { ok: true, value: null };
+  if (codePointLength(name) > NAME_MAX) return { ok: false, code: 'name-too-long' };
+  return { ok: true, value: name };
+}

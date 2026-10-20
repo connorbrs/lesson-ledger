@@ -9,6 +9,8 @@ import { db } from '../src/data/db';
 import { createFamily } from '../src/data/families';
 import type { ExpensePayload, NewPhoto } from '../src/data/expenses';
 import { createSession, listSessions } from '../src/data/sessions';
+import { setInstructorName, getInstructorName } from '../src/data/instructor';
+import { markSent, saveMessage } from '../src/data/periodRecords';
 import { createStudent } from '../src/data/students';
 import {
   BACKUP_TOO_LARGE_MESSAGE,
@@ -69,6 +71,10 @@ async function seed() {
     attendees: [{ studentId: s1.id, familyId: famA.id }], credits: [full(famA.id)],
     lessonMinutes: 60, activityMinutes: 0, travelMinutes: 0,
   });
+  await saveMessage(famA.id, 'W2026-10-12', 'Merhaba, bu hafta özet.', 'a1b2c3d4e5f60a');
+  await markSent(famA.id, 'W2026-10-12', 'a1b2c3d4e5f60a', 5_000);
+  await markSent(famB.id, 'M2026-10', '0123456789abcd', 6_000);
+  await setInstructorName('Connor B.');
 }
 
 const blobBase64 = async (b: Blob) => bytesToBase64(new Uint8Array(await b.arrayBuffer()));
@@ -80,28 +86,32 @@ const snapshot = async () => ({
   sessions: await db.sessions.toArray(),
   expenses: await db.expenses.toArray(),
   attachments: await Promise.all((await db.attachments.toArray()).map(async (a) => ({ ...a, blob: { type: a.blob.type, data: await blobBase64(a.blob) } }))),
+  periodRecords: await db.periodRecords.toArray(),
+  instructorName: await getInstructorName(),
   last: (await db.meta.get('lastBackupAt'))?.value,
 });
 
 const clearData = async () => {
   for (const t of db.tables) if (t.name !== 'meta') await t.clear();
+  await db.meta.delete('instructorName');
 };
 
 describe('buildBackup', () => {
   it('exports the contract, sorted by id, with every data table present', async () => {
     await seed();
     const file = await buildBackup(1_000);
-    expect(file).toMatchObject({ format: 'lesson-ledger-backup', schemaVersion: 2, createdAt: 1_000 });
+    expect(file).toMatchObject({ format: 'lesson-ledger-backup', schemaVersion: 3, createdAt: 1_000, instructorName: 'Connor B.' });
     expect(file.families).toHaveLength(2);
     expect(file.students).toHaveLength(2);
     expect(file.sessions).toHaveLength(2);
     expect(file.expenses).toHaveLength(2);
     expect(file.attachments).toHaveLength(3);
-    for (const list of [file.families, file.students, file.sessions, file.expenses, file.attachments]) {
+    expect(file.periodRecords).toHaveLength(2);
+    for (const list of [file.families, file.students, file.sessions, file.expenses, file.attachments, file.periodRecords]) {
       const ids = list.map((r) => r.id);
       expect(ids).toEqual([...ids].sort());
     }
-    const dataKeys = Object.keys(file).filter((k) => !['format', 'schemaVersion', 'createdAt'].includes(k)).sort();
+    const dataKeys = Object.keys(file).filter((k) => !['format', 'schemaVersion', 'createdAt', 'instructorName'].includes(k)).sort();
     expect(dataKeys).toEqual(db.tables.map((t) => t.name).filter((n) => n !== 'meta').sort());
   });
 
@@ -123,14 +133,22 @@ describe('buildBackup', () => {
     }
   });
 
-  it('is identical across two exports except createdAt, and an empty database exports five empty arrays', async () => {
+  it('exports period records as the stored rows, sorted by id', async () => {
+    await seed();
+    const file = await buildBackup(1_000);
+    expect(file.periodRecords).toEqual((await db.periodRecords.toArray()).sort((a, b) => (a.id < b.id ? -1 : 1)));
+    expect(file.periodRecords.some((r) => r.message !== null && r.sentAt !== null)).toBe(true);
+  });
+
+  it('is identical across two exports except createdAt, and an empty database exports six empty arrays and no name', async () => {
     await seed();
     const a = await buildBackup(1);
     const b = await buildBackup(2);
     expect({ ...a, createdAt: 0 }).toEqual({ ...b, createdAt: 0 });
     await clearData();
     const empty = await buildBackup(3);
-    expect([empty.families, empty.students, empty.sessions, empty.expenses, empty.attachments].every((x) => x.length === 0)).toBe(true);
+    expect([empty.families, empty.students, empty.sessions, empty.expenses, empty.attachments, empty.periodRecords].every((x) => x.length === 0)).toBe(true);
+    expect(empty.instructorName).toBeNull();
     expect(parseBackup(serializeBackup(empty)).ok).toBe(true);
   });
 
@@ -235,13 +253,20 @@ describe('parseBackup rejection', () => {
   });
 
   it('a higher schemaVersion is newer-version, even when the rows are unusable', () => {
-    expect(parseBackup('{"format":"lesson-ledger-backup","schemaVersion":3,"families":7}')).toEqual({ ok: false, code: 'newer-version' });
+    expect(parseBackup('{"format":"lesson-ledger-backup","schemaVersion":4,"families":7}')).toEqual({ ok: false, code: 'newer-version' });
   });
 
   it('accepts a version 2 file with receipts, and a version 1 file with empty arrays', async () => {
     const d = await doc();
+    const v3 = parseBackup(JSON.stringify(d));
+    expect(v3.ok && v3.file.schemaVersion === 3 && v3.file.expenses.length === 2 && v3.file.attachments.length === 3).toBe(true);
+    expect(v3.ok && v3.file.periodRecords.length === 2 && v3.file.instructorName === 'Connor B.').toBe(true);
+    d.schemaVersion = 2;
+    delete d.periodRecords;
+    delete d.instructorName;
     const v2 = parseBackup(JSON.stringify(d));
     expect(v2.ok && v2.file.schemaVersion === 2 && v2.file.expenses.length === 2 && v2.file.attachments.length === 3).toBe(true);
+    expect(v2.ok && v2.file.periodRecords.length === 0 && v2.file.instructorName === null).toBe(true);
     d.schemaVersion = 1;
     d.expenses = [];
     d.attachments = [];
@@ -424,10 +449,13 @@ describe('restoreBackup', () => {
     d.schemaVersion = 1;
     d.expenses = [];
     d.attachments = [];
+    delete d.periodRecords;
+    delete d.instructorName;
     const parsed = parseBackup(JSON.stringify(d));
     if (!parsed.ok) throw new Error('parse failed');
     expect(await db.attachments.count()).toBe(3);
     await restoreBackup(parsed.file);
+    expect(await db.periodRecords.count()).toBe(0);
     expect(await db.expenses.count()).toBe(0);
     expect(await db.attachments.count()).toBe(0);
     expect(await db.sessions.count()).toBe(2);

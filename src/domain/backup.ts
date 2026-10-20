@@ -1,22 +1,27 @@
 import { base64DecodedLength, base64ToBytes, isBase64 } from './base64';
 import { daysBetween, localYmdFromMs } from './dates';
 import { validateExpenseText } from './expense';
+import { recordId, validateMessage } from './periodRecord';
 import { MAX_PHOTO_DIMENSION, MAX_STORED_PHOTO_BYTES, hasJpegMagic } from './photos';
 import { validateSessionFields } from './session';
-import type { Expense, ExpenseSplit, Family, Session, Student } from './types';
-import { validateFamilyInput, validateStudentInput } from './validate';
+import { isFingerprint, parsePeriodKey } from './summary';
+import type { Expense, ExpenseSplit, Family, PeriodRecord, Session, Student } from './types';
+import { validateFamilyInput, validateInstructorName, validateStudentInput } from './validate';
 
 /**
  * The backup file contract (D-06, one-way: backups saved to Files must restore under every later version).
  * One JSON document, no zip. schemaVersion 2 adds the receipts: expenses (the stored rows) and attachments, each
  * {id, expenseId, mime 'image/jpeg', width, height, createdAt, data} where data is the standard base64 of the JPEG bytes.
  * schemaVersion 1 files (expenses and attachments always empty) are read forever and restore with no receipts.
+ * schemaVersion 3 adds periodRecords (the saved message and sent mark per family and period) and instructorName
+ * (a non-blank string or null), both required. Version 1 and 2 files are read forever: they must carry neither
+ * (absent, empty or null) and parse to periodRecords [] and instructorName null; restoring one clears both on this phone.
  * Sessions carry endTime (D-07 of Phase 2): optional on read, since a file from before Finish existed has no endTime key
  * and restores with null; every new export writes it.
- * Any change from here needs a migration reader for version 2.
+ * Any change from here needs a migration reader for version 3.
  */
 export const BACKUP_FORMAT = 'lesson-ledger-backup';
-export const BACKUP_SCHEMA_VERSION = 2;
+export const BACKUP_SCHEMA_VERSION = 3;
 /** D-08: the cap on a backup file (150 MB). Export refuses above it and restore treats a larger file as not a backup. */
 export const MAX_BACKUP_BYTES = 150_000_000;
 export const BACKUP_TOO_LARGE_MESSAGE = `This backup is too large to save (over ${MAX_BACKUP_BYTES / 1_000_000} MB).`;
@@ -39,6 +44,8 @@ export interface BackupFile {
   sessions: Session[];
   expenses: Expense[];
   attachments: BackupAttachment[];
+  periodRecords: PeriodRecord[];
+  instructorName: string | null;
 }
 
 export interface BackupAttachment {
@@ -179,6 +186,40 @@ function parseAttachment(raw: unknown, expenseIds: Set<string>): BackupAttachmen
   return { id: r.id as string, expenseId: r.expenseId as string, mime: 'image/jpeg', width: r.width as number, height: r.height as number, createdAt: r.createdAt as number, data: data as string };
 }
 
+/** The saved message and sent mark, rebuilt from whitelisted fields. Its id must equal `${familyId}_${periodKey}`. */
+function parsePeriodRecord(raw: unknown, familyIds: Set<string>): PeriodRecord {
+  const r = rowObj(raw);
+  need(isId(r.id) && isId(r.familyId) && familyIds.has(r.familyId) && parsePeriodKey(r.periodKey) !== null);
+  need(r.id === recordId(r.familyId as string, r.periodKey as string));
+  need(isTime(r.updatedAt));
+  const hasMessage = r.message !== null;
+  need((r.messageFingerprint !== null) === hasMessage && (r.messageSavedAt !== null) === hasMessage);
+  if (hasMessage) need(validateMessage(r.message).ok && isFingerprint(r.messageFingerprint) && isTime(r.messageSavedAt));
+  const hasSent = r.sentAt !== null;
+  need((r.sentFingerprint !== null) === hasSent);
+  if (hasSent) need(isTime(r.sentAt) && isFingerprint(r.sentFingerprint));
+  need(hasMessage || hasSent);
+  return {
+    id: r.id as string,
+    familyId: r.familyId as string,
+    periodKey: r.periodKey as string,
+    message: hasMessage ? (r.message as string) : null,
+    messageFingerprint: hasMessage ? (r.messageFingerprint as string) : null,
+    messageSavedAt: hasMessage ? (r.messageSavedAt as number) : null,
+    sentAt: hasSent ? (r.sentAt as number) : null,
+    sentFingerprint: hasSent ? (r.sentFingerprint as string) : null,
+    updatedAt: r.updatedAt as number,
+  };
+}
+
+/** A non-blank name that validateInstructorName accepts, stored normalized. */
+function parseInstructorName(raw: unknown): string {
+  need(typeof raw === 'string');
+  const v = validateInstructorName(raw);
+  need(v.ok && v.value !== null);
+  return (v as { ok: true; value: string }).value;
+}
+
 const uniqueIds = (rows: { id: string }[]): Set<string> => {
   const ids = new Set(rows.map((r) => r.id));
   need(ids.size === rows.length);
@@ -224,7 +265,19 @@ export function parseBackup(text: string, size: number = text.length): ParsedBac
       attachments = arrayOf(doc.attachments).map((a) => parseAttachment(a, expenseIds));
       uniqueIds(attachments);
     }
-    return { ok: true, file: { format: BACKUP_FORMAT, schemaVersion: version, createdAt: doc.createdAt as number, families, students, sessions, expenses, attachments } };
+    let periodRecords: PeriodRecord[] = [];
+    let instructorName: string | null = null;
+    if (version >= 3) {
+      periodRecords = arrayOf(doc.periodRecords).map((p) => parsePeriodRecord(p, familyIds));
+      uniqueIds(periodRecords);
+      need('instructorName' in doc);
+      instructorName = doc.instructorName === null ? null : parseInstructorName(doc.instructorName);
+    } else {
+      // Older files never carried either; anything there means the file was altered.
+      need(doc.periodRecords === undefined || (Array.isArray(doc.periodRecords) && doc.periodRecords.length === 0));
+      need(doc.instructorName === undefined || doc.instructorName === null);
+    }
+    return { ok: true, file: { format: BACKUP_FORMAT, schemaVersion: version, createdAt: doc.createdAt as number, families, students, sessions, expenses, attachments, periodRecords, instructorName } };
   } catch (e) {
     if (e instanceof Damaged) return { ok: false, code: 'damaged' };
     throw e;

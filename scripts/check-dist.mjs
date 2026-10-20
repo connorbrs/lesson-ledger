@@ -143,6 +143,24 @@ const checks = [
       if (text.includes('spike-blob') || text.includes('Device check')) fail(`${f} contains the harness`);
     }
   }],
+  ['C15', 'the PDF engine is one lazy, precached chunk; nothing oversize; jsPDF optional libraries absent', () => {
+    const html = read('index.html');
+    const entryUrl = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]*)"/g)].map((m) => m[1])[0];
+    if (!entryUrl) fail('index.html has no entry script');
+    const entry = resolveUnderBase(entryUrl).slice(BASE.length);
+    if (read(entry).includes('addFileToVFS')) fail('the entry chunk contains the PDF engine (addFileToVFS)');
+    const entryName = entry.split('/').pop();
+    const others = readdirSync(join(DIST, 'assets')).filter((f) => f.endsWith('.js') && f !== entryName && !f.startsWith('workbox-window'));
+    if (others.length !== 1) fail(`expected exactly one PDF chunk besides the entry and workbox-window, found ${others.length}: ${others.join(', ')}`);
+    const pdfChunk = others[0];
+    if (!read(`assets/${pdfChunk}`).includes('addFileToVFS')) fail(`${pdfChunk} does not contain the PDF engine`);
+    if (!read('sw.js').includes(pdfChunk)) fail(`sw.js does not precache ${pdfChunk}, so the PDF would not work offline`);
+    for (const f of walk(DIST)) {
+      if (statSync(f).size > 2_097_152) fail(`${f} is larger than 2,097,152 bytes (workbox skips it silently)`);
+    }
+    const banned = readdirSync(join(DIST, 'assets')).find((f) => /html2canvas|purify|canvg/i.test(f));
+    if (banned) fail(`dist/assets/${banned} is a jsPDF optional library`);
+  }],
 ];
 
 let passed = 0;

@@ -1,8 +1,9 @@
 /**
- * Pure state rules for the Family Summary: the Sent group, the status pill on the Summaries rows and the editable
- * message box, plus the exact UI copy. No database, no clock, no Intl time formatting (D-14, D-15).
+ * Pure state rules for the Family Summary: the Sent group, the status pill on the Summaries rows, the editable
+ * message box and the Share PDF button, plus the exact UI copy. No database, no clock, no Intl time formatting (D-14, D-15).
  */
 import { currentHHMM, formatTime12, localYmdFromMs } from './dates';
+import { PdfBuildError } from './pdfContent';
 import { formatMonthDay } from './summary';
 import type { PeriodRecord } from './types';
 
@@ -97,4 +98,63 @@ export function messageView(args: { generated: string; record: PeriodRecord | un
     canSave: changed && text.trim() !== '',
     dirty: changed,
   };
+}
+
+/* ---------- Share PDF (D-13, D-16, D-18) ---------- */
+
+export const PDF_FAILED = "Couldn't make the PDF. Nothing was changed. Try again.";
+export const PDF_TOO_LARGE = 'This PDF is too large to build on this phone. Nothing was changed. Try a shorter period.';
+export const SHARE_FAILED = "Couldn't share the PDF. Nothing was changed. Try again.";
+
+/** The pre-built PDF's state. The file type is structural so this module stays free of DOM globals. */
+export type PdfStatus = { kind: 'preparing' } | { kind: 'ready'; file: File } | { kind: 'failed'; error: unknown };
+
+export type ShareOutcome = 'shared' | 'cancelled' | 'downloaded' | 'failed';
+
+/**
+ * Identity of one PDF build. It holds everything the PDF reads (family, period, the summary fingerprint, the printed
+ * name) and a retry counter, and deliberately not the message text: the PDF never reads the message (D-13). Fields are
+ * JSON-encoded so no value can imitate a separator, and a missing name differs from any typed name.
+ */
+export function pdfBuildKey(args: { familyId: string; periodKey: string; fingerprint: string; instructorName: string | null; attempt: number }): string {
+  return JSON.stringify([args.familyId, args.periodKey, args.fingerprint, args.instructorName, args.attempt]);
+}
+
+/** Warnings never block Share (D-16), so only the PDF status decides the button. */
+export function shareButtonState(status: Pick<PdfStatus, 'kind'>): { label: string; disabled: boolean } {
+  if (status.kind === 'preparing') return { label: 'Preparing PDF\u2026', disabled: true };
+  return { label: 'Share PDF', disabled: false };
+}
+
+/** A tap on a ready PDF shares it; after a failed build it rebuilds; while preparing it does nothing. */
+export function shareAction(status: Pick<PdfStatus, 'kind'>): 'share' | 'build' | 'none' {
+  if (status.kind === 'ready') return 'share';
+  if (status.kind === 'failed') return 'build';
+  return 'none';
+}
+
+export function pdfFailureCaption(error: unknown): string {
+  return error instanceof PdfBuildError && error.code === 'too-large' ? PDF_TOO_LARGE : PDF_FAILED;
+}
+
+export function shareResultCaption(outcome: ShareOutcome, fileName: string): string | null {
+  if (outcome === 'downloaded') return `Downloaded ${fileName}.`;
+  if (outcome === 'failed') return SHARE_FAILED;
+  return null;
+}
+
+export interface FooterCaption {
+  text: string;
+  tone: 'destructive' | 'secondary';
+}
+
+/** The line above the Share PDF button: a build failure, else the last share outcome, else nothing. */
+export function footerCaption(args: { status: Pick<PdfStatus, 'kind'> & { error?: unknown }; share: ShareOutcome | null; fileName: string }): FooterCaption | null {
+  const { status, share, fileName } = args;
+  if (status.kind === 'preparing') return null;
+  if (status.kind === 'failed') return { text: pdfFailureCaption(status.error), tone: 'destructive' };
+  if (share === null) return null;
+  const text = shareResultCaption(share, fileName);
+  if (text === null) return null;
+  return { text, tone: share === 'failed' ? 'destructive' : 'secondary' };
 }

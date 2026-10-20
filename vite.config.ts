@@ -28,6 +28,12 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rolldownOptions: {
+      // jsPDF only loads these for HTML and SVG features this app never calls; keeping them out of dist and the precache (T-04-22).
+      external: ['canvg', 'dompurify', 'html2canvas'],
+    },
+  },
   test: {
     environment: 'node',
     include: ['tests/**/*.test.ts'],

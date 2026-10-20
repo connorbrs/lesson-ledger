@@ -1,12 +1,12 @@
 /**
- * The family summary PDF (D-01, D-10 to D-13). The only file that imports jspdf, and only through a dynamic
- * import, so the engine is a separate lazy chunk that never loads with the app. Swapping the engine (pdf-lib)
- * touches this file alone.
+ * The family summary PDF (D-01, D-10 to D-13). The only file that imports jspdf. This module is reached only through
+ * a dynamic import (src/ui/useSummaryPdf.ts), so the engine and the fonts form ONE lazy chunk that never loads with
+ * the app. Swapping the engine (pdf-lib) touches this file alone.
  *
  * Every string and layout rule comes from the pure content module; photo bytes arrive through the injected
  * loader, so this module knows nothing about the database or the UI.
  */
-import type { jsPDF } from 'jspdf';
+import { jsPDF } from 'jspdf';
 import {
   containFit,
   expenseRowCells,
@@ -65,8 +65,7 @@ export async function buildSummaryPdf(
   options: BuildPdfOptions = {},
 ): Promise<BuiltPdf> {
   try {
-    const { jsPDF: JsPdf } = await import('jspdf');
-    const doc = new JsPdf({ unit: 'pt', format: 'letter', compress: options.compress !== false });
+    const doc = new jsPDF({ unit: 'pt', format: 'letter', compress: options.compress !== false });
     doc.addFileToVFS('NotoSans-Regular.ttf', REGULAR_BASE64);
     doc.addFileToVFS('NotoSans-Bold.ttf', BOLD_BASE64);
     doc.addFont('NotoSans-Regular.ttf', FONT, 'normal');

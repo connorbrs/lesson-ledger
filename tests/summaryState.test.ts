@@ -1,15 +1,25 @@
 import { describe, expect, it } from 'vitest';
+import { PdfBuildError } from '../src/domain/pdfContent';
 import type { PeriodRecord } from '../src/domain/types';
 import {
   COPY_FAILED,
   DISCARD_TITLE,
+  footerCaption,
   formatSentAt,
   MARK_FAILED,
   MESSAGE_FOOTER,
   messageView,
+  PDF_FAILED,
+  PDF_TOO_LARGE,
+  pdfBuildKey,
+  pdfFailureCaption,
   REBUILD_MESSAGE,
   REBUILD_TITLE,
   SAVE_FAILED,
+  SHARE_FAILED,
+  shareAction,
+  shareButtonState,
+  shareResultCaption,
   sentAction,
   sentFooterText,
   sentStatus,
@@ -160,5 +170,70 @@ describe('copy constants', () => {
     expect(SAVE_FAILED).toBe("Couldn't save the message. Your phone may be low on storage. Nothing was changed. Try again.");
     expect(COPY_FAILED).toBe("Couldn't copy. Select the text and copy it by hand. Nothing was changed.");
     expect(MESSAGE_FOOTER).toBe('Edit any line. Copy uses the text in this box, saved or not. Save Message keeps it for next time.');
+  });
+});
+
+describe('pdfBuildKey', () => {
+  const base = { familyId: 'f1', periodKey: 'w:2026-10-12', fingerprint: 'abc123', instructorName: 'Connor B.' as string | null, attempt: 0 };
+  it('is equal for equal inputs', () => {
+    expect(pdfBuildKey({ ...base })).toBe(pdfBuildKey({ ...base }));
+  });
+  it('differs when any one input differs', () => {
+    const k = pdfBuildKey(base);
+    expect(pdfBuildKey({ ...base, familyId: 'f2' })).not.toBe(k);
+    expect(pdfBuildKey({ ...base, periodKey: 'w:2026-10-19' })).not.toBe(k);
+    expect(pdfBuildKey({ ...base, fingerprint: 'abc124' })).not.toBe(k);
+    expect(pdfBuildKey({ ...base, instructorName: 'Connor' })).not.toBe(k);
+    expect(pdfBuildKey({ ...base, instructorName: null })).not.toBe(k);
+    expect(pdfBuildKey({ ...base, attempt: 1 })).not.toBe(k);
+  });
+  it('tells null apart from a name that spells null or an empty name', () => {
+    const a = pdfBuildKey({ ...base, instructorName: null });
+    expect(pdfBuildKey({ ...base, instructorName: 'null' })).not.toBe(a);
+    expect(pdfBuildKey({ ...base, instructorName: '' })).not.toBe(a);
+  });
+  it('cannot be fooled by a separator inside a field', () => {
+    expect(pdfBuildKey({ ...base, familyId: 'a|b', periodKey: 'c' })).not.toBe(pdfBuildKey({ ...base, familyId: 'a', periodKey: 'b|c' }));
+  });
+});
+
+describe('share button state and action', () => {
+  it('maps the PDF status to the button', () => {
+    expect(shareButtonState({ kind: 'preparing' })).toEqual({ label: 'Preparing PDF\u2026', disabled: true });
+    expect(shareButtonState({ kind: 'ready' })).toEqual({ label: 'Share PDF', disabled: false });
+    expect(shareButtonState({ kind: 'failed' })).toEqual({ label: 'Share PDF', disabled: false });
+  });
+  it('shares when ready, rebuilds when failed, does nothing while preparing', () => {
+    expect(shareAction({ kind: 'ready' })).toBe('share');
+    expect(shareAction({ kind: 'failed' })).toBe('build');
+    expect(shareAction({ kind: 'preparing' })).toBe('none');
+  });
+});
+
+describe('PDF and share captions', () => {
+  it('names a too-large PDF and uses the generic copy for every other failure', () => {
+    expect(pdfFailureCaption(new PdfBuildError('too-large'))).toBe(PDF_TOO_LARGE);
+    expect(PDF_TOO_LARGE).toBe('This PDF is too large to build on this phone. Nothing was changed. Try a shorter period.');
+    for (const e of [new PdfBuildError('photo-unreadable'), new PdfBuildError('build-failed'), new Error('x'), 'boom', null, undefined]) {
+      expect(pdfFailureCaption(e)).toBe(PDF_FAILED);
+    }
+    expect(PDF_FAILED).toBe("Couldn't make the PDF. Nothing was changed. Try again.");
+  });
+  it('shows nothing after a share or a cancel, the file name after a download, and the failure copy', () => {
+    expect(shareResultCaption('shared', 'a.pdf')).toBeNull();
+    expect(shareResultCaption('cancelled', 'a.pdf')).toBeNull();
+    expect(shareResultCaption('downloaded', 'smith-2026-10-12-2026-10-18.pdf')).toBe('Downloaded smith-2026-10-12-2026-10-18.pdf.');
+    expect(shareResultCaption('failed', 'a.pdf')).toBe(SHARE_FAILED);
+    expect(SHARE_FAILED).toBe("Couldn't share the PDF. Nothing was changed. Try again.");
+  });
+  it('footerCaption: PDF failure first (destructive), then the share outcome, nothing while preparing', () => {
+    expect(footerCaption({ status: { kind: 'preparing' }, share: 'failed', fileName: 'a.pdf' })).toBeNull();
+    expect(footerCaption({ status: { kind: 'failed', error: new PdfBuildError('too-large') }, share: null, fileName: 'a.pdf' })).toEqual({ text: PDF_TOO_LARGE, tone: 'destructive' });
+    expect(footerCaption({ status: { kind: 'failed', error: new Error('x') }, share: 'downloaded', fileName: 'a.pdf' })).toEqual({ text: PDF_FAILED, tone: 'destructive' });
+    expect(footerCaption({ status: { kind: 'ready' }, share: 'downloaded', fileName: 'a.pdf' })).toEqual({ text: 'Downloaded a.pdf.', tone: 'secondary' });
+    expect(footerCaption({ status: { kind: 'ready' }, share: 'failed', fileName: 'a.pdf' })).toEqual({ text: SHARE_FAILED, tone: 'destructive' });
+    expect(footerCaption({ status: { kind: 'ready' }, share: 'shared', fileName: 'a.pdf' })).toBeNull();
+    expect(footerCaption({ status: { kind: 'ready' }, share: 'cancelled', fileName: 'a.pdf' })).toBeNull();
+    expect(footerCaption({ status: { kind: 'ready' }, share: null, fileName: 'a.pdf' })).toBeNull();
   });
 });

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
+import { getInstructorName } from '../data/instructor';
 import { useLive } from '../data/live';
 import { loadFamilyView } from '../data/summary';
 import { rangeLabel, todayLocal } from '../domain/dates';
@@ -7,11 +8,12 @@ import { canGoNext, isDefaultPeriod, periodKey, periodReturnLabel, renderMessage
 import { DISCARD_TITLE, messageView, REBUILD_MESSAGE, REBUILD_TITLE, type MessageDraft } from '../domain/summaryState';
 import { MessageGroup } from './MessageGroup';
 import { SentGroup } from './SentGroup';
+import { ShareFooter } from './ShareFooter';
 import { Alert, ChevronIcon, Group, NavBar, PushLayer, Screen, useAnimatedClose, WarningIcon } from './components';
 
 /**
  * A family's summary for one period. Unsaved message text is held by the app (drafts, keyed by record id) so it survives
- * moving between periods and switching tabs. Plan 04-05 adds Share PDF.
+ * moving between periods and switching tabs. Share PDF pre-builds the PDF in a lazy chunk (D-18).
  */
 export function FamilySummaryScreen(props: {
   familyId: string;
@@ -26,6 +28,8 @@ export function FamilySummaryScreen(props: {
   const [discardOpen, setDiscardOpen] = useState(false);
   const today = todayLocal();
   const view = useLive(() => loadFamilyView(props.familyId, anchor, today), [props.familyId, anchor, today]);
+  // undefined while loading: the PDF waits for the name so the header is never built twice.
+  const instructorName = useLive(getInstructorName);
 
   // The family was deleted or is gone: leave the screen.
   useEffect(() => {
@@ -92,6 +96,7 @@ export function FamilySummaryScreen(props: {
               )}
             </>
           )}
+          {parts.showShare && <ShareFooter summary={summary} instructorName={instructorName} />}
         </Screen>
       </PushLayer>
       {rebuildOpen && (

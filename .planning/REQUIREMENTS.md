@@ -48,7 +48,7 @@
 - [ ] **SUM-05**: User can generate a PDF of the summary including receipt images and share it via the iOS share sheet (with download fallback)
 - [x] **SUM-06**: Text and PDF summaries always show identical totals
 - [x] **SUM-07**: Before sending, user sees warnings for expenses without a receipt and sessions with zero minutes
-- [ ] **SUM-08**: User can mark a family's period as sent; if a session or expense in that period is edited afterwards, the period is flagged as changed since sent
+- [x] **SUM-08**: User can mark a family's period as sent; if a session or expense in that period is edited afterwards, the period is flagged as changed since sent
 
 ### Personal Overview
 
@@ -117,7 +117,7 @@
 | SUM-05 | Phase 4 | Pending |
 | SUM-06 | Phase 4 | Complete |
 | SUM-07 | Phase 4 | Complete |
-| SUM-08 | Phase 4 | Pending |
+| SUM-08 | Phase 4 | Complete |
 | VIEW-01 | Phase 4 | Pending |
 | VIEW-02 | Phase 4 | Pending |
 | DATA-01 | Phase 1 | Complete |

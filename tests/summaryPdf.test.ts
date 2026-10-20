@@ -178,6 +178,25 @@ describe('buildSummaryPdf failures and memory (T-04-15, T-04-16)', () => {
     expect(events).toEqual(['start a', 'end a', 'start b', 'end b', 'start c', 'end c']);
   });
 
+  it('stops before reading the next receipt once cancelled (WR-02)', async () => {
+    const asked: string[] = [];
+    let cancelled = false;
+    const load: LoadPhoto = async (id) => {
+      asked.push(id);
+      if (id === 'a') cancelled = true;
+      return goodPhoto(id);
+    };
+    await expect(buildSummaryPdf(three(), null, load, { isCancelled: () => cancelled })).rejects.toMatchObject({ code: 'cancelled' });
+    expect(asked).toEqual(['a']);
+  });
+
+  it('a build cancelled before it starts reads no receipt at all (WR-02)', async () => {
+    const load: LoadPhoto = async () => {
+      throw new Error('should not be called');
+    };
+    await expect(buildSummaryPdf(three(), null, load, { isCancelled: () => true })).rejects.toMatchObject({ code: 'cancelled' });
+  });
+
   it('a photo that is not a JPEG is unreadable, not a broken image in the PDF', async () => {
     const bad: LoadPhoto = async () => ({ bytes: new Uint8Array([1, 2, 3]), width: 10, height: 10 });
     await expect(buildSummaryPdf(three(), null, bad)).rejects.toMatchObject({ code: 'photo-unreadable' });

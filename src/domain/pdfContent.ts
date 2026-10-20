@@ -18,7 +18,7 @@ export interface PdfPhoto {
 /** Reads one photo. Injected, so the PDF module never imports the database. */
 export type LoadPhoto = (photoId: string) => Promise<PdfPhoto>;
 
-export type PdfBuildErrorCode = 'too-large' | 'photo-unreadable' | 'build-failed';
+export type PdfBuildErrorCode = 'too-large' | 'photo-unreadable' | 'build-failed' | 'cancelled';
 
 export class PdfBuildError extends Error {
   readonly code: PdfBuildErrorCode;

@@ -31,6 +31,8 @@ export interface BuildPdfOptions {
   compress?: boolean;
   /** Overrides MAX_PDF_PHOTO_BYTES (tests only). */
   maxPhotoBytes?: number;
+  /** Checked before the build starts and before each receipt is read; true stops the build with a 'cancelled' PdfBuildError. */
+  isCancelled?: () => boolean;
 }
 
 export interface BuiltPdf {
@@ -64,7 +66,11 @@ export async function buildSummaryPdf(
   loadPhoto: LoadPhoto,
   options: BuildPdfOptions = {},
 ): Promise<BuiltPdf> {
+  const checkCancelled = (): void => {
+    if (options.isCancelled?.()) throw new PdfBuildError('cancelled');
+  };
   try {
+    checkCancelled();
     const doc = new jsPDF({ unit: 'pt', format: 'letter', compress: options.compress !== false });
     doc.addFileToVFS('NotoSans-Regular.ttf', REGULAR_BASE64);
     doc.addFileToVFS('NotoSans-Bold.ttf', BOLD_BASE64);
@@ -169,6 +175,7 @@ export async function buildSummaryPdf(
         if (slot.showHeading) heading(PDF_LABELS.receipts);
         const top = y;
         let photo: Awaited<ReturnType<LoadPhoto>> | undefined;
+        checkCancelled();
         try {
           photo = await loadPhoto(slot.photoId);
         } catch {

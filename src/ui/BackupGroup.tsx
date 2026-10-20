@@ -140,7 +140,7 @@ export function BackupGroup() {
         <Row tone="accent" disabled={backup.busy} onClick={() => void backUp()}>
           {backup.busy ? 'Preparing Backup…' : 'Back Up Now'}
         </Row>
-        <Row disabled={checking} onClick={() => input.current?.click()}>
+        <Row tone="destructive" disabled={checking} onClick={() => input.current?.click()}>
           {checking ? 'Checking Backup…' : 'Restore from Backup…'}
         </Row>
       </Group>

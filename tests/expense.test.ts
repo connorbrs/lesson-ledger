@@ -102,9 +102,16 @@ describe('validateExpenseDrafts', () => {
 
 describe('draftFromExpense', () => {
   const row = (splits: Expense['splits'], amountCents = 1001): Expense => ({ id: 'e1', sessionId: 's', description: 'x', amountCents, splits, createdAt: 5, updatedAt: 5 });
-  it('gives null splits for the equal default and for one family', () => {
-    expect(draftFromExpense(row([{ familyId: 'a', cents: 501 }, { familyId: 'b', cents: 500 }]), [], ['a', 'b']).splits).toBeNull();
+  it('gives null splits for an even equal default and for one family', () => {
+    expect(draftFromExpense(row([{ familyId: 'a', cents: 500 }, { familyId: 'b', cents: 500 }], 1000), [], ['a', 'b']).splits).toBeNull();
     expect(draftFromExpense(row([{ familyId: 'a', cents: 1001 }]), [], ['a']).splits).toBeNull();
+  });
+  it('keeps an odd-cent two-family split as stored, so re-picking the same families in another order moves no cent (WR-02)', () => {
+    const stored = [{ familyId: 'a', cents: 501 }, { familyId: 'b', cents: 500 }];
+    const draft = draftFromExpense(row(stored), [], ['a', 'b']);
+    expect(draft.splits).toEqual(stored);
+    expect(resolveSplits(draft, ['b', 'a'])).toEqual([{ familyId: 'b', cents: 500 }, { familyId: 'a', cents: 501 }]);
+    expect(resolveSplits(draft, ['a', 'b'])).toEqual(stored);
   });
   it('keeps a stored override and carries photo ids', () => {
     const splits = [{ familyId: 'a', cents: 700 }, { familyId: 'b', cents: 301 }];

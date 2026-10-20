@@ -104,13 +104,16 @@ export function formatExpensesLine(totalCents: number): string {
 }
 
 /**
- * The draft a stored expense edits as. Shares equal to the equal split (or a single family) become null,
- * so the default keeps following the amount; a stored override is kept as is.
+ * The draft a stored expense edits as. Shares equal to the equal split become null, so the default keeps
+ * following the amount, except an odd-cent split between two families: its extra cent depends on pick
+ * order, so the stored shares are kept as an override and re-picking the same families never moves it.
  */
 export function draftFromExpense(expense: Expense, photoIds: readonly string[], familyIds: readonly string[]): ExpenseDraft {
   const equal = equalShares(expense.amountCents, familyIds);
+  const orderFree = equal !== null && equal.every((s) => s.cents === equal[0].cents);
   const isEqual =
     equal !== null &&
+    orderFree &&
     equal.length === expense.splits.length &&
     equal.every((s, i) => s.familyId === expense.splits[i].familyId && s.cents === expense.splits[i].cents);
   return {

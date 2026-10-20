@@ -149,6 +149,16 @@ describe('shares', () => {
     expect((await db.expenses.toArray())[0].splits).toEqual(splits);
   });
 
+  it('keeps an odd-cent split through load and a re-pick of the same families in the other order (WR-02)', async () => {
+    const s = await createSession(fields([a1, b1]), payload([draft('e1', 1001)]));
+    const stored = [{ familyId: a1.familyId, cents: 501 }, { familyId: b1.familyId, cents: 500 }];
+    expect((await db.expenses.toArray())[0].splits).toEqual(stored);
+    const drafts = await loadExpenseDrafts(s.id, [a1.familyId, b1.familyId]);
+    await updateSession(s.id, fields([b1, a1]), payload(drafts));
+    const cents = Object.fromEntries((await db.expenses.toArray())[0].splits.map((x) => [x.familyId, x.cents]));
+    expect(cents).toEqual({ [a1.familyId]: 501, [b1.familyId]: 500 });
+  });
+
   it('resets an override to the equal split when the session families change', async () => {
     const splits = [{ familyId: a1.familyId, cents: 700 }, { familyId: b1.familyId, cents: 301 }];
     const s = await createSession(fields([a1, b1]), payload([draft('e1', 1001, { splits })]));

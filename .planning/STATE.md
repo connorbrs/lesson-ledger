@@ -4,17 +4,17 @@ current_phase: 4
 current_phase_name: Family Summaries & Overview
 current_plan: Not started
 status: executing
-stopped_at: Phase 4 UI-SPEC approved
-last_updated: "2026-10-20T01:21:59.760Z"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-10-20T01:30:23.628Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 3 complete, transitioned to Phase 4
-state_head: 63856328cd923bdd8b443d6118aa9ca6a919c989
+state_head: dc105b014134c717b8110711b275ed0815e3616b
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 19
-  completed_plans: 13
-  percent: 68
+  completed_plans: 14
+  percent: 74
 ---
 
 # Project State
@@ -34,7 +34,7 @@ Total Plans in Phase: 6
 Status: Ready to execute
 Last activity: 2026-10-19 — Phase 3 complete, transitioned to Phase 4
 
-Progress: [███████░░░] 68%
+Progress: [███████░░░] 74%
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Progress: [███████░░░] 68%
 | Phase 03 P03 | 12min | 2 tasks | 8 files |
 | Phase 03 P04 | 14min | 2 tasks | 11 files |
 | Phase 3 P05 | 25min | 3 tasks | 11 files |
+| Phase 04 P01 | 12min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,9 @@ Recent decisions affecting current work:
 - [Phase 03]: Any edit to the expense Amount resets the split to equal; Split group renders after family names load
 - [Phase 03]: 03-04: removing an earlier-staged receipt photo stays in the stage until editor Save so Discard restores it; viewer fixes its photo id at open
 - [Phase 3]: 03-05: Backup stays one JSON file at schemaVersion 2 with base64 receipt photos; 150 MB cap (decimal) refused before sharing; undecodable photo at restore maps to the damaged alert
+- [Phase 04]: creditedMinutes half rounds up to whole minutes (Math.ceil); lines always sum to totals (D-17)
+- [Phase 04]: Summary loaders anchor on the period start date; null means the default period
+- [Phase 04]: Warnings carry the session or expense id for deterministic ordering
 
 ### Pending Todos
 
@@ -136,6 +140,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-20T00:33:21.218Z
-Stopped at: Phase 4 UI-SPEC approved
-Resume file: .planning/phases/04-family-summaries-overview/04-UI-SPEC.md
+Last session: 2026-10-20T01:30:23.371Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None

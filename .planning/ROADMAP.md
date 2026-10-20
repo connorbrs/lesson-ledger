@@ -129,12 +129,12 @@ Plans:
   4. Before sending, user sees warnings for expenses without a receipt and sessions with zero minutes; user can mark the period as sent, and editing a session or expense in it afterwards flags the period as changed since sent
   5. User can see their own lesson, activity and travel totals per week and per month, broken down by student, family and subject, where subject totals count actual time once and family/student totals use credited time
 
-**Plans**: 0/6 plans complete
+**Plans**: 1/6 plans executed
 
 Plans:
 
 **Wave 1**
-- [ ] 04-01-PLAN.md — Summary model tracer: whole-minute half credit, the Turkish message for one family and period, periods, warnings and fingerprint, the Summaries tab and a read-only Family Summary
+- [x] 04-01-PLAN.md — Summary model tracer: whole-minute half credit, the Turkish message for one family and period, periods, warnings and fingerprint, the Summaries tab and a read-only Family Summary
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 04-02-PLAN.md — Storage: Dexie version 2 period records, instructor name, backup schemaVersion 3 with validated restore of versions 1 to 3
@@ -164,7 +164,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Installable App & Roster | 5/5 | Complete    | 2026-10-19 |
 | 2. Session Logging & Backup | 3/3 | Complete    | 2026-10-19 |
 | 3. Expenses & Receipts | 5/5 | Complete    | 2026-10-19 |
-| 4. Family Summaries & Overview | 0/6 | Not started | - |
+| 4. Family Summaries & Overview | 1/6 | In Progress | - |
 
 ## Backlog
 

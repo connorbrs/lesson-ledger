@@ -41,13 +41,13 @@
 
 ### Family Summaries
 
-- [ ] **SUM-01**: User can pick a family and period (defaults to the most recent complete period for that family's weekly/monthly setting)
-- [ ] **SUM-02**: Summary shows lesson hours and activity hours separately, travel excluded, with itemized sessions and itemized expenses
-- [ ] **SUM-03**: Hours are shown as decimal and h:mm (e.g. "1.5 h (1:30)"), using one formatter everywhere
+- [x] **SUM-01**: User can pick a family and period (defaults to the most recent complete period for that family's weekly/monthly setting)
+- [x] **SUM-02**: Summary shows lesson hours and activity hours separately, travel excluded, with itemized sessions and itemized expenses
+- [x] **SUM-03**: Hours are shown as decimal and h:mm (e.g. "1.5 h (1:30)"), using one formatter everywhere
 - [ ] **SUM-04**: User can copy the summary as a plain-text message ready to paste into Messages
 - [ ] **SUM-05**: User can generate a PDF of the summary including receipt images and share it via the iOS share sheet (with download fallback)
-- [ ] **SUM-06**: Text and PDF summaries always show identical totals
-- [ ] **SUM-07**: Before sending, user sees warnings for expenses without a receipt and sessions with zero minutes
+- [x] **SUM-06**: Text and PDF summaries always show identical totals
+- [x] **SUM-07**: Before sending, user sees warnings for expenses without a receipt and sessions with zero minutes
 - [ ] **SUM-08**: User can mark a family's period as sent; if a session or expense in that period is edited afterwards, the period is flagged as changed since sent
 
 ### Personal Overview
@@ -110,13 +110,13 @@
 | EXP-03 | Phase 3 | Complete |
 | EXP-04 | Phase 3 | Complete |
 | EXP-05 | Phase 3 | Complete |
-| SUM-01 | Phase 4 | Pending |
-| SUM-02 | Phase 4 | Pending |
-| SUM-03 | Phase 4 | Pending |
+| SUM-01 | Phase 4 | Complete |
+| SUM-02 | Phase 4 | Complete |
+| SUM-03 | Phase 4 | Complete |
 | SUM-04 | Phase 4 | Pending |
 | SUM-05 | Phase 4 | Pending |
-| SUM-06 | Phase 4 | Pending |
-| SUM-07 | Phase 4 | Pending |
+| SUM-06 | Phase 4 | Complete |
+| SUM-07 | Phase 4 | Complete |
 | SUM-08 | Phase 4 | Pending |
 | VIEW-01 | Phase 4 | Pending |
 | VIEW-02 | Phase 4 | Pending |

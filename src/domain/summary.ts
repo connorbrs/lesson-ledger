@@ -179,7 +179,7 @@ export function buildFamilySummary(input: SummaryInput): FamilySummary {
     expenseCents: expenses.reduce((n, e) => n + e.shareCents, 0),
     hasReceipts: expenses.some((e) => e.photoIds.length > 0),
     warnings,
-    fingerprint: fingerprintOf(input.familyName, mine, input.expenses.filter((e) => position.has(e.sessionId)), input.photoIdsByExpense),
+    fingerprint: fingerprintOf(input.familyName, mine, sessions, input.expenses.filter((e) => position.has(e.sessionId)), input.photoIdsByExpense),
   };
 }
 
@@ -229,15 +229,17 @@ const cmp = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
 /**
  * Hash of the canonical parent-visible data (nested arrays only, so key order cannot matter): the family name,
- * this family's sessions by id and the expenses of those sessions by id with sorted photo ids. No student names,
- * instructor name or message text.
+ * this family's sessions by id (with the student names as printed in the PDF) and the expenses of those sessions by id
+ * with sorted photo ids. No instructor name or message text.
  */
 function fingerprintOf(
   familyName: string,
   sessions: readonly Session[],
+  lines: readonly SummarySessionLine[],
   expenses: readonly Expense[],
   photoIdsByExpense: ReadonlyMap<string, readonly string[]>,
 ): string {
+  const namesOf = new Map(lines.map((l) => [l.id, l.studentNames]));
   const canonical = [
     familyName,
     [...sessions]
@@ -246,6 +248,7 @@ function fingerprintOf(
         s.id, s.date, s.startTime, s.endTime ?? null, s.subject, s.lessonMinutes, s.activityMinutes, s.travelMinutes,
         s.attendees.map((a) => [a.studentId, a.familyId]),
         s.credits.map((c) => [c.familyId, c.lesson, c.activity]),
+        namesOf.get(s.id) ?? [],
       ]),
     [...expenses]
       .sort((a, b) => cmp(a.id, b.id))

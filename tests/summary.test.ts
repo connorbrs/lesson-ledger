@@ -407,9 +407,15 @@ describe('fingerprint (D-09, D-15, D-18)', () => {
     expect(fp(a)).toBe(fp(base()));
   });
 
-  it('does not change for a student rename, other families, outside the period or the studentNames map', () => {
+  it('changes when a student printed in the family\'s sessions is renamed, and reverting restores it (WR-01)', () => {
     const a = base();
-    expect(fp({ ...a, studentNames: { ava: 'Avery' } })).toBe(fp(a));
+    expect(fp({ ...a, studentNames: { ava: 'Avery' } })).not.toBe(fp(a));
+    expect(fp({ ...a, studentNames: { ava: 'Ava' } })).toBe(fp(a));
+  });
+
+  it('does not change for a rename of a student who is not in the family\'s sessions, other families or outside the period', () => {
+    const a = base();
+    expect(fp({ ...a, studentNames: { ...a.studentNames, zed: 'Zed' } })).toBe(fp(a));
     const jonesOnly = session({ id: 'j', date: '2026-10-13', lessonMinutes: 5, attendees: [{ studentId: 'zed', familyId: 'jones' }], credits: [{ familyId: 'jones', lesson: 'full', activity: 'full' }] });
     const outside = session({ id: 'o', date: '2026-10-25', lessonMinutes: 5 });
     expect(fp({ ...a, sessions: [...a.sessions, jonesOnly, outside] })).toBe(fp(a));

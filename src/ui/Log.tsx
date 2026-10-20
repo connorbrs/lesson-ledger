@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { useLive } from '../data/live';
 import { createSession, getLastSession, loadNameMaps } from '../data/sessions';
 import { listSessionEligibleStudents } from '../data/students';
-import { todayLocal } from '../domain/dates';
+import { formatDayLine, todayLocal } from '../domain/dates';
 import { blankForm, formToInput, prefillFromSession, setAttendees, type FormState } from '../domain/sessionForm';
 import { BackupReminder } from './BackupReminder';
 import { CheckIcon, sessionSaveErrorMessage, Skeleton } from './components';
@@ -51,7 +51,8 @@ export function Log(props: { draft: FormState | null; setDraft: (f: FormState) =
   if (!draft || !data) {
     return (
       <>
-        <h1 class="large-title">Log</h1>
+        <h1 class="large-title has-date">Log</h1>
+      <p class="title-date figure">{formatDayLine(todayLocal())}</p>
         <Skeleton />
       </>
     );
@@ -84,7 +85,8 @@ export function Log(props: { draft: FormState | null; setDraft: (f: FormState) =
 
   return (
     <div ref={root}>
-      <h1 class="large-title">Log</h1>
+      <h1 class="large-title has-date">Log</h1>
+      <p class="title-date figure">{formatDayLine(todayLocal())}</p>
       <SessionFields
         form={draft}
         onChange={props.setDraft}

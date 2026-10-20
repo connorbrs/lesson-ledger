@@ -181,12 +181,25 @@ textarea {
 
 /* ---------- Type roles ---------- */
 
+/* The display voice is the world's monospaced face, the same one that sets every figure. */
 .large-title {
+  font-family: var(--font-mono);
   font-size: 34px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: -0.03em;
   line-height: 1.2;
   padding: 0 var(--space-md) var(--space-md);
+}
+
+.large-title.has-date {
+  padding-bottom: 2px;
+}
+
+.title-date {
+  padding: 0 var(--space-md) var(--space-md);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
 }
 
 .heading {
@@ -1002,6 +1015,19 @@ button.row:active:not(:disabled) {
   padding: var(--space-sm) var(--space-md);
   background: var(--color-bg-grouped);
   border-top: var(--hairline) solid var(--color-separator);
+}
+
+/* Content fades into the dock instead of being cut mid-line. */
+.log-footer::before,
+.summary-footer::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: var(--space-lg);
+  background: linear-gradient(to bottom, transparent, var(--color-bg-grouped));
+  pointer-events: none;
 }
 
 .log-footer .sheet-error,
@@ -1854,5 +1880,68 @@ button.row:active:not(:disabled) {
     padding: 0 var(--space-sm);
     font-size: 15px;
     white-space: nowrap;
+  }
+}
+
+/* Narrow phones: tab labels keep clear of each other and the edge. */
+@media (max-width: 359px) {
+  .tab {
+    font-size: 11px;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Desktop: the tabs become a left rail beside the content column. */
+@media (min-width: 960px) {
+  :root {
+    --column: 800px;
+    --rail: 200px;
+  }
+
+  .tab-bar {
+    top: 0;
+    bottom: 0;
+    right: auto;
+    width: var(--rail);
+    height: auto;
+    padding: calc(var(--safe-top) + var(--space-xl)) var(--space-sm) var(--space-md);
+    grid-template-columns: 1fr;
+    grid-auto-rows: 48px;
+    align-content: start;
+    gap: var(--space-xs);
+    border-top: 0;
+    border-right: var(--hairline) solid var(--color-separator);
+  }
+
+  .tab {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 0 12px;
+    border-radius: var(--radius-segment);
+    font-size: 15px;
+  }
+
+  .tab[aria-current='page'] {
+    background: var(--color-elevated);
+  }
+
+  .tab[aria-current='page']::before {
+    display: none;
+  }
+
+  .screen,
+  .log-footer,
+  .summary-footer {
+    left: var(--rail);
+  }
+
+  .scroll {
+    padding-bottom: var(--space-2xl);
+  }
+
+  .log-footer,
+  .summary-footer {
+    bottom: 0;
   }
 }

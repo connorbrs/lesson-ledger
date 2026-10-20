@@ -35,6 +35,12 @@ export function formatDateValue(ymd: string, todayYmd: string): string {
   return dateFormat(ymd.slice(0, 4) !== todayYmd.slice(0, 4)).format(new Date(Date.UTC(y, m - 1, d)));
 }
 
+/** The date line under the Log title: "Tue, Oct 20" (no year). Formats in UTC from the parsed parts. */
+export function formatDayLine(ymd: string): string {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return dateFormat(false).format(new Date(Date.UTC(y, m - 1, d)));
+}
+
 /** "16:30" to "4:30 PM". */
 export function formatTime12(hhmm: string): string {
   const [h, m] = hhmm.split(':').map(Number);

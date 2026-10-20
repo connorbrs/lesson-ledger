@@ -1886,8 +1886,12 @@ button.row:active:not(:disabled) {
 /* Narrow phones: tab labels keep clear of each other and the edge. */
 @media (max-width: 359px) {
   .tab {
-    font-size: 11px;
-    letter-spacing: -0.01em;
+    font-size: 12px;
+    letter-spacing: -0.02em;
+  }
+
+  .metric-label {
+    letter-spacing: 0.04em;
   }
 }
 
@@ -1931,9 +1935,16 @@ button.row:active:not(:disabled) {
   }
 
   .screen,
+  .push-layer,
   .log-footer,
   .summary-footer {
     left: var(--rail);
+  }
+
+  /* A pushed layer is already beside the rail and contains its own dock. */
+  .push-layer .log-footer,
+  .push-layer .summary-footer {
+    left: 0;
   }
 
   .scroll {

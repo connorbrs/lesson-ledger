@@ -1251,6 +1251,11 @@ button.row:active:not(:disabled) {
   align-items: flex-start;
 }
 
+/* The disclosure chevron stays centred on rows that grow to two status pills. */
+.summary-row > :last-child {
+  align-self: center;
+}
+
 .warning-row {
   gap: var(--space-sm);
 }

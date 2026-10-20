@@ -1,4 +1,5 @@
 import { useEffect, useErrorBoundary, useState } from 'preact/hooks';
+import type { MessageDraft } from '../domain/summaryState';
 import type { Family, Session, Student } from '../domain/types';
 import { isStandalone } from '../pwa/standalone';
 import { ensurePersistence } from '../pwa/storage';
@@ -54,6 +55,15 @@ export function App() {
   const [archivedOpen, setArchivedOpen] = useState(false);
   // The family whose summary is open (a push layer over the Summaries tab), or null.
   const [summaryFamilyId, setSummaryFamilyId] = useState<string | null>(null);
+  // Unsaved message text per family and period (keyed by record id); survives period changes and tab switches.
+  const [messageDrafts, setMessageDrafts] = useState<ReadonlyMap<string, MessageDraft>>(() => new Map());
+  const setMessageDraft = (id: string, draft: MessageDraft | null) =>
+    setMessageDrafts((prev) => {
+      const next = new Map(prev);
+      if (draft) next.set(id, draft);
+      else next.delete(id);
+      return next;
+    });
   // The Log draft lives here so an unsaved form survives switching tabs.
   const [logDraft, setLogDraft] = useState<FormState | null>(null);
   // Receipt photos staged for the Log tab's session; written with it on Log Session.
@@ -127,7 +137,7 @@ export function App() {
         />
       )}
       {!error && archivedOpen && <ArchivedScreen onClosed={() => setArchivedOpen(false)} />}
-      {!error && summaryFamilyId && <FamilySummaryScreen key={summaryFamilyId} familyId={summaryFamilyId} onClosed={() => setSummaryFamilyId(null)} />}
+      {!error && summaryFamilyId && <FamilySummaryScreen key={summaryFamilyId} familyId={summaryFamilyId} drafts={messageDrafts} onDraftChange={setMessageDraft} onClosed={() => setSummaryFamilyId(null)} />}
       <TabBar
         tab={tab}
         onSelect={(next) => {

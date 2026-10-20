@@ -1227,3 +1227,23 @@ button.row:active:not(:disabled) {
 .status-pill.changed {
   color: var(--color-text);
 }
+
+.banner-row .text-button {
+  flex: none;
+  padding: 0;
+}
+
+.caption-error {
+  padding: var(--space-sm) var(--space-md) 0;
+  color: var(--color-destructive);
+}
+
+.save-row {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.save-row:disabled {
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}

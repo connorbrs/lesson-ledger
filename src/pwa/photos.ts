@@ -89,6 +89,9 @@ export async function prepareReceipt(file: Blob, env: PhotoEnv = defaultPhotoEnv
     throw new PhotoError('unreadable');
   }
   try {
+    // Advisory: this runs after the full-size decode, so it stops a huge canvas draw but does not bound decode
+    // memory. MAX_SOURCE_BYTES (checked above) is the real memory gate. Bounding the decode itself (for example
+    // createImageBitmap with a resize target read from the file header) needs the on-device spike (WR-04).
     if (image.width * image.height > MAX_SOURCE_PIXELS) throw new PhotoError('too-large');
     const fit = fitLongEdge(image.width, image.height);
     if (!fit) throw new PhotoError('unreadable');

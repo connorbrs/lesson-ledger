@@ -111,7 +111,7 @@ export function FamilySummaryScreen(props: {
               strong: true,
               onClick: () => {
                 setRebuildOpen(false);
-                props.onDraftChange(id, { text: generated, rebuilt: true });
+                props.onDraftChange(id, { text: generated, rebuilt: true, basedOn: summary.fingerprint });
               },
             },
           ]}

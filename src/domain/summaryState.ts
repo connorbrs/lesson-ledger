@@ -67,15 +67,20 @@ export const SAVE_FAILED = "Couldn't save the message. Your phone may be low on 
 export const COPY_FAILED = "Couldn't copy. Select the text and copy it by hand. Nothing was changed.";
 export const MESSAGE_FOOTER = 'Edit any line. Copy uses the text in this box, saved or not. Save Message keeps it for next time.';
 
-/** Unsaved text held by the app. `rebuilt` marks a text that came from Rebuild Message, which is savable even when it equals the saved text. */
+/**
+ * Unsaved text held by the app. `rebuilt` marks a text that came from Rebuild Message, which is savable even when it equals the saved text.
+ * `basedOn` is the summary fingerprint the text was written against: the saved message's own fingerprint when editing a saved
+ * message, else the summary's fingerprint at the first edit (or at Rebuild). Saving stores it, so stale text is never re-stamped as current.
+ */
 export interface MessageDraft {
   text: string;
   rebuilt: boolean;
+  basedOn: string;
 }
 
 export interface MessageView {
   text: string;
-  /** The saved message was written against other hours and the user has not started editing it. */
+  /** The text shown (saved or being edited) was written against other hours than the current summary. */
   stale: boolean;
   canSave: boolean;
   /** The box differs from what is stored (or from the generated text when nothing is stored): leaving needs the discard dialog. */
@@ -94,10 +99,20 @@ export function messageView(args: { generated: string; record: PeriodRecord | un
   const text = draft ? draft.text : baseline;
   return {
     text,
-    stale: saved !== null && draft === null && record!.messageFingerprint !== fingerprint,
+    stale: draft !== null ? draft.basedOn !== fingerprint : saved !== null && record!.messageFingerprint !== fingerprint,
     canSave: changed && text.trim() !== '',
     dirty: changed,
   };
+}
+
+/**
+ * The fingerprint a first edit is based on: the saved message's own fingerprint, else the current summary's (the box then
+ * shows the generated text). An edit already in progress keeps its own basis.
+ */
+export function draftBasis(args: { record: PeriodRecord | undefined; fingerprint: string; draft: MessageDraft | null }): string {
+  const { record, fingerprint, draft } = args;
+  if (draft) return draft.basedOn;
+  return record?.message != null && record.messageFingerprint !== null ? record.messageFingerprint : fingerprint;
 }
 
 /* ---------- Share PDF (D-13, D-16, D-18) ---------- */

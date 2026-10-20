@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { saveMessage } from '../data/periodRecords';
 import { MESSAGE_MAX, recordId } from '../domain/periodRecord';
 import { periodKey, renderMessageTr, type FamilySummary } from '../domain/summary';
-import { COPY_FAILED, messageView, MESSAGE_FOOTER, SAVE_FAILED, STALE_BANNER, type MessageDraft } from '../domain/summaryState';
+import { COPY_FAILED, draftBasis, messageView, MESSAGE_FOOTER, SAVE_FAILED, STALE_BANNER, type MessageDraft } from '../domain/summaryState';
 import type { PeriodRecord } from '../domain/types';
 import { copyText } from '../pwa/clipboard';
 import { Group } from './components';
@@ -53,11 +53,11 @@ export function MessageGroup(props: {
   };
 
   const save = async () => {
-    if (saving.current || !view.canSave) return;
+    if (saving.current || !view.canSave || !draft) return;
     saving.current = true;
     setSaveFailed(false);
     try {
-      await saveMessage(summary.familyId, periodKey(summary.period), view.text, summary.fingerprint);
+      await saveMessage(summary.familyId, periodKey(summary.period), view.text, draft.basedOn);
       onDraftChange(id, null);
       flash(setSaved);
     } catch {
@@ -89,7 +89,7 @@ export function MessageGroup(props: {
         aria-label="Message to parents"
         maxLength={MESSAGE_MAX}
         value={view.text}
-        onInput={(e) => onDraftChange(id, { text: e.currentTarget.value, rebuilt: false })}
+        onInput={(e) => onDraftChange(id, { text: e.currentTarget.value, rebuilt: false, basedOn: draftBasis({ record, fingerprint: summary.fingerprint, draft }) })}
       />
       {copyFailed && <p class="label caption-error">{COPY_FAILED}</p>}
       {saveFailed && <p class="label caption-error">{SAVE_FAILED}</p>}

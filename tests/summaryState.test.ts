@@ -4,6 +4,7 @@ import type { PeriodRecord } from '../src/domain/types';
 import {
   COPY_FAILED,
   DISCARD_TITLE,
+  draftBasis,
   footerCaption,
   formatSentAt,
   MARK_FAILED,
@@ -116,16 +117,16 @@ describe('messageView (D-08, D-09, D-16)', () => {
   });
 
   it('no record, an edited draft: the draft, savable and dirty', () => {
-    expect(messageView({ generated: G, record: undefined, fingerprint: F1, draft: { text: 'X', rebuilt: false } })).toEqual({ text: 'X', stale: false, canSave: true, dirty: true });
+    expect(messageView({ generated: G, record: undefined, fingerprint: F1, draft: { text: 'X', rebuilt: false, basedOn: F1 } })).toEqual({ text: 'X', stale: false, canSave: true, dirty: true });
   });
 
   it('a draft equal to the generated text is neither savable nor dirty', () => {
-    expect(messageView({ generated: G, record: undefined, fingerprint: F1, draft: { text: G, rebuilt: false } })).toEqual({ text: G, stale: false, canSave: false, dirty: false });
+    expect(messageView({ generated: G, record: undefined, fingerprint: F1, draft: { text: G, rebuilt: false, basedOn: F1 } })).toEqual({ text: G, stale: false, canSave: false, dirty: false });
   });
 
   it('a blank draft cannot be saved but is still dirty', () => {
     for (const blank of ['', '   ', '\n \t']) {
-      expect(messageView({ generated: G, record: undefined, fingerprint: F1, draft: { text: blank, rebuilt: false } })).toMatchObject({ text: blank, canSave: false, dirty: true });
+      expect(messageView({ generated: G, record: undefined, fingerprint: F1, draft: { text: blank, rebuilt: false, basedOn: F1 } })).toMatchObject({ text: blank, canSave: false, dirty: true });
     }
   });
 
@@ -139,18 +140,27 @@ describe('messageView (D-08, D-09, D-16)', () => {
     expect(v.text).not.toBe(G);
   });
 
-  it('stale with an edit in progress: the draft and the banner hidden', () => {
-    expect(messageView({ generated: G, record: saved, fingerprint: F2, draft: { text: 'Y', rebuilt: false } })).toEqual({ text: 'Y', stale: false, canSave: true, dirty: true });
+  it('stale with an edit in progress on the old text: the draft and the banner stay (CR-01)', () => {
+    expect(messageView({ generated: G, record: saved, fingerprint: F2, draft: { text: 'Y', rebuilt: false, basedOn: F1 } })).toEqual({ text: 'Y', stale: true, canSave: true, dirty: true });
+  });
+
+  it('a draft written against older hours is stale when the hours change underneath it, even with no saved message (CR-01)', () => {
+    expect(messageView({ generated: G, record: undefined, fingerprint: F2, draft: { text: 'X', rebuilt: false, basedOn: F1 } })).toMatchObject({ text: 'X', stale: true });
+    expect(messageView({ generated: G, record: undefined, fingerprint: F1, draft: { text: 'X', rebuilt: false, basedOn: F1 } })).toMatchObject({ stale: false });
+  });
+
+  it('a draft based on the current hours is not stale even when the saved message is old', () => {
+    expect(messageView({ generated: G, record: saved, fingerprint: F2, draft: { text: 'Y', rebuilt: false, basedOn: F2 } })).toMatchObject({ stale: false });
   });
 
   it('a draft equal to the saved text is not a change', () => {
-    expect(messageView({ generated: G, record: saved, fingerprint: F2, draft: { text: S, rebuilt: false } })).toMatchObject({ canSave: false, dirty: false });
+    expect(messageView({ generated: G, record: saved, fingerprint: F2, draft: { text: S, rebuilt: false, basedOn: F1 } })).toMatchObject({ canSave: false, dirty: false, stale: true });
   });
 
   it('rebuilt while stale: the generated text, savable and dirty even when it equals the saved text', () => {
-    expect(messageView({ generated: G, record: saved, fingerprint: F2, draft: { text: G, rebuilt: true } })).toEqual({ text: G, stale: false, canSave: true, dirty: true });
+    expect(messageView({ generated: G, record: saved, fingerprint: F2, draft: { text: G, rebuilt: true, basedOn: F2 } })).toEqual({ text: G, stale: false, canSave: true, dirty: true });
     const same = record({ message: G, messageFingerprint: F1, messageSavedAt: 5 });
-    expect(messageView({ generated: G, record: same, fingerprint: F2, draft: { text: G, rebuilt: true } })).toEqual({ text: G, stale: false, canSave: true, dirty: true });
+    expect(messageView({ generated: G, record: same, fingerprint: F2, draft: { text: G, rebuilt: true, basedOn: F2 } })).toEqual({ text: G, stale: false, canSave: true, dirty: true });
   });
 
   it('ignores warnings: the result has exactly four fields and none disables Copy (D-16)', () => {
@@ -158,6 +168,21 @@ describe('messageView (D-08, D-09, D-16)', () => {
     const withWarnings = messageView({ generated: G, record: undefined, fingerprint: F1, draft: null, warnings: [{ kind: 'x' }] } as never);
     expect(withWarnings).toEqual(plain);
     expect(Object.keys(plain).sort()).toEqual(['canSave', 'dirty', 'stale', 'text']);
+  });
+});
+
+describe('draftBasis (CR-01)', () => {
+  const saved = record({ message: 'Edited', messageFingerprint: F1, messageSavedAt: 5 });
+  it('a first edit of a saved message is based on the saved message fingerprint, not the current one', () => {
+    expect(draftBasis({ record: saved, fingerprint: F2, draft: null })).toBe(F1);
+  });
+  it('a first edit with nothing saved is based on the current fingerprint', () => {
+    expect(draftBasis({ record: undefined, fingerprint: F2, draft: null })).toBe(F2);
+    expect(draftBasis({ record: record({ sentAt: 3, sentFingerprint: F1 }), fingerprint: F2, draft: null })).toBe(F2);
+  });
+  it('an edit in progress keeps its own basis', () => {
+    expect(draftBasis({ record: saved, fingerprint: F2, draft: { text: 'x', rebuilt: false, basedOn: F2 } })).toBe(F2);
+    expect(draftBasis({ record: undefined, fingerprint: F2, draft: { text: 'x', rebuilt: false, basedOn: F1 } })).toBe(F1);
   });
 });
 

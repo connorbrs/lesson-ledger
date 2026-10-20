@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   RosterError,
   codePointLength,
+  instructorFormState,
   normalizeName,
   validateFamilyInput,
   validateStudentInput,
@@ -114,5 +115,35 @@ describe('RosterError', () => {
     expect(e).toBeInstanceOf(Error);
     expect(e.code).toBe('name-empty');
     expect(e.message).toBe('name-empty');
+  });
+});
+
+describe('instructorFormState', () => {
+  it('is not dirty for blank input with no stored name', () => {
+    expect(instructorFormState(null, '')).toEqual({ dirty: false, canSave: false, tooLong: false });
+    expect(instructorFormState(null, '   ').dirty).toBe(false);
+  });
+
+  it('is savable for a new name', () => {
+    expect(instructorFormState(null, 'Connor B.')).toEqual({ dirty: true, canSave: true, tooLong: false });
+  });
+
+  it('compares the normalized input with the stored name', () => {
+    expect(instructorFormState('Connor B.', 'Connor B.').dirty).toBe(false);
+    expect(instructorFormState('Connor B.', '  Connor B.  ').dirty).toBe(false);
+    expect(instructorFormState('Connor B.', 'Connor')).toEqual({ dirty: true, canSave: true, tooLong: false });
+  });
+
+  it('allows clearing a stored name', () => {
+    expect(instructorFormState('Connor B.', '')).toEqual({ dirty: true, canSave: true, tooLong: false });
+    expect(instructorFormState('Connor B.', '   ').canSave).toBe(true);
+  });
+
+  it('caps the name at 60 code points, counting an emoji once', () => {
+    expect(instructorFormState(null, 'a'.repeat(61))).toEqual({ dirty: true, canSave: false, tooLong: true });
+    expect(instructorFormState('x', 'a'.repeat(61)).canSave).toBe(false);
+    expect(instructorFormState(null, 'a'.repeat(60))).toEqual({ dirty: true, canSave: true, tooLong: false });
+    expect(instructorFormState(null, '\u{1F3CA}'.repeat(60)).canSave).toBe(true);
+    expect(instructorFormState(null, '\u{1F3CA}'.repeat(61)).tooLong).toBe(true);
   });
 });

@@ -8,6 +8,7 @@ import { Archived, ArchivedDeleteAlert, type ArchivedDeleteTarget } from './Arch
 import { creditFamilies, needsCreditGroups, removeExpense, setAttendees, upsertExpense, type FormState } from '../domain/sessionForm';
 import { ExpenseEditor } from './ExpenseEditor';
 import { FamilySheet } from './FamilySheet';
+import { InstructorSheet } from './InstructorSheet';
 import { FamilySummaryScreen } from './FamilySummary';
 import { NavBar, PushLayer, Screen, TabBar, useAnimatedClose, type TabId } from './components';
 import { Log } from './Log';
@@ -26,7 +27,8 @@ type SheetState =
   | null
   | { kind: 'family'; family?: Family }
   | { kind: 'student'; student?: Student; familyId?: string }
-  | { kind: 'session'; session: Session };
+  | { kind: 'session'; session: Session }
+  | { kind: 'instructor'; name: string | null };
 
 /** The two families of a two-family swim form, in pick order, else null (no Split group). */
 function splitPair(form: FormState): [string, string] | null {
@@ -112,7 +114,7 @@ export function App() {
             onOpenArchived={() => setArchivedOpen(true)}
           />
         ) : (
-          <Settings />
+          <Settings onEditInstructor={(name) => setSheet({ kind: 'instructor', name })} />
         )}
       </Screen>
       {!error && logPickerOpen && logDraft && (
@@ -149,6 +151,7 @@ export function App() {
         }}
       />
       {!error && sheet?.kind === 'family' && <FamilySheet family={sheet.family} onClosed={() => setSheet(null)} />}
+      {!error && sheet?.kind === 'instructor' && <InstructorSheet name={sheet.name} onClosed={() => setSheet(null)} />}
       {!error && sheet?.kind === 'session' && <SessionSheet session={sheet.session} onClosed={() => setSheet(null)} />}
       {!error && sheet?.kind === 'student' && (
         <StudentSheet student={sheet.student} presetFamilyId={sheet.familyId} onClosed={() => setSheet(null)} />

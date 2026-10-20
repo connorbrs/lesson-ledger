@@ -68,3 +68,14 @@ export function validateInstructorName(raw: unknown): Validated<string | null> {
   if (codePointLength(name) > NAME_MAX) return { ok: false, code: 'name-too-long' };
   return { ok: true, value: name };
 }
+
+/**
+ * The Instructor Name sheet: dirty compares the normalized input with the stored name (none counts as empty), so
+ * whitespace changes nothing and clearing a stored name is a change; a blank name is savable because it clears the name.
+ */
+export function instructorFormState(initial: string | null, input: string): { dirty: boolean; canSave: boolean; tooLong: boolean } {
+  const name = normalizeName(input);
+  const dirty = name !== (initial ?? '');
+  const tooLong = codePointLength(name) > NAME_MAX;
+  return { dirty, canSave: dirty && !tooLong, tooLong };
+}

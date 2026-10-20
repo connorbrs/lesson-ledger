@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
+import { getInstructorName } from '../data/instructor';
+import { useLive } from '../data/live';
 import { ensurePersistence, formatBytes, readUsage, type PersistStatus } from '../pwa/storage';
 import { BackupGroup } from './BackupGroup';
 import { Group, Row } from './components';
@@ -23,7 +25,8 @@ const PERSIST_FOOTER: Partial<Record<Persist, string>> = {
   'not-supported': "This version of iOS doesn't report persistent storage.",
 };
 
-export function Settings() {
+export function Settings(props: { onEditInstructor: (name: string | null) => void }) {
+  const instructor = useLive(getInstructorName);
   const [persist, setPersist] = useState<Persist>('checking');
   const [used, setUsed] = useState<Used>('checking');
 
@@ -49,6 +52,11 @@ export function Settings() {
   return (
     <>
       <h1 class="large-title">Settings</h1>
+      <Group header="Instructor" footer="Printed at the top of each summary PDF. Leave it blank to leave it off.">
+        <Row chevron value={instructor === undefined ? '' : (instructor ?? 'Not set')} onClick={() => props.onEditInstructor(instructor ?? null)} disabled={instructor === undefined}>
+          Instructor name
+        </Row>
+      </Group>
       <Group
         header="Storage"
         footer={

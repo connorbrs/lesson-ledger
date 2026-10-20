@@ -1,5 +1,5 @@
 import { db } from './db';
-import { deleteSessionExpenses, EMPTY_PAYLOAD, writeSessionExpenses, type ExpensePayload } from './expenses';
+import { deleteSessionExpenses, EMPTY_PAYLOAD, loadExpenseDrafts, writeSessionExpenses, type ExpensePayload, type NewPhoto } from './expenses';
 import { SessionError, validateSessionFields, type SessionFields } from '../domain/session';
 import { remapSplitFamilies } from '../domain/expense';
 import { creditFamilies } from '../domain/sessionForm';
@@ -58,10 +58,13 @@ export async function updateSession(id: string, input: SessionFields, payload?: 
     if (!r.ok) throw new SessionError(r.code);
     const next: Session = { ...current, ...r.value, updatedAt: Math.max(Date.now(), current.updatedAt + 1) };
     await db.sessions.put(next);
-    if (payload) {
-      // Shares are keyed by the family as entered; retained attendees keep their stored family, exactly as credits do.
-      await writeSessionExpenses(id, creditFamilies(attendees), { ...payload, expenses: remapSplitFamilies(payload.expenses, remap) });
-    }
+    // Shares are keyed by the family as entered; retained attendees keep their stored family, exactly as credits do.
+    // Without a payload the stored expenses are re-resolved against the new families (their photos are already stored),
+    // so a family change can never leave shares that name the wrong families.
+    const toWrite = payload
+      ? { ...payload, expenses: remapSplitFamilies(payload.expenses, remap) }
+      : { expenses: await loadExpenseDrafts(id, creditFamilies(current.attendees)), photos: new Map<string, NewPhoto>() };
+    await writeSessionExpenses(id, creditFamilies(attendees), toWrite);
     return next;
   });
 }

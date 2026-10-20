@@ -113,6 +113,15 @@ describe('updateSession with a payload', () => {
     expect(after.attachments).toEqual(before.attachments);
   });
 
+  it('omitting the payload while the families change re-resolves shares and keeps photos (WR-03)', async () => {
+    const splits = [{ familyId: a1.familyId, cents: 700 }, { familyId: b1.familyId, cents: 301 }];
+    const s = await createSession(fields([a1, b1]), payload([draft('e1', 1001, { splits, photoIds: ['p1'] })], { p1: photo() }));
+    await updateSession(s.id, fields([a1]));
+    const row = (await db.expenses.toArray())[0];
+    expect(row.splits).toEqual([{ familyId: a1.familyId, cents: 1001 }]);
+    expect(await db.attachments.count()).toBe(1);
+  });
+
   it('removes an expense with all its photo rows, and a removed photo id deletes that attachment only', async () => {
     const s = await createSession(fields([a1]), payload([draft('e1', 1000, { photoIds: ['p1', 'p2'] }), draft('e2', 100, { photoIds: ['p3'] })], { p1: photo(1), p2: photo(2), p3: photo(3) }));
     await updateSession(s.id, fields([a1]), payload([draft('e1', 1000, { photoIds: ['p1'] }), draft('e2', 100, { photoIds: ['p3'] })]));

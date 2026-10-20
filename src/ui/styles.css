@@ -1275,3 +1275,13 @@ button.row:active:not(:disabled) {
   color: var(--color-text-secondary);
   font-weight: 400;
 }
+
+/* ---------- Personal totals (Phase 4, Sessions tab) ---------- */
+
+.totals-control {
+  padding: 0 var(--space-md) var(--space-sm);
+}
+
+.totals-control .segmented {
+  width: 100%;
+}

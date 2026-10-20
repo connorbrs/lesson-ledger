@@ -6,6 +6,7 @@ import { containsDate, formatDayHeader, periodRange, rangeLabel, shiftPeriod, to
 import { groupSessionsByDate, sessionRowText } from '../domain/session';
 import type { Session } from '../domain/types';
 import { ChevronIcon, Group, SegmentedControl } from './components';
+import { PersonalTotals } from './PersonalTotals';
 
 const KIND_OPTIONS: { value: PeriodKind; label: string }[] = [
   { value: 'week', label: 'Week' },
@@ -59,7 +60,9 @@ export function Sessions(props: { onLogSession: () => void; onEdit?: (session: S
               </button>
             </div>
           ) : (
-            groupSessionsByDate(data.sessions).map((day) => (
+            <>
+            <PersonalTotals key={`${range.start}-${range.end}`} range={range} />
+            {groupSessionsByDate(data.sessions).map((day) => (
               <Group key={day.date} header={formatDayHeader(day.date)}>
                 {day.sessions.map((s) => {
                   const text = sessionRowText(s, data.names.students, data.expenseTotals[s.id]);
@@ -78,7 +81,8 @@ export function Sessions(props: { onLogSession: () => void; onEdit?: (session: S
                   );
                 })}
               </Group>
-            ))
+            ))}
+            </>
           )}
         </div>
       )}

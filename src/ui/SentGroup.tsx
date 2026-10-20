@@ -1,22 +1,18 @@
 import { useRef, useState } from 'preact/hooks';
 import { markSent, unmarkSent } from '../data/periodRecords';
 import { periodKey, type FamilySummary } from '../domain/summary';
-import { sentAction, sentFooterText, sentStatus, statusValueText } from '../domain/summaryState';
+import { sentAction, sentFooterText, sentStatus, statusValueText, type SentAction } from '../domain/summaryState';
 import type { PeriodRecord } from '../domain/types';
 import { Group, Row } from './components';
 
 /**
- * The Status row, the mark action and its footer (D-14). This is the only screen code that marks a period sent:
- * Copy and Share never do. The record comes from the live query, so the status keeps no copy of it.
+ * Marking and unmarking, shared by the Status group at the top and the send actions in the footer. This is the only
+ * screen code that marks a period sent: Copy and Share never do.
  */
-export function SentGroup(props: { summary: FamilySummary; record: PeriodRecord | undefined }) {
-  const { summary, record } = props;
-  const status = sentStatus(record, summary.fingerprint);
-  const action = sentAction(status);
+export function useMarkSent() {
   const [failed, setFailed] = useState(false);
   const busy = useRef(false);
-
-  const run = async () => {
+  const run = async (summary: FamilySummary, action: SentAction) => {
     if (busy.current) return;
     busy.current = true;
     setFailed(false);
@@ -30,16 +26,25 @@ export function SentGroup(props: { summary: FamilySummary; record: PeriodRecord 
       busy.current = false;
     }
   };
+  return { failed, run };
+}
+
+/**
+ * The Status row and its footer (D-14); once sent, also the Mark as Not Sent undo. Marking sent itself is in the footer
+ * next to Share and Copy. The record comes from the live query, so the status keeps no copy of it.
+ */
+export function SentGroup(props: { summary: FamilySummary; record: PeriodRecord | undefined; failed: boolean; onRun: (action: SentAction) => void }) {
+  const { summary, record } = props;
+  const status = sentStatus(record, summary.fingerprint);
+  const action = sentAction(status);
 
   return (
-    <Group footer={sentFooterText(failed)} footerError={failed}>
+    <Group footer={sentFooterText(props.failed)} footerError={props.failed}>
       <div class="row">
         <span class="row-label clamp2">Status</span>
         <span class={`row-value clamp2${status === 'changed' ? ' primary' : ''}`}>{statusValueText(status, record?.sentAt ?? null)}</span>
       </div>
-      <Row tone={action.tone === 'accent' ? 'accent' : undefined} onClick={run}>
-        {action.label}
-      </Row>
+      {action.kind === 'unmark' && <Row onClick={() => props.onRun(action)}>{action.label}</Row>}
     </Group>
   );
 }

@@ -5,9 +5,9 @@ import { loadFamilyView } from '../data/summary';
 import { rangeLabel, todayLocal } from '../domain/dates';
 import { recordId } from '../domain/periodRecord';
 import { canGoNext, isDefaultPeriod, periodKey, periodReturnLabel, renderMessageTr, screenParts, shiftSummaryPeriod, warningText } from '../domain/summary';
-import { DISCARD_TITLE, messageView, REBUILD_MESSAGE, REBUILD_TITLE, type MessageDraft } from '../domain/summaryState';
+import { DISCARD_TITLE, messageView, REBUILD_MESSAGE, REBUILD_TITLE, sentAction, sentStatus, type MessageDraft } from '../domain/summaryState';
 import { MessageGroup } from './MessageGroup';
-import { SentGroup } from './SentGroup';
+import { SentGroup, useMarkSent } from './SentGroup';
 import { ShareFooter } from './ShareFooter';
 import { Alert, ChevronIcon, Group, NavBar, PushLayer, Screen, useAnimatedClose, WarningIcon } from './components';
 
@@ -35,6 +35,7 @@ export function FamilySummaryScreen(props: {
   const view = live === null ? null : live ?? lastView.current;
   // undefined while loading: the PDF waits for the name so the header is never built twice.
   const instructorName = useLive(getInstructorName);
+  const markSent = useMarkSent();
 
   // The family was deleted or is gone: leave the screen.
   useEffect(() => {
@@ -48,9 +49,10 @@ export function FamilySummaryScreen(props: {
   const label = rangeLabel(period, period.kind, today);
   const id = recordId(summary.familyId, periodKey(period));
   const draft = props.drafts.get(id) ?? null;
-  const generated = renderMessageTr(summary);
+  const generated = renderMessageTr(summary, instructorName);
   const mv = messageView({ generated, record, fingerprint: summary.fingerprint, draft });
   // Back asks first only when a visible message box holds unsaved edits.
+  const sentNow = sentAction(sentStatus(record, summary.fingerprint));
   const back = () => (parts.showMessage && mv.dirty ? setDiscardOpen(true) : close());
   const step = (delta: number) => {
     const next = shiftSummaryPeriod(period, delta);
@@ -85,7 +87,7 @@ export function FamilySummaryScreen(props: {
             </div>
           ) : (
             <>
-              {parts.showSent && <SentGroup summary={summary} record={record} />}
+              {parts.showSent && <SentGroup summary={summary} record={record} failed={markSent.failed} onRun={(a) => void markSent.run(summary, a)} />}
               {parts.showWarnings && (
                 <Group header="Check before sending" footer="Warnings never block Copy or Share.">
                   {summary.warnings.map((w) => (
@@ -97,11 +99,19 @@ export function FamilySummaryScreen(props: {
                 </Group>
               )}
               {parts.showMessage && (
-                <MessageGroup summary={summary} record={record} draft={draft} onDraftChange={props.onDraftChange} onRebuildRequest={() => setRebuildOpen(true)} />
+                <MessageGroup summary={summary} record={record} instructorName={instructorName} draft={draft} onDraftChange={props.onDraftChange} onRebuildRequest={() => setRebuildOpen(true)} />
               )}
             </>
           )}
-          {parts.showShare && <ShareFooter summary={summary} instructorName={instructorName} />}
+          {parts.showShare && (
+            <ShareFooter
+              summary={summary}
+              instructorName={instructorName}
+              messageText={mv.text}
+              markAction={sentNow.kind === 'mark' ? sentNow : null}
+              onMark={() => void markSent.run(summary, sentNow)}
+            />
+          )}
         </Screen>
       </PushLayer>
       {rebuildOpen && (

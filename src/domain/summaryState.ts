@@ -53,6 +53,23 @@ export function statusPill(status: SentStatus): 'Sent' | 'Changed since sent' | 
   return null;
 }
 
+export interface SummaryRowStatus {
+  pill: 'Sent' | 'Changed since sent' | 'Not sent' | null;
+  /** "1 warning" / "2 warnings", or null. */
+  warnings: string | null;
+}
+
+/**
+ * The trailing status of a Summaries row. A period with no sessions has nothing to send, so it shows neither "Not sent"
+ * nor a warning count; an existing sent mark still shows its pill.
+ */
+export function summaryRowStatus(args: { hasSessions: boolean; status: SentStatus; warningCount: number }): SummaryRowStatus {
+  const { hasSessions, status, warningCount } = args;
+  const pill = statusPill(status) ?? (hasSessions ? 'Not sent' : null);
+  const warnings = hasSessions && warningCount > 0 ? `${warningCount} ${warningCount === 1 ? 'warning' : 'warnings'}` : null;
+  return { pill, warnings };
+}
+
 export function sentFooterText(failed: boolean): string {
   return failed ? MARK_FAILED : SENT_FOOTER;
 }

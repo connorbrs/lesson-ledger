@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { saveMessage } from '../data/periodRecords';
 import { MESSAGE_MAX, recordId } from '../domain/periodRecord';
 import { periodKey, renderMessageTr, type FamilySummary } from '../domain/summary';
-import { COPY_FAILED, draftBasis, messageView, MESSAGE_FOOTER, SAVE_FAILED, STALE_BANNER, type MessageDraft } from '../domain/summaryState';
+import { draftBasis, messageView, MESSAGE_FOOTER, SAVE_FAILED, STALE_BANNER, type MessageDraft } from '../domain/summaryState';
 import type { PeriodRecord } from '../domain/types';
-import { copyText } from '../pwa/clipboard';
 import { Group } from './components';
 
 const FLASH_MS = 1500;
@@ -13,16 +12,15 @@ const FLASH_MS = 1500;
 export function MessageGroup(props: {
   summary: FamilySummary;
   record: PeriodRecord | undefined;
+  instructorName: string | null | undefined;
   draft: MessageDraft | null;
   onDraftChange: (id: string, draft: MessageDraft | null) => void;
   onRebuildRequest: () => void;
 }) {
   const { summary, record, draft, onDraftChange } = props;
   const id = recordId(summary.familyId, periodKey(summary.period));
-  const view = messageView({ generated: renderMessageTr(summary), record, fingerprint: summary.fingerprint, draft });
+  const view = messageView({ generated: renderMessageTr(summary, props.instructorName), record, fingerprint: summary.fingerprint, draft });
 
-  const [copied, setCopied] = useState(false);
-  const [copyFailed, setCopyFailed] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const saving = useRef(false);
@@ -43,15 +41,6 @@ export function MessageGroup(props: {
     timers.current.push(window.setTimeout(() => set(false), FLASH_MS));
   };
 
-  // Copy starts the clipboard write inside the tap, with the text already in hand.
-  const copy = () => {
-    setCopyFailed(false);
-    void copyText(view.text).then((ok) => {
-      if (ok) flash(setCopied);
-      else setCopyFailed(true);
-    });
-  };
-
   const save = async () => {
     if (saving.current || !view.canSave || !draft) return;
     saving.current = true;
@@ -68,10 +57,7 @@ export function MessageGroup(props: {
   };
 
   return (
-    <Group header="Message" headerAction={{ label: copied ? 'Copied ✓' : 'Copy Message', onClick: copy }} footer={MESSAGE_FOOTER}>
-      <span class="visually-hidden" role="status">
-        {copied ? 'Copied' : ''}
-      </span>
+    <Group header="Message" footer={MESSAGE_FOOTER}>
       {view.stale && (
         <div class="row banner-row">
           <span class="row-label">{STALE_BANNER}</span>
@@ -91,10 +77,9 @@ export function MessageGroup(props: {
         value={view.text}
         onInput={(e) => onDraftChange(id, { text: e.currentTarget.value, rebuilt: false, basedOn: draftBasis({ record, fingerprint: summary.fingerprint, draft }) })}
       />
-      {copyFailed && <p class="label caption-error">{COPY_FAILED}</p>}
       {saveFailed && <p class="label caption-error">{SAVE_FAILED}</p>}
       <button type="button" class="row save-row" disabled={!view.canSave} onClick={save}>
-        <span class="row-label">{saved ? 'Saved ✓' : 'Save Message'}</span>
+        <span class="row-label save-label">{saved ? 'Saved ✓' : 'Save Message'}</span>
       </button>
     </Group>
   );

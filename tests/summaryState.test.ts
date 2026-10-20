@@ -27,6 +27,7 @@ import {
   STALE_BANNER,
   statusPill,
   statusValueText,
+  summaryRowStatus,
 } from '../src/domain/summaryState';
 
 const F1 = 'a1b2c3d4e5f60a';
@@ -104,6 +105,21 @@ describe('statusPill and sentFooterText', () => {
     expect(sentFooterText(false)).toBe('Marking as sent records this only. Copy and Share never mark it.');
     expect(sentFooterText(true)).toBe("Couldn't mark as sent. Nothing was changed. Try again.");
     expect(MARK_FAILED).toBe("Couldn't mark as sent. Nothing was changed. Try again.");
+  });
+});
+
+describe('summaryRowStatus', () => {
+  it('shows Not sent and the warning count only when the period has sessions', () => {
+    expect(summaryRowStatus({ hasSessions: true, status: 'not-sent', warningCount: 0 })).toEqual({ pill: 'Not sent', warnings: null });
+    expect(summaryRowStatus({ hasSessions: true, status: 'not-sent', warningCount: 1 })).toEqual({ pill: 'Not sent', warnings: '1 warning' });
+    expect(summaryRowStatus({ hasSessions: true, status: 'not-sent', warningCount: 2 })).toEqual({ pill: 'Not sent', warnings: '2 warnings' });
+    expect(summaryRowStatus({ hasSessions: false, status: 'not-sent', warningCount: 3 })).toEqual({ pill: null, warnings: null });
+  });
+
+  it('keeps the Sent and Changed since sent pills', () => {
+    expect(summaryRowStatus({ hasSessions: true, status: 'sent', warningCount: 0 })).toEqual({ pill: 'Sent', warnings: null });
+    expect(summaryRowStatus({ hasSessions: true, status: 'changed', warningCount: 1 })).toEqual({ pill: 'Changed since sent', warnings: '1 warning' });
+    expect(summaryRowStatus({ hasSessions: false, status: 'sent', warningCount: 0 }).pill).toBe('Sent');
   });
 });
 

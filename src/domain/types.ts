@@ -32,7 +32,7 @@ export interface Attendee {
   familyId: string;
 }
 
-/** One entry per distinct family in a session, so siblings count once. Half is exactly half of the entered minutes. */
+/** One entry per distinct family in a session, so siblings count once. Half rounds up to a whole minute (D-17). */
 export interface FamilyCredit {
   familyId: string;
   lesson: CreditMode;

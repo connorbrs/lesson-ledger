@@ -76,13 +76,13 @@ export function validateSessionFields(input: SessionFields): SessionCheck {
   return { ok: true, value: input };
 }
 
-/** Half is exactly half: 45 gives 22.5, 1 gives 0.5. Never rounded. */
+/** Half rounds up to a whole minute (D-17): 45 gives 23, 1 gives 1. Credited time is always whole, so lines add up to totals. */
 export function creditedMinutes(minutes: number, mode: CreditMode): number {
-  return mode === 'half' ? minutes / 2 : minutes;
+  return mode === 'half' ? Math.ceil(minutes / 2) : minutes;
 }
 
 /** Chronological order: start time ascending, untimed last; ties and untimed sessions in logging order (createdAt, then id). */
-function compareSessions(a: Session, b: Session): number {
+export function compareSessions(a: Session, b: Session): number {
   if (a.date !== b.date) return a.date < b.date ? -1 : 1;
   if (a.startTime !== b.startTime) {
     if (a.startTime === null) return 1;

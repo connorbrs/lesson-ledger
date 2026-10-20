@@ -45,6 +45,17 @@ Not in this phase: CSV export (VIEW-03), a frozen snapshot of what was sent (SUM
 - **D-15:** Editing a session or expense in a sent period flags it **"changed since sent"**. The flag shows on the family's row in the summaries list and inside the summary.
 - **D-16:** Warnings for an expense with no receipt or a session with zero minutes appear as a list at the top of the summary. They **never block** Copy or Share.
 
+### After research (2026-10-19)
+- **D-17 (user):** Half credit rounds **up to a whole minute** ("no halves for minutes"): credited = ceil(minutes / 2), e.g. 45 → 23. All credited values are whole minutes, so session lines always add up exactly to the totals (SUM-06). This replaces the Phase 2 "half stored exactly as 22.5, display-only rounding" rule wherever credited time is computed (`creditedMinutes` in `src/domain/session.ts`, used by the session form footer, summaries and personal totals). Stored session data is unchanged, since rows store whole minutes plus the credit mode. — **Reversibility:** reversible — one pure function.
+- **D-18 (orchestrator, research recommendations):**
+  - Any session or expense edit in the period flags "changed since sent", including travel-only edits, family renames and receipt add or remove. Detect this with a content fingerprint of the computed summary, not updatedAt.
+  - "(fişler PDF'te)" appears only when this family's expenses in the period have receipts.
+  - Restoring a v1 or v2 backup clears the instructor name, saved messages and sent records.
+  - The PDF is pre-built when the summary opens and shared synchronously on tap.
+  - Saved messages are capped at 10,000 characters.
+  - The "Fişler" (receipts) heading appears on the first receipt page only.
+  - The font subset must include U+2013 and U+2014.
+
 ### Claude's Discretion (area not discussed)
 - **Where it lives:** a new **Summaries** tab, so the tabs become Log · Sessions · Summaries · People · Settings. It shows the list of active families with their default period: the most recent complete week or month (Mon–Sun), based on each family's `period` setting. A row opens that family's summary, with ‹ › to move between periods. VIEW-01/02 (personal totals) go in the Sessions tab, which already has a Week/Month toggle: a totals section with student, family and subject breakdowns. Subject totals count actual time once; family and student totals use credited time. Travel is included in this personal view only. The UI-SPEC confirms the layout.
 - **Backup:** instructor name, saved message edits and sent records must be in the backup. This needs a new schemaVersion 3, and restore must still read v1 and v2. — **Reversibility:** one-way — a published backup contract, the same rule as Phase 3 D-06. The planner treats this as an extension of the already-approved single-file format, not a new user decision.

@@ -39,6 +39,7 @@ export function People(props: {
             <Group
               key={family.id}
               header={family.name}
+              nameHeader
               headerAction={{ label: 'Edit Family', onClick: () => props.onEditFamily(family) }}
               footer={
                 <>

@@ -145,7 +145,7 @@ export type StageTone = 'done' | 'attention' | 'idle';
 
 export interface SendStage {
   id: 'checked' | 'message' | 'sent';
-  title: 'Checked' | 'Message' | 'Sent';
+  title: 'Check' | 'Message' | 'Sent';
   tone: StageTone;
   /** The state in words: "No warnings", "2 warnings", "Generated", "Saved", "Out of date", "Sent Oct 19", "Changed since sent", "Not sent". */
   detail: string;
@@ -164,8 +164,8 @@ export function sendChecklist(args: {
   const { warningCount, record, fingerprint } = args;
   const checked: SendStage =
     warningCount > 0
-      ? { id: 'checked', title: 'Checked', tone: 'attention', detail: `${warningCount} ${warningCount === 1 ? 'warning' : 'warnings'}` }
-      : { id: 'checked', title: 'Checked', tone: 'done', detail: 'No warnings' };
+      ? { id: 'checked', title: 'Check', tone: 'attention', detail: `${warningCount} ${warningCount === 1 ? 'warning' : 'warnings'}` }
+      : { id: 'checked', title: 'Check', tone: 'done', detail: 'No warnings' };
   const stale = isMessageStale(record, fingerprint, args.draft ?? null);
   const message: SendStage = stale
     ? { id: 'message', title: 'Message', tone: 'attention', detail: 'Out of date' }

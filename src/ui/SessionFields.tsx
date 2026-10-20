@@ -236,6 +236,7 @@ export function SessionFields(props: {
             <Group
               key={familyId}
               header={names.families[familyId] ?? ''}
+              nameHeader
               footer={
                 lesson !== null && activity !== null
                   ? `Credited: ${formatMinutes(creditedMinutes(lesson, credit.lesson))} lesson, ${formatMinutes(creditedMinutes(activity, credit.activity))} activity.`

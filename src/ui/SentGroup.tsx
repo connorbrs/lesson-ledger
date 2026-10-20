@@ -37,6 +37,8 @@ export function SentGroup(props: { summary: FamilySummary; record: PeriodRecord 
   const { summary, record } = props;
   const status = sentStatus(record, summary.fingerprint);
   const action = sentAction(status);
+  // The send checklist already says "Not sent"; this group only earns its place once there is a sent time to show and undo.
+  if (status === 'not-sent' && !props.failed) return null;
 
   return (
     <Group footer={sentFooterText(props.failed)} footerError={props.failed}>

@@ -176,6 +176,8 @@ export function Screen(props: { nav: ComponentChildren; inSheet?: boolean; child
 
 export function Group(props: {
   header?: string;
+  /** The header is a name (a family), not a section label: set it as a heading, not small caps. */
+  nameHeader?: boolean;
   headerAction?: { label: string; onClick: () => void };
   footer?: ComponentChildren;
   footerError?: boolean;
@@ -187,7 +189,7 @@ export function Group(props: {
     <section class={`section${props.danger ? ' danger' : ''}`}>
       {props.header !== undefined && (
         <div class="group-header">
-          <h2 class="group-title clamp2">{props.header}</h2>
+          <h2 class={`group-title clamp2${props.nameHeader ? ' name' : ''}`}>{props.header}</h2>
           {props.headerAction && (
             <button type="button" class="text-button" onClick={props.headerAction.onClick}>
               {props.headerAction.label}

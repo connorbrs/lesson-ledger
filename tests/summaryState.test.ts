@@ -286,7 +286,7 @@ describe('sendChecklist', () => {
 
   it('starts with nothing saved or sent: checked, generated, not sent', () => {
     expect(stages({ warningCount: 0, record: undefined, fingerprint: F1 })).toEqual([
-      ['Checked', 'done', 'No warnings'],
+      ['Check', 'done', 'No warnings'],
       ['Message', 'idle', 'Generated'],
       ['Sent', 'idle', 'Not sent'],
     ]);
@@ -321,7 +321,7 @@ describe('sendChecklist', () => {
 
   it('reads as one sentence for screen readers', () => {
     expect(sendChecklistLabel(sendChecklist({ warningCount: 2, record: undefined, fingerprint: F1 }))).toBe(
-      'Checked: 2 warnings. Message: Generated. Sent: Not sent.',
+      'Check: 2 warnings. Message: Generated. Sent: Not sent.',
     );
   });
 });

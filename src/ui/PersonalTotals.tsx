@@ -18,7 +18,7 @@ function TotalCell(props: { label: string; minutes: number }) {
   return (
     <div class="metric">
       <span class="metric-label">{props.label}</span>
-      <span class="metric-value figure">{split ? split[1] : text}</span>
+      <span class={`metric-value${split ? " figure" : " unset"}`}>{split ? split[1] : text}</span>
       {split && <span class="metric-sub figure">{split[2]}</span>}
     </div>
   );

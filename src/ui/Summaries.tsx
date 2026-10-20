@@ -30,21 +30,20 @@ export function Summaries(props: { onOpen: (familyId: string) => void }) {
                 warningCount: r.summary.warnings.length,
               });
               const stages = sendChecklist({ warningCount: r.summary.warnings.length, record: r.record, fingerprint: r.summary.fingerprint });
-              const tone = pill === 'Sent' ? 'done' : pill === 'Changed since sent' || warnings ? 'attention' : '';
               return (
                 <button key={r.familyId} type="button" class="row summary-row" onClick={() => props.onOpen(r.familyId)}>
                   <span class="session-names">
                     <span class="row-label clamp2">{r.name}</span>
                     <span class="row-sub">{summaryRowSecondLine(r.kind, r.period, r.summary.sessions.length > 0, today)}</span>
-                  </span>
-                  {(pill || warnings) && (
-                    <span class="summary-status">
-                      <MiniChecklist stages={stages} />
-                      <span class={`summary-status-text ${tone}`}>
-                        {[pill, warnings].filter(Boolean).join(' · ')}
+                    {(pill || warnings) && (
+                      <span class="summary-status-text">
+                        {warnings && <span class="attention">{warnings}</span>}
+                        {warnings && pill && ' · '}
+                        {pill && <span class={pill === 'Sent' ? 'done' : pill === 'Changed since sent' ? 'attention' : ''}>{pill}</span>}
                       </span>
-                    </span>
-                  )}
+                    )}
+                  </span>
+                  {(pill || warnings) && <MiniChecklist stages={stages} />}
                   <ChevronIcon />
                 </button>
               );

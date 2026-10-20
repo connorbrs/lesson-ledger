@@ -46,7 +46,7 @@ created: "2026-10-19"
 | T-03-14 | Tampering | Export that restore would refuse | high | mitigate | A size pre-check and the too-large alert (`useBackup.ts`, `BackupTooLargeAlert.tsx`), plus a round-trip test | closed |
 | T-03-15 | Information disclosure | Plaintext backup leaves the phone | medium | accept | See the Accepted Risks Log. The app has no network code. | closed |
 | T-03-16 | Tampering | Silent loss of receipts in a backup | medium | mitigate | Export is real (the fail-closed guard was removed). The byte-level round-trip test is in `tests/backup.test.ts`. | closed |
-| T-03-SC | Tampering | Package installs | high | mitigate | `package.json` runtime dependencies are exactly dexie and preact, with no HEIC, image or zip library | closed |
+| T-03-SC | Tampering | Package installs | high | mitigate | `package.json` runtime dependencies are exactly dexie and preact, with no HEIC, image or zip library. This statement describes Phase 3 only: Phase 4 plan 04-04 added jspdf 4.2.1 (exact pin) after a blocking-human legitimacy approval | closed |
 
 *Status: open · closed · open — below high threshold (non-blocking)*
 *Severity: critical > high > medium > low. Only open threats at or above workflow.security_block_on count toward threats_open.*

@@ -1,7 +1,6 @@
 import { db } from './db';
 import { listActiveFamilies } from './families';
-import { shiftPeriod, periodRange } from '../domain/dates';
-import { buildFamilySummary, summaryPeriod, type FamilySummary, type SummaryInput, type SummaryPeriod } from '../domain/summary';
+import { buildFamilySummary, defaultPeriod, summaryPeriod, type FamilySummary, type SummaryInput, type SummaryPeriod } from '../domain/summary';
 import type { Family, Period } from '../domain/types';
 
 /** Read-only loaders: stored rows are read in one transaction and turned into the pure summary model. */
@@ -52,12 +51,6 @@ export async function loadSummaryInput(familyId: string, period: SummaryPeriod):
 
 const kindOf = (p: Period) => (p === 'weekly' ? 'week' : 'month');
 
-/** The most recent complete week or month before today, per the family's period setting (SUM-01). */
-function defaultPeriodFor(p: Period, todayYmd: string): SummaryPeriod {
-  const kind = kindOf(p);
-  return { kind, ...periodRange(kind, shiftPeriod(kind, todayYmd, -1)) };
-}
-
 export interface FamilyView {
   kind: 'week' | 'month';
   defaultPeriod: SummaryPeriod;
@@ -70,9 +63,9 @@ export async function loadFamilyView(familyId: string, anchorYmd: string | null,
     const family = await db.families.get(familyId);
     if (!family) return null;
     const kind = kindOf(family.period);
-    const defaultPeriod = defaultPeriodFor(family.period, todayYmd);
-    const period = anchorYmd === null ? defaultPeriod : summaryPeriod(kind, anchorYmd);
-    return { kind, defaultPeriod, summary: buildFamilySummary(await readSummaryInput(family, period)) };
+    const def = defaultPeriod(family.period, todayYmd);
+    const period = anchorYmd === null ? def : summaryPeriod(kind, anchorYmd);
+    return { kind, defaultPeriod: def, summary: buildFamilySummary(await readSummaryInput(family, period)) };
   });
 }
 
@@ -89,7 +82,7 @@ export async function loadSummaryList(todayYmd: string): Promise<SummaryListItem
   return db.transaction('r', READ_TABLES(), async () => {
     const items: SummaryListItem[] = [];
     for (const family of await listActiveFamilies()) {
-      const period = defaultPeriodFor(family.period, todayYmd);
+      const period = defaultPeriod(family.period, todayYmd);
       items.push({ familyId: family.id, name: family.name, kind: family.period, period, summary: buildFamilySummary(await readSummaryInput(family, period)) });
     }
     return items;

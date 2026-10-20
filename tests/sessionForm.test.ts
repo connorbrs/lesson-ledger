@@ -168,7 +168,7 @@ describe('prefillFromSession', () => {
     expect(prefillFromSession(last, [student('a1', 'C')]).attendees).toEqual([{ studentId: 'a1', familyId: 'C' }]);
   });
   it('a pre-filled form saves with date today', () => {
-    const r = formToInput(prefillFromSession(last, [student('a1', 'A')]), TODAY);
+    const r = formToInput(prefillFromSession(last, [student('a1', 'A')], '18:00'), TODAY);
     expect(r.ok && r.value.date).toBe(TODAY);
   });
 });

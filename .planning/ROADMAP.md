@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Installable App & Roster** - Home-screen offline app with families, students and storage status (completed 2026-10-19)
 - [x] **Phase 2: Session Logging & Backup** - Quick session entry with shared-swim credit, plus backup and restore (completed 2026-10-19)
-- [ ] **Phase 3: Expenses & Receipts** - Expenses with receipt photos and shared-expense splitting
+- [x] **Phase 3: Expenses & Receipts** - Expenses with receipt photos and shared-expense splitting (completed 2026-10-19)
 - [ ] **Phase 4: Family Summaries & Overview** - Per-family text and PDF summaries, plus personal overview totals
 
 ## Phase Details
@@ -94,7 +94,7 @@ Plans:
   4. User can edit or delete an expense and its receipt photos, and deleting leaves no orphaned photos behind
   5. Receipt photos are included in a backup and reappear intact after a restore (completes the receipt half of DATA-02/DATA-03 from Phase 2)
 
-**Plans**: 5/5 plans executed
+**Plans**: 5/5 plans complete
 
 Plans:
 
@@ -142,7 +142,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Installable App & Roster | 5/5 | Complete    | 2026-10-19 |
 | 2. Session Logging & Backup | 3/3 | Complete    | 2026-10-19 |
-| 3. Expenses & Receipts | 5/5 | In Progress | - |
+| 3. Expenses & Receipts | 5/5 | Complete    | 2026-10-19 |
 | 4. Family Summaries & Overview | 0/TBD | Not started | - |
 
 ## Backlog

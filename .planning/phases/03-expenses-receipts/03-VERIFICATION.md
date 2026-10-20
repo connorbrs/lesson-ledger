@@ -1,7 +1,7 @@
 ---
 phase: 03-expenses-receipts
 verified: 2026-10-19T18:00:00Z
-status: human_needed
+status: passed
 score: 5/5 roadmap success criteria verified (EXP-01..05, DATA-02, DATA-03 covered); 1 human item
 covered_files: [".planning/phases/03-expenses-receipts/03-01-PLAN.md", ".planning/phases/03-expenses-receipts/03-01-SUMMARY.md", ".planning/phases/03-expenses-receipts/03-02-PLAN.md", ".planning/phases/03-expenses-receipts/03-02-SUMMARY.md", ".planning/phases/03-expenses-receipts/03-03-PLAN.md", ".planning/phases/03-expenses-receipts/03-03-SUMMARY.md", ".planning/phases/03-expenses-receipts/03-04-PLAN.md", ".planning/phases/03-expenses-receipts/03-04-SUMMARY.md", ".planning/phases/03-expenses-receipts/03-05-PLAN.md", ".planning/phases/03-expenses-receipts/03-05-SUMMARY.md", "scripts/make-large-backup.mjs", "src/data/backup.ts", "src/data/db.ts", "src/data/expenses.ts", "src/data/sessions.ts", "src/domain/backup.ts", "src/domain/base64.ts", "src/domain/expense.ts", "src/domain/money.ts", "src/domain/photos.ts", "src/domain/session.ts", "src/domain/sessionForm.ts", "src/domain/split.ts", "src/domain/types.ts", "src/pwa/photos.ts", "src/ui/App.tsx", "src/ui/BackupGroup.tsx", "src/ui/BackupReminder.tsx", "src/ui/BackupTooLargeAlert.tsx", "src/ui/ExpenseEditor.tsx", "src/ui/ExpensesGroup.tsx", "src/ui/Log.tsx", "src/ui/ReceiptViewer.tsx", "src/ui/ReceiptsGroup.tsx", "src/ui/SessionFields.tsx", "src/ui/SessionSheet.tsx", "src/ui/Sessions.tsx", "src/ui/SplitGroup.tsx", "src/ui/components.tsx", "src/ui/receiptPhotos.ts", "src/ui/styles.css", "src/ui/useBackup.ts", "tests/backup.test.ts", "tests/base64.test.ts", "tests/expense.test.ts", "tests/expenses.test.ts", "tests/money.test.ts", "tests/node-shim.d.ts", "tests/photos.test.ts", "tests/split.test.ts"]
 covered_digest: "v3:sha256:2b825d50f4101145423efc1b2ffd79d731c984516dcaccaa22ca7be4328ebeca"
@@ -85,3 +85,8 @@ No gaps. All five roadmap success criteria and all seven requirement IDs are sat
 
 _Verified: 2026-10-19_
 _Verifier: Claude (gsd-verifier)_
+
+
+## Human Verification Result
+
+2026-10-20T00:12:58Z: user confirmed on iPhone 14 Pro: pinch-zoom works in the receipt viewer (03-UAT.md test 1: pass). Status moved human_needed → passed.

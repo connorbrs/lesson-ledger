@@ -19,16 +19,17 @@ Logging a session right after it ends takes seconds, and the per-family weekly/m
 - ✓ Log a session with Start / Finish / Duration (exact minutes), subject, 1–2 students, activity and travel minutes; Lesson = Duration − Activity — Phase 2
 - ✓ Swim sessions with 2 students from different families: per-family Full/Half credit for lesson and activity; math 1-on-1 — Phase 2
 - ✓ Sessions list by week/month, newest first; edit and delete sessions — Phase 2
-- ✓ Backup to one JSON file via the share sheet and validated all-or-nothing restore; 7-day reminder (receipt photos join backups in Phase 3) — Phase 2
+- ✓ Backup to one JSON file via the share sheet and validated all-or-nothing restore; 7-day reminder — Phase 2
+- ✓ Expenses ($, whole cents) with 0..n downscaled receipt photos on any session; two-family split equal by default with per-expense override that always sums exactly — Phase 3
+- ✓ Edit and delete expenses and photos with no orphans; session delete warns with counts — Phase 3
+- ✓ Backup v2 carries receipt photos (150 MB cap); v1 backups still restore — Phase 3
 
 ### Active
 
-- [ ] Log activity expenses (amount, description, receipt photo) on a session; shared-session expenses split between the families
 - [ ] Generate per-family summary for a period: lesson hours and activity hours separately, plus itemized expenses
 - [ ] Summary as copy-pasteable text message
 - [ ] Summary as PDF including receipt images, shareable via iOS share sheet (Messages)
 - [ ] Personal overview: totals per student / family / subject per week and month, including travel time
-- [ ] Edit and delete logged expenses
 
 ### Out of Scope
 
@@ -72,8 +73,8 @@ Logging a session right after it ends takes seconds, and the per-family weekly/m
 | Hours shown as "1.5 h (1:30)" | Both formats requested | — Pending |
 | Half credit chosen per family per session, separately for lesson and activity minutes | Varies by situation | — Pending |
 | Half credit kept exact (22.5 min), not rounded | User choice; display rounds only | — Pending |
-| Shared expenses split equally by default, override per expense | User choice | — Pending |
-| 0..n receipt photos per expense | User choice | — Pending |
+| Shared expenses split equally by default, override per expense | User choice | ✓ Good — odd cent to first family, shares stored in cents |
+| 0..n receipt photos per expense | User choice | ✓ Good — verified on iPhone (camera, library, ~20 receipts) |
 | GitHub Pages URL, no custom domain | Personal use; origin must not change once data exists | — Pending |
 | Unencrypted backup file may leave the phone (Files/iCloud/Mail) | User accepted | — Pending |
 | App renamed Lesson Ledger (was Lesson Log); URL github.io/lesson-ledger | User choice in Phase 1 discussion | — Pending |
@@ -81,7 +82,7 @@ Logging a session right after it ends takes seconds, and the per-family weekly/m
 | Update prompt; cold-launch activation after force-quit accepted | iOS service-worker lifecycle; no data/input lost | ✓ Good |
 | Archived records with no history can be deleted from Archived screen | Avoid dead end (UAT W-1) | ✓ Good |
 | Session times as Start/Finish/Duration instead of minute presets | User request after Phase 2 build | ✓ Good |
-| Backup is one JSON file (schemaVersion + attachments slot) | No new package; zip possible later | ✓ Good |
+| Backup is one JSON file (schemaVersion + attachments slot) | No new package; zip possible later | ✓ Good — v2 embeds photos, cap raised to 150 MB |
 | Sessions list newest first | User request | ✓ Good |
 | Karpathy coding guidelines apply (multica-ai/andrej-karpathy-skills, already in global CLAUDE.md) | User preference: simplicity, surgical changes | — Pending |
 

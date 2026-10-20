@@ -16,7 +16,7 @@
     {
       "number": "3",
       "name": "Expenses & Receipts",
-      "status": "in_progress"
+      "status": "complete"
     },
     {
       "number": "4",
@@ -26,8 +26,8 @@
   ],
   "next": {
     "command": "/gsd-progress --next",
-    "label": "Advance to the next step (verify)",
-    "reason": "Phase 3 of 4 · 50% · ready to verify"
+    "label": "Advance to the next step (plan phase 4)",
+    "reason": "Phase 4 of 4 — needs a plan"
   },
-  "updated_at": "2026-10-20T00:01:10.892Z"
+  "updated_at": "2026-10-20T00:13:01.257Z"
 }

@@ -4,16 +4,16 @@ current_phase: 4
 current_phase_name: Family Summaries & Overview
 current_plan: Not started
 status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-10-20T01:34:08.144Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-10-20T01:38:28.756Z"
 last_activity: 2026-10-19
 last_activity_desc: Phase 3 complete, transitioned to Phase 4
-state_head: 38a606e875ebaf1db6b1a0253239a91f94f8ee76
+state_head: d83f202d36fffbfb1cca1359f5b776dba781fe08
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 19
-  completed_plans: 15
+  completed_plans: 16
   percent: 75
 ---
 
@@ -75,6 +75,7 @@ Progress: [████████░░] 75%
 | Phase 3 P05 | 25min | 3 tasks | 11 files |
 | Phase 04 P01 | 12min | 3 tasks | 14 files |
 | Phase 04 P02 | 20min | 2 tasks | 14 files |
+| Phase 04 P03 | 12min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Summary loaders anchor on the period start date; null means the default period
 - [Phase 04]: Warnings carry the session or expense id for deterministic ordering
 - [Phase 04]: PeriodRecord id is familyId_periodKey (underscore) to stay inside the backup id charset; Dexie v2 only adds periodRecords; backup schemaVersion 3 adds periodRecords and instructorName, v1/v2 restore clears them
+- [Phase 04]: Sent status compares fingerprints only; a saved message without a sent mark never produces a pill
+- [Phase 04]: Back asks to discard only when the visible message box is dirty
 
 ### Pending Todos
 
@@ -142,6 +145,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-20T01:34:07.880Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-10-20T01:38:28.486Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None

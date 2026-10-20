@@ -1,4 +1,8 @@
 import 'fake-indexeddb/auto';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildBackup, markBackedUp, readBackupStatus, restoreBackup } from '../src/data/backup';
 import { db } from '../src/data/db';
@@ -461,6 +465,46 @@ describe('restoreBackup', () => {
     expect(restoreFailureFor(error)).toBe('damaged');
     expect(await snapshot()).toEqual(before);
     expect(before.last).toBe(123);
+  });
+});
+
+describe('scripts/make-large-backup.mjs', () => {
+  const script = 'scripts/make-large-backup.mjs';
+
+  it('writes a valid version 2 backup of about the asked size, with an expense and several photos', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lesson-ledger-large-'));
+    try {
+      const out = join(dir, 'large.json');
+      const run = spawnSync('node', [script, '2', out], { encoding: 'utf8' });
+      expect(run.status).toBe(0);
+      const size = statSync(out).size;
+      expect(size).toBeGreaterThan(1_800_000);
+      expect(size).toBeLessThan(2_200_000);
+      expect(run.stdout).toContain(out);
+      const parsed = parseBackup(readFileSync(out, 'utf8'), size);
+      expect(parsed.ok).toBe(true);
+      if (!parsed.ok) return;
+      expect(parsed.file.schemaVersion).toBe(2);
+      expect(parsed.file.expenses.length).toBeGreaterThanOrEqual(1);
+      expect(parsed.file.attachments.length).toBeGreaterThanOrEqual(3);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('needs both arguments: exits non-zero with a usage line and writes nothing', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lesson-ledger-large-'));
+    try {
+      const out = join(dir, 'never.json');
+      for (const args of [[], ['2'], ['abc', out], ['0', out]]) {
+        const run = spawnSync('node', [script, ...args], { encoding: 'utf8' });
+        expect(run.status).not.toBe(0);
+        expect(run.stderr).toContain('Usage:');
+      }
+      expect(existsSync(out)).toBe(false);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 

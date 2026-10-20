@@ -9,13 +9,15 @@ import {
   formatBackupDate,
   MAX_BACKUP_BYTES,
   parseBackup,
+  restoreFailureFor,
   type BackupFailure,
   type BackupFile,
 } from '../domain/backup';
+import { BackupTooLargeAlert } from './BackupTooLargeAlert';
 import { Alert, Group, Row } from './components';
 import { useBackup } from './useBackup';
 
-const DEFAULT_FOOTER = 'Backup saves every family, student and session as one file. Restoring replaces everything on this phone.';
+const DEFAULT_FOOTER = 'Backup saves every family, student, session and receipt photo as one file. Restoring replaces everything on this phone.';
 const BACKUP_FAILED = "Couldn't create the backup. Nothing was changed. Try Back Up Now again.";
 const RESTORE_FAILED = "Couldn't restore this backup. Nothing was changed. Try again.";
 
@@ -24,6 +26,14 @@ const INVALID_MESSAGE: Record<BackupFailure, string> = {
   damaged: "This backup file is damaged and can't be read. Nothing was changed. Choose another file.",
   'newer-version': 'This backup was made by a newer version of Lesson Ledger. Update the app, then try again. Nothing was changed.',
 };
+
+const countsOf = (file: BackupFile) => ({
+  families: file.families.length,
+  students: file.students.length,
+  sessions: file.sessions.length,
+  expenses: file.expenses.length,
+  photos: file.attachments.length,
+});
 
 type AlertState = null | { kind: 'invalid'; code: BackupFailure } | { kind: 'confirm'; file: BackupFile };
 
@@ -35,6 +45,7 @@ export function BackupGroup() {
   const [checking, setChecking] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [alert, setAlert] = useState<AlertState>(null);
+  const [tooLarge, setTooLarge] = useState(false);
   const picking = useRef(false);
   const replacing = useRef(false);
   const input = useRef<HTMLInputElement>(null);
@@ -42,7 +53,10 @@ export function BackupGroup() {
   async function backUp() {
     const outcome = await backup.run();
     if (outcome === 'failed') setResult({ ok: false, text: BACKUP_FAILED });
-    else if (outcome !== 'cancelled') setResult(null);
+    else if (outcome === 'too-large') {
+      setResult(null);
+      setTooLarge(true);
+    } else if (outcome !== 'cancelled') setResult(null);
   }
 
   async function onPick(e: Event) {
@@ -72,16 +86,19 @@ export function BackupGroup() {
     if (replacing.current) return;
     replacing.current = true;
     setRestoring(true);
+    let next: AlertState = null;
     try {
       await restoreBackup(file);
-      const c = { families: file.families.length, students: file.students.length, sessions: file.sessions.length };
-      setResult({ ok: true, text: `Restored. ${countsText(c)} are on this phone.` });
-    } catch {
-      setResult({ ok: false, text: RESTORE_FAILED });
+      setResult({ ok: true, text: `Restored. ${countsText(countsOf(file))} are on this phone.` });
+    } catch (e) {
+      // An undecodable photo means the file is damaged; the existing damaged alert says so. Anything else keeps the generic line.
+      const failure = restoreFailureFor(e);
+      if (failure) next = { kind: 'invalid', code: failure };
+      else setResult({ ok: false, text: RESTORE_FAILED });
     } finally {
       replacing.current = false;
       setRestoring(false);
-      setAlert(null);
+      setAlert(next);
     }
   }
 
@@ -103,11 +120,7 @@ export function BackupGroup() {
     ) : alert?.kind === 'confirm' ? (
       <Alert
         title="Replace everything with this backup?"
-        message={`Backup from ${formatBackupDate(alert.file.createdAt)}: ${countPhrases({
-          families: alert.file.families.length,
-          students: alert.file.students.length,
-          sessions: alert.file.sessions.length,
-        }).join(', ')}. Everything on this phone is replaced. This can't be undone.`}
+        message={`Backup from ${formatBackupDate(alert.file.createdAt)}: ${countPhrases(countsOf(alert.file)).join(', ')}. Everything on this phone is replaced. This can't be undone.`}
         buttons={[
           { label: 'Cancel', tone: 'accent', disabled: restoring, onClick: () => setAlert(null) },
           { label: 'Replace Everything', tone: 'destructive', strong: true, disabled: restoring, onClick: () => void replace(alert.file) },
@@ -132,6 +145,7 @@ export function BackupGroup() {
         </Row>
       </Group>
       {layer && createPortal(layer, document.querySelector('.app') ?? document.body)}
+      {tooLarge && <BackupTooLargeAlert onClose={() => setTooLarge(false)} />}
     </>
   );
 }

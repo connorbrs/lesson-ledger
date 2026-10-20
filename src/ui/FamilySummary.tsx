@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { getInstructorName } from '../data/instructor';
 import { useLive } from '../data/live';
 import { loadFamilyView } from '../data/summary';
@@ -27,14 +27,19 @@ export function FamilySummaryScreen(props: {
   const [rebuildOpen, setRebuildOpen] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
   const today = todayLocal();
-  const view = useLive(() => loadFamilyView(props.familyId, anchor, today), [props.familyId, anchor, today]);
+  const live = useLive(() => loadFamilyView(props.familyId, anchor, today), [props.familyId, anchor, today]);
+  // useLive resets to undefined while the next period loads. Keep showing the last loaded view meanwhile, so the screen
+  // stays mounted (no replayed push animation, no lost Copied/Saved flashes, PDF status or open alerts). null means gone.
+  const lastView = useRef(live);
+  if (live) lastView.current = live;
+  const view = live === null ? null : live ?? lastView.current;
   // undefined while loading: the PDF waits for the name so the header is never built twice.
   const instructorName = useLive(getInstructorName);
 
   // The family was deleted or is gone: leave the screen.
   useEffect(() => {
-    if (view === null) close();
-  }, [view]);
+    if (live === null) close();
+  }, [live]);
 
   if (!view) return null;
   const { summary, defaultPeriod, record } = view;

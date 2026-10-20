@@ -1211,3 +1211,19 @@ button.row:active:not(:disabled) {
   resize: none;
   overflow: hidden;
 }
+
+.row-value.primary {
+  color: var(--color-text);
+}
+
+.status-pill {
+  flex: none;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-segment);
+  background: var(--color-pressed);
+  color: var(--color-text-secondary);
+}
+
+.status-pill.changed {
+  color: var(--color-text);
+}

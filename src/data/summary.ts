@@ -1,11 +1,12 @@
 import { db } from './db';
 import { listActiveFamilies } from './families';
-import { buildFamilySummary, defaultPeriod, summaryPeriod, type FamilySummary, type SummaryInput, type SummaryPeriod } from '../domain/summary';
-import type { Family, Period } from '../domain/types';
+import { buildFamilySummary, defaultPeriod, periodKey, summaryPeriod, type FamilySummary, type SummaryInput, type SummaryPeriod } from '../domain/summary';
+import { recordId } from '../domain/periodRecord';
+import type { Family, Period, PeriodRecord } from '../domain/types';
 
 /** Read-only loaders: stored rows are read in one transaction and turned into the pure summary model. */
 
-const READ_TABLES = () => [db.families, db.students, db.sessions, db.expenses, db.attachments] as const;
+const READ_TABLES = () => [db.families, db.students, db.sessions, db.expenses, db.attachments, db.periodRecords] as const;
 
 async function readSummaryInput(family: Family, period: SummaryPeriod): Promise<SummaryInput> {
   return db.transaction('r', READ_TABLES(), async () => {
@@ -49,12 +50,17 @@ export async function loadSummaryInput(familyId: string, period: SummaryPeriod):
   return family ? readSummaryInput(family, period) : undefined;
 }
 
+/** The stored record for a family and period, read inside the caller's transaction. */
+const readRecord = (familyId: string, period: SummaryPeriod): Promise<PeriodRecord | undefined> => db.periodRecords.get(recordId(familyId, periodKey(period)));
+
 const kindOf = (p: Period) => (p === 'weekly' ? 'week' : 'month');
 
 export interface FamilyView {
   kind: 'week' | 'month';
   defaultPeriod: SummaryPeriod;
   summary: FamilySummary;
+  /** The saved message and sent mark for this period, read in the same transaction as the rows. */
+  record: PeriodRecord | undefined;
 }
 
 /** The family's summary for the period containing anchorYmd, or its default period when anchorYmd is null. Null when the family is gone. */
@@ -65,7 +71,8 @@ export async function loadFamilyView(familyId: string, anchorYmd: string | null,
     const kind = kindOf(family.period);
     const def = defaultPeriod(family.period, todayYmd);
     const period = anchorYmd === null ? def : summaryPeriod(kind, anchorYmd);
-    return { kind, defaultPeriod: def, summary: buildFamilySummary(await readSummaryInput(family, period)) };
+    const summary = buildFamilySummary(await readSummaryInput(family, period));
+    return { kind, defaultPeriod: def, summary, record: await readRecord(family.id, period) };
   });
 }
 
@@ -75,6 +82,7 @@ export interface SummaryListItem {
   kind: Period;
   period: SummaryPeriod;
   summary: FamilySummary;
+  record: PeriodRecord | undefined;
 }
 
 /** One item per active family in People order, each at its default period. */
@@ -83,7 +91,8 @@ export async function loadSummaryList(todayYmd: string): Promise<SummaryListItem
     const items: SummaryListItem[] = [];
     for (const family of await listActiveFamilies()) {
       const period = defaultPeriod(family.period, todayYmd);
-      items.push({ familyId: family.id, name: family.name, kind: family.period, period, summary: buildFamilySummary(await readSummaryInput(family, period)) });
+      const summary = buildFamilySummary(await readSummaryInput(family, period));
+      items.push({ familyId: family.id, name: family.name, kind: family.period, period, summary, record: await readRecord(family.id, period) });
     }
     return items;
   });

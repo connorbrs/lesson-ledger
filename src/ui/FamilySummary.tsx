@@ -3,6 +3,7 @@ import { useLive } from '../data/live';
 import { loadFamilyView } from '../data/summary';
 import { rangeLabel, todayLocal } from '../domain/dates';
 import { canGoNext, isDefaultPeriod, periodReturnLabel, renderMessageTr, screenParts, shiftSummaryPeriod, warningText } from '../domain/summary';
+import { SentGroup } from './SentGroup';
 import { ChevronIcon, Group, NavBar, PushLayer, Screen, useAnimatedClose, WarningIcon } from './components';
 
 /** The read-only Turkish message; grows with its text so the box never scrolls inside. */
@@ -42,7 +43,7 @@ export function FamilySummaryScreen(props: { familyId: string; onClosed: () => v
   }, [view]);
 
   if (!view) return null;
-  const { summary, defaultPeriod } = view;
+  const { summary, defaultPeriod, record } = view;
   const { period } = summary;
   const parts = screenParts(summary);
   const label = rangeLabel(period, period.kind, today);
@@ -77,6 +78,7 @@ export function FamilySummaryScreen(props: { familyId: string; onClosed: () => v
           </div>
         ) : (
           <>
+            {parts.showSent && <SentGroup summary={summary} record={record} />}
             {parts.showWarnings && (
               <Group header="Check before sending" footer="Warnings never block Copy or Share.">
                 {summary.warnings.map((w) => (
